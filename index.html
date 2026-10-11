@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#121212">
+<meta name="description" content="KanaMe — flashcards de repetición espaciada para aprender los 2136 kanji Jōyō, del 1º de primaria al nivel completo.">
+
+<!-- iOS: modo app a pantalla completa al añadir a la pantalla de inicio -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KanaMe">
+
+<title>KanaMe — Kanji Flashcards</title>
+
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="120x120" href="icons/apple-touch-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/apple-touch-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="167x167" href="icons/apple-touch-icon-167x167.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180x180.png">
+<link rel="manifest" href="site.webmanifest">
+
+<style>
+  :root {
+    --bg: #121212;
+    --surface: #1c1c1c;
+    --surface-raised: #262626;
+    --hairline: #333;
+    --text: #ebebeb;
+    --text-muted: #9a9a9a;
+    --text-faint: #686868;
+    --accent: #c0503a;
+    --accent-soft: #c0503a2e;
+
+    --again: #d0685c;  --again-soft: #d0685c1f;
+    --hard:  #c99a4a;  --hard-soft:  #c99a4a1f;
+    --good:  #6fae84;  --good-soft:  #6fae841f;
+    --easy:  #7fb8e0;  --easy-soft:  #7fb8e024;
+
+    --radius-lg: 22px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+    color-scheme: dark;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    display: flex; justify-content: center;
+    overflow-x: hidden;
+  }
+  button { font-family: inherit; -webkit-user-select: none; user-select: none; }
+
+  .app {
+    width: 100%; max-width: 480px; min-height: 100dvh;
+    display: flex; flex-direction: column;
+    padding: calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
+  }
+
+  /* Header */
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand img { width: 34px; height: 34px; border-radius: 9px; }
+  .brand h1 { margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -0.01em; }
+  .icon-btn {
+    appearance: none; background: none; border: 1px solid var(--hairline); color: var(--text-muted);
+    width: 38px; height: 38px; border-radius: 50%; cursor: pointer;
+    display: grid; place-items: center;
+  }
+  .icon-btn:active { transform: scale(.94); }
+  .icon-btn svg { width: 18px; height: 18px; }
+
+  /* Levels */
+  .levels { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 14px; }
+  .level-btn {
+    appearance: none; border: 1px solid var(--hairline); background: var(--surface); color: var(--text-muted);
+    border-radius: var(--radius-sm); padding: 8px 0 7px; cursor: pointer; min-width: 0;
+    transition: background .15s, color .15s, border-color .15s, transform .1s;
+  }
+  .level-btn:active { transform: scale(.95); }
+  .level-btn .n { display: block; font-size: 15px; font-weight: 700; }
+  .level-btn .count { display: block; font-size: 10px; margin-top: 2px; color: var(--text-faint); font-variant-numeric: tabular-nums; }
+  .level-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }
+  .level-btn.active .count { color: var(--accent); }
+  .level-btn.done .count { color: var(--good); }
+
+  /* Status */
+  .status { display: flex; justify-content: space-between; align-items: baseline; margin: 0 2px 10px; font-size: 12.5px; color: var(--text-faint); }
+  .status b { color: var(--text-muted); font-weight: 600; }
+  .progress { height: 3px; background: var(--surface-raised); border-radius: 3px; overflow: hidden; margin-bottom: 14px; }
+  .progress > div { height: 100%; width: 0; background: var(--good); transition: width .4s ease; }
+
+  /* Card */
+  .stage { flex: 1; display: flex; flex-direction: column; }
+  .card-wrap { flex: 1; perspective: 1600px; margin-bottom: 14px; min-height: 360px; }
+  .card { position: relative; width: 100%; height: 100%; min-height: 360px; transform-style: preserve-3d; transition: transform .45s cubic-bezier(.3,.1,.2,1); cursor: pointer; }
+  .card.flipped { transform: rotateY(180deg); }
+  .card.no-anim { transition: none; }
+  .face {
+    position: absolute; inset: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden;
+    border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--hairline);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 26px 20px; text-align: center;
+  }
+  .tag { position: absolute; top: 16px; left: 18px; font-size: 11px; color: var(--text-faint); letter-spacing: .04em; }
+  .kanji-big { font-size: clamp(96px, 34vw, 136px); line-height: 1; font-weight: 500; }
+  .hint { position: absolute; bottom: 20px; font-size: 12px; color: var(--text-faint); }
+  .face-back { transform: rotateY(180deg); justify-content: flex-start; overflow-y: auto; padding-top: 34px; }
+  .kanji-small { font-size: 52px; line-height: 1; font-weight: 500; margin: auto 0 18px; }
+  .face-back > :last-child { margin-bottom: auto; }
+  .readings { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 340px; margin-bottom: 18px; }
+  .reading { display: flex; gap: 10px; align-items: baseline; text-align: left; background: var(--surface-raised); border-radius: var(--radius-sm); padding: 9px 12px; }
+  .reading .lbl { flex: 0 0 34px; font-size: 10px; font-weight: 700; color: var(--text-faint); letter-spacing: .08em; }
+  .reading .val { font-size: 16px; line-height: 1.4; word-break: break-word; }
+  .meaning { font-size: 20px; font-weight: 650; margin-bottom: 16px; max-width: 340px; line-height: 1.3; }
+  .word { width: 100%; max-width: 340px; border: 1px solid var(--hairline); border-radius: var(--radius-md); padding: 11px 14px; text-align: left; }
+  .word .lbl { font-size: 10px; font-weight: 700; color: var(--text-faint); letter-spacing: .08em; margin-bottom: 4px; }
+  .word .val { font-size: 15.5px; line-height: 1.45; }
+
+  /* Ratings */
+  .ratings { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; height: 62px; opacity: 0; pointer-events: none; transition: opacity .15s; }
+  .ratings.show { opacity: 1; pointer-events: auto; }
+  .rate-btn { appearance: none; border: none; border-radius: var(--radius-md); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+  .rate-btn:active { transform: scale(.95); }
+  .rate-btn .label { font-size: 14px; font-weight: 700; }
+  .rate-btn .interval { font-size: 11px; opacity: .8; }
+  .again { background: var(--again-soft); color: var(--again); }
+  .hard  { background: var(--hard-soft);  color: var(--hard); }
+  .good  { background: var(--good-soft);  color: var(--good); }
+  .easy  { background: var(--easy-soft);  color: var(--easy); }
+
+  /* Empty */
+  .empty { flex: 1; min-height: 360px; border: 1px solid var(--hairline); border-radius: var(--radius-lg); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px; }
+  .empty .mark { font-size: 56px; color: var(--text-faint); margin-bottom: 14px; }
+  .empty h2 { margin: 0 0 8px; font-size: 18px; }
+  .empty p { margin: 0 0 20px; font-size: 14px; color: var(--text-muted); line-height: 1.5; max-width: 290px; }
+  .pill-btn { appearance: none; border: 1px solid var(--accent); background: var(--accent-soft); color: var(--text); font-size: 14px; font-weight: 600; padding: 11px 20px; border-radius: 999px; cursor: pointer; }
+  .pill-btn.ghost { border-color: var(--hairline); background: transparent; color: var(--text-muted); }
+
+  /* Settings sheet */
+  .sheet-backdrop { position: fixed; inset: 0; background: #000a; display: none; align-items: flex-end; justify-content: center; z-index: 10; }
+  .sheet-backdrop.open { display: flex; }
+  .sheet { width: 100%; max-width: 480px; background: var(--surface); border-top: 1px solid var(--hairline); border-radius: 22px 22px 0 0; padding: 20px 18px calc(20px + env(safe-area-inset-bottom)); max-height: 88dvh; overflow-y: auto; }
+  .sheet h2 { margin: 0 0 4px; font-size: 18px; }
+  .sheet .sub { margin: 0 0 18px; font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+  .sheet h3 { margin: 18px 0 8px; font-size: 12px; color: var(--text-faint); letter-spacing: .06em; text-transform: uppercase; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .stat { background: var(--surface-raised); border-radius: var(--radius-sm); padding: 10px; text-align: center; }
+  .stat b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 11px; color: var(--text-muted); }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .row .pill-btn { flex: 1; min-width: 140px; }
+  textarea { width: 100%; min-height: 84px; margin-top: 10px; background: var(--bg); color: var(--text); border: 1px solid var(--hairline); border-radius: var(--radius-sm); padding: 10px; font: 12px ui-monospace, Menlo, monospace; resize: vertical; }
+  .note { font-size: 12.5px; color: var(--text-muted); line-height: 1.5; margin: 8px 0 0; }
+  .danger { color: var(--again) !important; border-color: #d0685c55 !important; }
+
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px); background: var(--surface-raised); border: 1px solid var(--hairline); color: var(--text); font-size: 13.5px; padding: 10px 16px; border-radius: 999px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 20; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+  @media (max-width: 360px) { .level-btn .n { font-size: 13px; } .level-btn .count { font-size: 9px; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <img src="icons/icon-192.png" alt="">
+      <h1>KanaMe</h1>
+    </div>
+    <button class="icon-btn" id="openSettings" aria-label="Progreso y ajustes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>
+    </button>
+  </header>
+
+  <div class="levels" id="levels"></div>
+
+  <div class="status"><span id="levelLabel"></span><span id="statusRight"></span></div>
+  <div class="progress"><div id="progressBar"></div></div>
+
+  <div class="stage" id="stage"></div>
+</div>
+
+<div class="sheet-backdrop" id="sheet">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <h2 id="sheetTitle">Tu progreso</h2>
+    <p class="sub">Se guarda automáticamente en este dispositivo después de cada tarjeta. No hace falta cuenta.</p>
+    <div class="stats" id="stats"></div>
+
+    <h3>Copia de seguridad</h3>
+    <div class="row">
+      <button class="pill-btn" id="exportBtn">Copiar código</button>
+      <button class="pill-btn ghost" id="downloadBtn">Descargar archivo</button>
+    </div>
+    <p class="note">Úsalo para pasar tu progreso a otro móvil o navegador, o para guardarlo por si acaso.</p>
+
+    <h3>Restaurar</h3>
+    <textarea id="importText" placeholder="Pega aquí tu código de copia de seguridad"></textarea>
+    <div class="row" style="margin-top:8px">
+      <button class="pill-btn ghost" id="importBtn">Restaurar</button>
+      <button class="pill-btn ghost" id="fileBtn">Abrir archivo…</button>
+      <input type="file" id="fileInput" accept=".json,application/json,text/plain" hidden>
+    </div>
+
+    <h3>Peligro</h3>
+    <div class="row"><button class="pill-btn ghost danger" id="resetBtn">Borrar todo el progreso</button></div>
+
+    <div class="row" style="margin-top:22px"><button class="pill-btn" id="closeSettings">Cerrar</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="data/kanji.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  /* ================= Datos ================= */
+  var GRADES = window.KANJI_DATA || [];
+  var LEVELS = [
+    { short: "1",  name: "Kyōiku · 1º" },
+    { short: "2",  name: "Kyōiku · 1º–2º" },
+    { short: "3",  name: "Kyōiku · 1º–3º" },
+    { short: "4",  name: "Kyōiku · 1º–4º" },
+    { short: "5",  name: "Kyōiku · 1º–5º" },
+    { short: "6",  name: "Kyōiku completo" },
+    { short: "常", name: "Jōyō completo" }
+  ];
+  var GRADE_TAG = ["1º", "2º", "3º", "4º", "5º", "6º", "Jōyō"];
+
+  var CARDS = {};          // kanji -> card
+  var DECKS = [];          // DECKS[l] = lista de kanji del nivel l+1 (acumulativo)
+  (function build() {
+    var acc = [];
+    GRADES.forEach(function (g, gi) {
+      g.forEach(function (r) {
+        CARDS[r[0]] = { k: r[0], on: r[1], kun: r[2], sig: r[3], pal: r[4], grade: gi };
+        acc.push(r[0]);
+      });
+      DECKS.push(acc.slice());
+    });
+  })();
+
+  /* ================= Repetición espaciada ================= */
+  var MIN = 60 * 1000, DAY = 24 * 60 * MIN;
+  var INTERVALS = { again: 10 * MIN, hard: 1 * DAY, good: 3 * DAY, easy: 16 * DAY };
+
+  /* ================= Almacenamiento =================
+     El progreso se escribe en localStorage Y en IndexedDB.
+     Si uno de los dos se pierde, se recupera del otro al abrir. */
+  var KEY = "kaname.progress.v1";
+  var LEVEL_KEY = "kaname.level.v1";
+  var LEGACY_KEY = "kyoikuSR_progress_v1"; // versiones anteriores de la app
+  var progress = {};       // kanji -> { due, reps, last, seen }
+
+  var idb = null;
+  function openIDB() {
+    return new Promise(function (res) {
+      try {
+        var rq = indexedDB.open("kaname", 1);
+        rq.onupgradeneeded = function () { rq.result.createObjectStore("kv"); };
+        rq.onsuccess = function () { idb = rq.result; res(idb); };
+        rq.onerror = function () { res(null); };
+      } catch (e) { res(null); }
+    });
+  }
+  function idbGet(key) {
+    return new Promise(function (res) {
+      if (!idb) return res(null);
+      try {
+        var rq = idb.transaction("kv", "readonly").objectStore("kv").get(key);
+        rq.onsuccess = function () { res(rq.result || null); };
+        rq.onerror = function () { res(null); };
+      } catch (e) { res(null); }
+    });
+  }
+  function idbSet(key, val) {
+    if (!idb) return;
+    try { idb.transaction("kv", "readwrite").objectStore("kv").put(val, key); } catch (e) {}
+  }
+
+  function lsGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+  function lsSet(key, val) { try { localStorage.setItem(key, val); return true; } catch (e) { return false; } }
+
+  function countKeys(o) { return o ? Object.keys(o).length : 0; }
+  function parse(s) { try { var o = JSON.parse(s); return (o && typeof o === "object") ? o : null; } catch (e) { return null; } }
+
+  function save() {
+    var s = JSON.stringify(progress);
+    lsSet(KEY, s);
+    idbSet(KEY, s);
+  }
+
+  function loadProgress() {
+    return openIDB().then(function () { return idbGet(KEY); }).then(function (fromIdb) {
+      var a = parse(lsGet(KEY)), b = parse(fromIdb), legacy = parse(lsGet(LEGACY_KEY));
+      // Quedarse con la copia más completa
+      var best = [a, b, legacy].reduce(function (m, x) { return countKeys(x) > countKeys(m) ? x : m; }, null);
+      progress = best || {};
+      if (countKeys(progress)) save();
+    });
+  }
+
+  function requestPersistence() {
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+  }
+
+  /* ================= Estado ================= */
+  var level = parseInt(lsGet(LEVEL_KEY), 10);
+  if (!(level >= 1 && level <= LEVELS.length)) level = 1;
+  var queue = [];          // kanji pendientes ahora mismo
+  var current = null;
+  var flipped = false;
+  var cramMode = false;    // "Repasar todo de nuevo"
+  var busy = false;
+
+  function isDue(k, now) {
+    var p = progress[k];
+    return !p || typeof p.due !== "number" || p.due <= now;
+  }
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+  function levelCounts(l) {
+    var now = Date.now(), due = 0, fresh = 0, waiting = 0;
+    DECKS[l - 1].forEach(function (k) {
+      var p = progress[k];
+      if (!p || typeof p.due !== "number") fresh++;
+      else if (p.due <= now) due++;
+      else waiting++;
+    });
+    return { due: due, fresh: fresh, waiting: waiting, available: due + fresh, total: DECKS[l - 1].length };
+  }
+
+  function buildQueue() {
+    var now = Date.now(), reviews = [], fresh = [];
+    DECKS[level - 1].forEach(function (k) {
+      if (cramMode) { reviews.push(k); return; }
+      var p = progress[k];
+      if (!p || typeof p.due !== "number") fresh.push(k);
+      else if (p.due <= now) reviews.push(k);
+    });
+    queue = shuffle(reviews).concat(shuffle(fresh));
+  }
+
+  // Añade al final de la cola las tarjetas que acaban de volver a estar disponibles (p. ej. "Again" tras 10 min)
+  function refillQueue() {
+    if (cramMode) return;
+    var now = Date.now(), inQ = {};
+    queue.forEach(function (k) { inQ[k] = 1; });
+    if (current) inQ[current] = 1;
+    DECKS[level - 1].forEach(function (k) {
+      var p = progress[k];
+      if (!inQ[k] && p && typeof p.due === "number" && p.due <= now) queue.push(k);
+    });
+  }
+
+  function nextDueIn() {
+    var now = Date.now(), min = Infinity;
+    DECKS[level - 1].forEach(function (k) { var p = progress[k]; if (p && p.due > now && p.due < min) min = p.due; });
+    return min === Infinity ? null : min - now;
+  }
+  function humanTime(ms) {
+    var m = Math.ceil(ms / MIN);
+    if (m < 60) return m + " min";
+    var h = Math.round(m / 60);
+    if (h < 24) return h + " h";
+    var d = Math.round(h / 24);
+    return d + (d === 1 ? " día" : " días");
+  }
+
+  /* ================= UI ================= */
+  var $ = function (id) { return document.getElementById(id); };
+  var stage = $("stage");
+
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  function renderLevels() {
+    var box = $("levels"); box.innerHTML = "";
+    LEVELS.forEach(function (L, i) {
+      var n = i + 1, c = levelCounts(n);
+      var b = el("button", "level-btn" + (n === level ? " active" : "") + (c.available === 0 ? " done" : ""));
+      b.setAttribute("aria-label", L.name + ": " + c.available + " tarjetas disponibles de " + c.total);
+      b.appendChild(el("span", "n", L.short));
+      b.appendChild(el("span", "count", c.available === 0 ? "✓" : String(c.available)));
+      b.onclick = function () { selectLevel(n); };
+      box.appendChild(b);
+    });
+  }
+
+  function renderStatus() {
+    var c = levelCounts(level);
+    $("levelLabel").textContent = LEVELS[level - 1].name;
+    var left = cramMode ? queue.length + (current ? 1 : 0) : c.available;
+    $("statusRight").innerHTML = "";
+    var b = el("b", null, left + " por repasar");
+    $("statusRight").appendChild(b);
+    if (c.waiting && !cramMode) $("statusRight").appendChild(document.createTextNode(" · " + c.waiting + " en espera"));
+    var learned = c.total - c.fresh;
+    $("progressBar").style.width = (c.total ? (learned / c.total) * 100 : 0) + "%";
+  }
+
+  function buildCard() {
+    stage.innerHTML = "";
+    var wrap = el("div", "card-wrap"), card = el("div", "card"); card.id = "card";
+    var front = el("div", "face face-front");
+    front.appendChild(el("div", "tag")).id = "tagFront";
+    front.appendChild(el("div", "kanji-big")).id = "kFront";
+    front.appendChild(el("div", "hint", "Toca para ver la respuesta"));
+    var back = el("div", "face face-back"); back.id = "back";
+    card.appendChild(front); card.appendChild(back); wrap.appendChild(card);
+    stage.appendChild(wrap);
+
+    var r = el("div", "ratings"); r.id = "ratings";
+    [["again", "Again", "10 min"], ["hard", "Hard", "1 día"], ["good", "Good", "3 días"], ["easy", "Easy", "16 días"]].forEach(function (x) {
+      var b = el("button", "rate-btn " + x[0]);
+      b.appendChild(el("span", "label", x[1])); b.appendChild(el("span", "interval", x[2]));
+      b.onclick = function (e) { e.stopPropagation(); rate(x[0]); };
+      r.appendChild(b);
+    });
+    stage.appendChild(r);
+    card.onclick = flip;
+  }
+
+  function fillBack(c) {
+    var back = $("back"); back.innerHTML = "";
+    back.appendChild(el("div", "tag", GRADE_TAG[c.grade]));
+    back.appendChild(el("div", "kanji-small", c.k));
+    var rd = el("div", "readings");
+    [["ON", c.on], ["KUN", c.kun]].forEach(function (x) {
+      if (!x[1]) return;
+      var row = el("div", "reading"); row.appendChild(el("span", "lbl", x[0])); row.appendChild(el("span", "val", x[1])); rd.appendChild(row);
+    });
+    if (rd.children.length) back.appendChild(rd);
+    back.appendChild(el("div", "meaning", c.sig));
+    if (c.pal) {
+      var w = el("div", "word"); w.appendChild(el("div", "lbl", "PALABRA DE EJEMPLO")); w.appendChild(el("div", "val", c.pal)); back.appendChild(w);
+    }
+    back.scrollTop = 0;
+  }
+
+  function renderEmpty() {
+    current = null;
+    stage.innerHTML = "";
+    var box = el("div", "empty");
+    box.appendChild(el("div", "mark", "休"));
+    box.appendChild(el("h2", null, "¡Todo repasado!"));
+    var wait = nextDueIn();
+    box.appendChild(el("p", null, wait != null
+      ? "No te queda nada pendiente en este nivel. La siguiente tarjeta vuelve en " + humanTime(wait) + "."
+      : "No te queda nada pendiente en este nivel."));
+    var b = el("button", "pill-btn", "Repasar todo igualmente");
+    b.onclick = function () { cramMode = true; buildQueue(); showNext(); };
+    box.appendChild(b);
+    stage.appendChild(box);
+    renderStatus();
+  }
+
+  function showNext() {
+    refillQueue();
+    if (!queue.length) { if (cramMode) { cramMode = false; } renderEmpty(); renderLevels(); return; }
+    if (!$("card")) buildCard();
+    current = queue.shift();
+    var c = CARDS[current];
+    flipped = false;
+    var card = $("card");
+    card.classList.add("no-anim"); card.classList.remove("flipped");
+    void card.offsetWidth; card.classList.remove("no-anim");
+    $("ratings").classList.remove("show");
+    $("kFront").textContent = c.k;
+    $("tagFront").textContent = GRADE_TAG[c.grade];
+    $("back").innerHTML = ""; // la respuesta se rellena solo al girar, así nunca se ve antes de tiempo
+    renderStatus();
+  }
+
+  function flip() {
+    if (flipped || !current || busy) return;
+    fillBack(CARDS[current]);
+    flipped = true;
+    $("card").classList.add("flipped");
+    $("ratings").classList.add("show");
+  }
+
+  function rate(choice) {
+    if (!flipped || !current || busy) return;
+    busy = true;
+    var now = Date.now();
+    var p = progress[current] || { reps: 0 };
+    p.reps = (p.reps || 0) + 1;
+    p.due = now + INTERVALS[choice];
+    p.last = choice;
+    p.seen = now;
+    progress[current] = p;
+    save();
+    if (cramMode && choice === "again") queue.push(current);
+
+    // Gira de vuelta mostrando aún la carta actual; la siguiente se carga al terminar el giro
+    $("ratings").classList.remove("show");
+    $("card").classList.remove("flipped");
+    setTimeout(function () { busy = false; renderLevels(); showNext(); }, 460);
+  }
+
+  function selectLevel(n) {
+    level = n; lsSet(LEVEL_KEY, String(n));
+    cramMode = false; current = null;
+    buildQueue(); stage.innerHTML = ""; showNext(); renderLevels();
+  }
+
+  /* ================= Ajustes / copia de seguridad ================= */
+  function toast(msg) { var t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(function () { t.classList.remove("show"); }, 2200); }
+
+  function renderStats() {
+    var now = Date.now(), seen = 0, mature = 0, due = 0;
+    Object.keys(progress).forEach(function (k) {
+      var p = progress[k]; if (!CARDS[k] || !p) return;
+      seen++;
+      if (p.last === "good" || p.last === "easy") mature++;
+      if (p.due <= now) due++;
+    });
+    var s = $("stats"); s.innerHTML = "";
+    [[seen, "estudiados"], [mature, "dominados"], [2136 - seen, "por empezar"]].forEach(function (x) {
+      var d = el("div", "stat"); d.appendChild(el("b", null, String(x[0]))); d.appendChild(el("span", null, x[1])); s.appendChild(d);
+    });
+  }
+  function backupString() { return JSON.stringify({ app: "KanaMe", v: 1, date: new Date().toISOString(), progress: progress }); }
+  function restoreFrom(text) {
+    var o = parse((text || "").trim());
+    var p = o && (o.progress || (o.app ? null : o));
+    if (!p || typeof p !== "object") { toast("Código no válido"); return; }
+    var n = 0, merged = {};
+    Object.keys(progress).forEach(function (k) { merged[k] = progress[k]; });
+    Object.keys(p).forEach(function (k) {
+      if (!CARDS[k] || !p[k] || typeof p[k].due !== "number") return;
+      // Si la tarjeta existe en ambos, nos quedamos con la revisada más recientemente
+      if (!merged[k] || (p[k].seen || 0) >= (merged[k].seen || 0)) { merged[k] = p[k]; n++; }
+    });
+    progress = merged; save();
+    buildQueue(); stage.innerHTML = ""; current = null; showNext(); renderLevels(); renderStats();
+    toast(n + " tarjetas restauradas");
+  }
+
+  $("openSettings").onclick = function () { renderStats(); $("sheet").classList.add("open"); };
+  $("closeSettings").onclick = function () { $("sheet").classList.remove("open"); };
+  $("sheet").onclick = function (e) { if (e.target === $("sheet")) $("sheet").classList.remove("open"); };
+  $("exportBtn").onclick = function () {
+    var s = backupString();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(s).then(function () { toast("Código copiado"); }, function () { $("importText").value = s; toast("Cópialo del cuadro de abajo"); });
+    } else { $("importText").value = s; toast("Cópialo del cuadro de abajo"); }
+  };
+  $("downloadBtn").onclick = function () {
+    var blob = new Blob([backupString()], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "kaname-progreso-" + new Date().toISOString().slice(0, 10) + ".json";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  };
+  $("importBtn").onclick = function () { restoreFrom($("importText").value); };
+  $("fileBtn").onclick = function () { $("fileInput").click(); };
+  $("fileInput").onchange = function () {
+    var f = this.files && this.files[0]; if (!f) return;
+    var rd = new FileReader(); rd.onload = function () { restoreFrom(String(rd.result)); }; rd.readAsText(f);
+    this.value = "";
+  };
+  $("resetBtn").onclick = function () {
+    if (!confirm("¿Borrar TODO tu progreso en este dispositivo? No se puede deshacer.")) return;
+    progress = {}; save(); try { localStorage.removeItem(LEGACY_KEY); } catch (e) {}
+    selectLevel(level); renderStats(); toast("Progreso borrado");
+  };
+
+  /* ================= Ciclo de vida ================= */
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "hidden") save();
+    else { refillQueue(); renderLevels(); if (!current) { buildQueue(); stage.innerHTML = ""; showNext(); } else renderStatus(); }
+  });
+  window.addEventListener("pagehide", save);
+  // Cada 30 s comprueba si alguna tarjeta ("Again") ha vuelto a estar disponible
+  setInterval(function () {
+    if (document.visibilityState !== "visible") return;
+    if (!current && !cramMode) { buildQueue(); if (queue.length) { stage.innerHTML = ""; showNext(); } }
+    renderLevels(); if (current) renderStatus();
+  }, 30000);
+  document.addEventListener("keydown", function (e) {
+    if ($("sheet").classList.contains("open")) return;
+    if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); }
+    else if (flipped && "1234".indexOf(e.key) >= 0) rate(["again", "hard", "good", "easy"][+e.key - 1]);
+  });
+
+  if ("serviceWorker" in navigator && location.protocol === "https:") {
+    window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+  }
+
+  /* ================= Inicio ================= */
+  if (!GRADES.length) { stage.textContent = "No se pudieron cargar los datos (data/kanji.js)."; return; }
+  loadProgress().then(function () {
+    requestPersistence();
+    buildQueue(); renderLevels(); showNext();
+  });
+})();
+</script>
+</body>
+</html>
