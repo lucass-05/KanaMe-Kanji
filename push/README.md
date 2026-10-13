@@ -43,6 +43,8 @@ Una web no puede programar sola un aviso a una hora concreta con la app cerrada.
 
 El aviso se envía sin contenido; el service worker de la app (`sw.js`) compone el mensaje con la racha guardada en el móvil («🔥 Racha de 12 días: completa los kanji de hoy para no perderla»).
 
+**Protección:** el servidor solo acepta suscripciones de los servicios de notificaciones reales (Apple, Google, Mozilla y Microsoft) con claves bien formadas, limita las peticiones a 20 cada 10 minutos por IP y no reescribe una suscripción que no ha cambiado. No guarda datos personales: solo la dirección anónima de notificaciones, la hora, la zona horaria y el último día completado. Además, la app ignora el contenido de los avisos y compone siempre su propio mensaje, así que nadie puede usarlos para enviar textos o enlaces.
+
 **Compatibilidad:** Android (Chrome, Samsung Internet, Firefox) y ordenador. En iPhone y iPad funciona con iOS 16.4 o posterior, **solo si KanaMe está añadida a la pantalla de inicio**.
 
 **Límites del plan gratuito:** cada usuario que completa el día hace una escritura en KV, y el plan gratuito permite 1000 escrituras diarias. Si algún día tienes cientos de usuarios activos a diario, basta con pasar al plan de pago de Workers (unos 5 $/mes).

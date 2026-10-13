@@ -37,18 +37,21 @@ export default {
         return json({ publicKey: v.publicKey });
       }
       if (req.method !== "POST") return json({ error: "not found" }, 404);
+      if (tooMany(req.headers.get("CF-Connecting-IP") || "?")) return json({ error: "too many requests" }, 429);
       const body = await req.json().catch(() => null);
       if (!body || !validId(body.id)) return json({ error: "bad request" }, 400);
 
       if (path === "/subscribe") {
         const sub = body.sub;
-        if (!validSlot(body.slot) || !sub || typeof sub.endpoint !== "string" || !sub.endpoint.startsWith("https://") || !sub.keys) {
-          return json({ error: "bad subscription" }, 400);
-        }
-        const meta = { sub: { endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth } }, off: Number(body.off) || 0, done: String(body.done || "") };
-        if (JSON.stringify(meta).length > 1000) return json({ error: "subscription too large" }, 400);
+        if (!validSlot(body.slot) || !validSub(sub)) return json({ error: "bad subscription" }, 400);
+        const off = Math.max(-840, Math.min(840, Math.round(Number(body.off) || 0)));
+        const done = /^\d{4}-\d{2}-\d{2}$/.test(body.done || "") ? body.done : "";
+        const meta = { sub: { endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth } }, off, done };
         if (validSlot(body.prevSlot) && body.prevSlot !== body.slot) await env.SUBS.delete(key(body.prevSlot, body.id));
-        await env.SUBS.put(key(body.slot, body.id), "", { metadata: meta });
+        // Si ya está guardada igual, no se vuelve a escribir (el plan gratuito limita las escrituras diarias)
+        const k = key(body.slot, body.id);
+        const prev = (await env.SUBS.getWithMetadata(k)).metadata;
+        if (!prev || JSON.stringify(prev) !== JSON.stringify(meta)) await env.SUBS.put(k, "", { metadata: meta });
         return json({ ok: true });
       }
       if (path === "/unsubscribe") {
@@ -84,7 +87,7 @@ async function sendReminders(env, when) {
     const page = await env.SUBS.list({ prefix: "s:" + slot + ":", cursor });
     for (const k of page.keys) {
       const m = k.metadata;
-      if (!m || !m.sub) continue;
+      if (!m || !m.sub || !isPushService(m.sub.endpoint)) { await env.SUBS.delete(k.name); continue; }
       const localToday = localDate(when, m.off);
       if (m.done === localToday) continue; // ya ha hecho los kanji de hoy
       const status = await sendPush(m.sub, vapid);
@@ -151,6 +154,36 @@ function platform(endpoint) {
   if (h.endsWith("mozilla.com")) return "Firefox";
   if (h.endsWith("windows.com")) return "Edge";
   return "otro";
+}
+
+/* ---------------- Protección ---------------- */
+
+// Solo se aceptan suscripciones de los servicios de notificaciones reales de los navegadores.
+// Así nadie puede usar este servidor para mandar peticiones a otras webs.
+function isPushService(endpoint) {
+  let u; try { u = new URL(endpoint); } catch (e) { return false; }
+  if (u.protocol !== "https:" || u.port) return false;
+  const h = u.hostname;
+  return h === "fcm.googleapis.com"                                            // Chrome, Android, Edge (Chromium)
+    || h === "web.push.apple.com" || h.endsWith(".push.apple.com")             // iPhone, iPad, Mac (Safari)
+    || h === "updates.push.services.mozilla.com" || h.endsWith(".push.services.mozilla.com") // Firefox
+    || h.endsWith(".notify.windows.com");                                      // Edge en Windows
+}
+// Claves de cifrado de la suscripción: base64url con el tamaño que fija el estándar
+function validSub(sub) {
+  return !!sub && typeof sub.endpoint === "string" && sub.endpoint.length <= 600 && isPushService(sub.endpoint)
+    && !!sub.keys && /^[A-Za-z0-9_-]{80,100}$/.test(sub.keys.p256dh || "") && /^[A-Za-z0-9_-]{16,32}$/.test(sub.keys.auth || "");
+}
+// Límite de peticiones por IP: 20 cada 10 minutos. Se cuenta en memoria (no gasta escrituras de KV);
+// no es perfecto, pero frena a quien intente llenar el almacén o agotar el límite diario.
+const RATE = { max: 20, windowMs: 10 * 60 * 1000 };
+const hits = new Map();
+function tooMany(ip) {
+  const now = Date.now();
+  if (hits.size > 5000) for (const [k, v] of hits) if (now - v.t > RATE.windowMs) hits.delete(k);
+  const h = hits.get(ip);
+  if (!h || now - h.t > RATE.windowMs) { hits.set(ip, { t: now, n: 1 }); return false; }
+  return ++h.n > RATE.max;
 }
 
 /* ---------------- Utilidades ---------------- */
