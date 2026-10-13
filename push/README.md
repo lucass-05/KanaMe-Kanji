@@ -39,7 +39,7 @@ Una web no puede programar sola un aviso a una hora concreta con la app cerrada.
 | `POST /done` | Marca que hoy ya se han completado los kanji, para no avisar |
 | cron cada 15 min | Envía el aviso a quien le toca en esa franja |
 
-**Si alguien borra la app**, el servicio de push (Apple, Google…) responde que la suscripción ya no existe (404/410) la próxima vez que toca avisarle. El Worker la borra, deja de enviarle avisos y anota el evento `evento/app-desinstalada` en GoatCounter, con el tipo de dispositivo en el título. Lo mismo ocurre si se quitan los permisos de notificación desde los ajustes del móvil. Solo se detecta en quien tenía el recordatorio activado, y el día que ya ha hecho los kanji no se le avisa, así que puede tardar algún día más en aparecer.
+**Si alguien borra la app**, el servicio de push (Apple, Google…) responde que la suscripción ya no existe (404/410) la próxima vez que toca avisarle. El Worker la borra, deja de enviarle avisos y anota el evento `evento/app-desinstalada-o-silenciada` («App desinstalada/silenciada») en GoatCounter, con el tipo de dispositivo en el título. Lo mismo ocurre si se quitan los permisos de notificación desde los ajustes del móvil. Solo se detecta en quien tenía el recordatorio activado, y el día que ya ha hecho los kanji no se le avisa, así que puede tardar algún día más en aparecer.
 
 El aviso se envía sin contenido; el service worker de la app (`sw.js`) compone el mensaje con la racha guardada en el móvil («🔥 Racha de 12 días: completa los kanji de hoy para no perderla»).
 

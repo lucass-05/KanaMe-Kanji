@@ -92,7 +92,7 @@ async function sendReminders(env, when) {
         // El servicio de push dice que esa suscripción ya no existe: se borró la app (o se quitaron
         // los permisos de notificación en los ajustes del móvil). Se deja de avisar y se anota en GoatCounter.
         await env.SUBS.delete(k.name);
-        await track("evento/app-desinstalada", "App desinstalada · " + platform(m.sub.endpoint));
+        await track("evento/app-desinstalada-o-silenciada", "App desinstalada/silenciada · " + platform(m.sub.endpoint));
       }
     }
     cursor = page.list_complete ? null : page.cursor;
