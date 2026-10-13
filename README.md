@@ -1,172 +1,101 @@
 <div align="center">
 
-<img src="icons/icon-192.png" width="96" alt="Icono de KanaMe">
+<img src="icons/icon-192.png" width="88" alt="KanaMe">
 
 # KanaMe
 
-**Los 2136 kanji Jōyō, uno a uno, en el momento justo para no olvidarlos.**
+### Aprende los 2136 kanji Jōyō en meses, no en años.
 
-Flashcards de repetición espaciada para el móvil. Sin cuentas, sin anuncios, sin instalar nada de la App Store.
+Flashcards con repetición espaciada, pensadas para el móvil.<br>
+Sin cuentas · Sin anuncios · Funciona sin conexión
 
-![Kanji](https://img.shields.io/badge/kanji-2136%20J%C5%8Dy%C5%8D-c0503a)
-![Niveles](https://img.shields.io/badge/niveles-7-555)
-![PWA](https://img.shields.io/badge/PWA-iPhone%20%7C%20Android-7fb8e0)
-![Offline](https://img.shields.io/badge/funciona-sin%20conexi%C3%B3n-6fae84)
-![Licencia](https://img.shields.io/badge/licencia-MIT-lightgrey)
+**[▶ Abrir KanaMe](https://lucass-05.github.io/KanaMe-Kanji/)**
 
-<img src="docs/screenshot-front.png" width="260" alt="Anverso de una tarjeta">&nbsp;&nbsp;&nbsp;<img src="docs/screenshot-back.png" width="260" alt="Reverso de una tarjeta">
+![Kanji](https://img.shields.io/badge/kanji-2136-c0503a)
+![Palabras](https://img.shields.io/badge/palabras_de_ejemplo-4400%2B-555)
+![PWA](https://img.shields.io/badge/iPhone_%7C_Android-PWA-7fb8e0)
+![Licencia](https://img.shields.io/badge/licencia-AGPL--3.0-lightgrey)
 
 </div>
 
----
+<br>
 
-## ¿Qué es KanaMe?
+<p align="center"><img src="docs/preview.png" alt="Cómo funciona KanaMe: recuerda, comprueba y avanza" width="100%"></p>
 
-KanaMe es una aplicación web (PWA) para aprender **todos los kanji que necesitas para leer japonés con soltura**: la lista oficial **Jōyō** (常用漢字), los 2136 caracteres que el Ministerio de Educación de Japón considera de uso general y que aparecen en periódicos, carteles, libros y documentos oficiales.
+## Cómo funciona
 
-Se abre en el navegador, se añade a la pantalla de inicio del iPhone como una app más y guarda tu progreso automáticamente.
+1. **Recuerda.** La tarjeta muestra solo el kanji. Intenta recordar cómo se lee y qué significa.
+2. **Comprueba.** Toca la tarjeta para ver sus lecturas *on* y *kun*, el significado en español y palabras de uso real con el kanji resaltado.
+3. **Valora.** Di cuánto te ha costado y KanaMe decide cuándo enseñártelo de nuevo:
 
-## Lo que puedes hacer
+| | Again | Hard | Good | Easy |
+|---|:---:|:---:|:---:|:---:|
+| **Vuelve en** | 10 min | 1 día | 3 días | 16 días |
 
-- **Estudiar por niveles acumulativos**, siguiendo el mismo orden en que los aprenden los niños japoneses.
-- **Ver el kanji solo** en el anverso y, al tocar, el reverso con:
-  - lecturas **on'yomi** (オン, en katakana) y **kun'yomi** (くん, en hiragana),
-  - **significado en español**,
-  - **palabras de ejemplo** reales con su lectura y traducción (hasta 4 en los niveles 1 y 2, elegidas para cubrir sus distintas lecturas), con el kanji resaltado dentro de cada palabra.
-- **Valorar cada tarjeta** y dejar que la app decida cuándo volver a enseñártela:
+Tu progreso se guarda solo en el móvil y se comparte entre niveles: lo que ya sabes no vuelve a salir hasta que toca.
 
-  | Botón | Cuándo vuelve |
-  |---|---|
-  | 🔴 **Again** | en 10 minutos (en la misma sesión) |
-  | 🟡 **Hard** | en 1 día |
-  | 🟢 **Good** | en 3 días |
-  | 🔵 **Easy** | en 16 días |
+## Por qué se aprende tan rápido
 
-- **Compartir progreso entre niveles**: un kanji que ya has repasado en el nivel 2 no te vuelve a salir en el nivel 6 hasta que le toque.
-- **Ver de un vistazo cuánto te queda**: cada nivel muestra cuántas tarjetas tienes disponibles ahora, y una barra de progreso indica cuántas has estudiado ya.
-- **Hacer copia de seguridad** de tu progreso (código o archivo) y restaurarla en otro móvil.
-- **Usarla sin conexión**: tras la primera visita funciona en el metro o en el avión.
-- **Exportar a otras apps**: la carpeta [`csv/`](csv) incluye los mazos en formato CSV (anverso/reverso) para importarlos en Anki, Sumi, Quizlet, etc.
+KanaMe aplica las dos técnicas de estudio con más respaldo científico:
 
-## Los 7 niveles
+- **Recuerdo activo.** Intentar recordar antes de ver la respuesta fija la memoria mucho mejor que releer listas (el *testing effect*).
+- **Repetición espaciada.** Cada kanji vuelve justo antes de que lo olvides. Los que dominas se alejan solos y tu tiempo se dedica solo a los que te cuestan.
 
-Cada nivel **incluye todos los anteriores**, así que avanzar nunca significa abandonar lo aprendido.
+A esto se suman tres decisiones de diseño:
 
-| Nivel | Contenido | Kanji |
-|:---:|---|---:|
-| **1** | Kyōiku 1º de primaria | 80 |
-| **2** | Kyōiku 1º – 2º | 240 |
-| **3** | Kyōiku 1º – 3º | 440 |
-| **4** | Kyōiku 1º – 4º | 642 |
-| **5** | Kyōiku 1º – 5º | 835 |
-| **6** | Kyōiku completo (教育漢字) | 1026 |
-| **常** | **Jōyō completo (常用漢字)** | **2136** |
+- **Palabras reales, no lecturas sueltas.** Cada kanji viene con 1–4 palabras comunes que muestran sus distintas lecturas en contexto: 上 es *ue* en 上, *jō* en 上手 y *a(garu)* en 上がる.
+- **Orden pedagógico.** Los kanji siguen el orden en que se aprenden en la escuela japonesa, así que los simples sirven de pieza para los complejos.
+- **Sesiones cortas.** Diez minutos al día bastan.
 
-Los niveles 1–6 siguen la lista oficial de *kyōiku kanji* vigente desde 2020. El nivel 常 añade los 1110 kanji que se estudian en secundaria hasta completar la lista Jōyō.
+> **Con 20 kanji nuevos al día recorres la lista Jōyō completa en unos 4 meses.**
 
-## Por qué funciona
+## Niveles
 
-Aprender 2136 caracteres a base de repetirlos en una libreta es agotador y, sobre todo, ineficaz: se olvidan casi tan rápido como se aprenden. KanaMe se apoya en tres principios con décadas de investigación detrás:
+Cada nivel incluye todos los anteriores.
 
-### 1. La curva del olvido
-Hermann Ebbinghaus demostró en 1885 que olvidamos lo aprendido siguiendo una curva predecible: muy rápido al principio y cada vez más despacio. Cada repaso hecho **justo antes de olvidar** aplana esa curva y hace que el recuerdo dure más.
-
-### 2. Repetición espaciada
-Repasar algo varias veces separadas en el tiempo es mucho más efectivo que repasarlo las mismas veces de golpe (el *efecto de espaciado*, uno de los resultados más sólidos de la psicología cognitiva). Los intervalos de KanaMe —10 minutos, 1 día, 3 días, 16 días— hacen que **solo dediques tiempo a los kanji que de verdad te cuestan**, mientras los que ya dominas se alejan solos.
-
-### 3. Recuerdo activo
-Ver el kanji solo y obligarte a recordar su lectura y significado **antes** de girar la tarjeta (en lugar de releer una lista) fortalece la memoria mucho más que el repaso pasivo. Es el *efecto de evaluación* (*testing effect*): intentar recordar es, en sí mismo, la forma de aprender.
-
-### Y además…
-- **Orden pedagógico.** Empiezas por 一, 人, 山… y los kanji simples se convierten en piezas de los complejos que vienen después.
-- **Contexto real.** Cada kanji va acompañado de palabras de uso común: aprendes cómo se *lee* de verdad en el vocabulario, no solo una lista de lecturas sueltas. En los primeros niveles verás, por ejemplo, 上 leído como *ue* en 上, *jō* en 上手 y *a(garu)* en 上がる.
-- **Sesiones cortas.** Diez minutos al día bastan. La constancia gana a la intensidad.
-
-> Con unos 20 kanji nuevos al día, la lista Jōyō completa se recorre en unos 3–4 meses. A 10 al día, en unos 7. Lo importante es no saltarse los repasos.
+| 1 | 2 | 3 | 4 | 5 | 6 | 常 |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Kyōiku 1º | 1º–2º | 1º–3º | 1º–4º | 1º–5º | Kyōiku completo | **Jōyō completo** |
+| 80 | 240 | 440 | 642 | 835 | 1026 | **2136** |
 
 ## Instalar en el iPhone
 
-1. Abre la web de KanaMe en **Safari**.
-2. Toca el botón **Compartir** (el cuadrado con la flecha hacia arriba).
-3. Elige **Añadir a pantalla de inicio** → **Añadir**.
+Abre la app en **Safari** y toca **Compartir → Añadir a pantalla de inicio**. Se abrirá a pantalla completa, como una app nativa.
 
-KanaMe aparecerá con su icono y se abrirá a pantalla completa, como una app nativa.
+En Android (Chrome): menú **⋮ → Instalar aplicación**.
 
-> **Importante:** en iOS, la app de la pantalla de inicio y Safari guardan el progreso por separado. Estudia siempre desde el icono. Si empezaste en Safari, usa *Progreso → Copiar código* y *Restaurar* para pasarlo a la app.
+> En iOS, Safari y el icono de inicio guardan el progreso por separado. Estudia siempre desde el icono, o pasa tu progreso con **Progreso → Copia de seguridad**.
 
-En **Android** (Chrome): menú ⋮ → *Instalar aplicación*.
+## Privacidad
 
-## Tu progreso y tu privacidad
+Sin servidores ni registro. Todo se guarda en tu dispositivo, con copia en dos almacenes del navegador. Puedes exportar tu progreso como código o archivo y restaurarlo en otro móvil.
 
-- El progreso se guarda **en tu propio dispositivo** después de cada tarjeta (en `localStorage` y, como respaldo, en `IndexedDB`). Si uno de los dos se pierde, se recupera del otro.
-- **No hay cuentas ni servidores**: cada persona que use KanaMe en su móvil tiene su propio progreso, sin iniciar sesión nunca. Nada sale de tu teléfono.
-- Para cambiar de móvil o por seguridad, usa **Progreso → Copia de seguridad**. Al restaurar, el progreso se combina con el que ya tengas (se queda el repaso más reciente de cada kanji).
+## Para desarrolladores
 
-## Publicarla tú mismo (GitHub Pages)
-
-No hace falta compilar nada: es HTML, CSS y JavaScript puros.
-
-**Con GitHub Desktop**
-
-1. *File → Add local repository…* y elige esta carpeta. Si te ofrece *create a repository*, acéptalo.
-2. Haz el primer *commit* (“Primera versión”) y pulsa **Publish repository**. Desmarca *Keep this code private* para poder usar GitHub Pages gratis.
-3. En github.com, abre el repositorio → **Settings → Pages**.
-4. En *Source* elige **Deploy from a branch**, rama `main`, carpeta `/ (root)` y **Save**.
-5. En 1–2 minutos estará en `https://TU-USUARIO.github.io/KanaMe/`.
-
-Cada vez que hagas cambios: *commit* + **Push origin** y la web se actualiza sola.
-
-**Probarla en local**
+HTML, CSS y JavaScript puros, sin dependencias ni compilación.
 
 ```bash
-python3 -m http.server 8000
-# y abre http://localhost:8000
+python3 -m http.server 8000   # y abre http://localhost:8000
 ```
 
-## Estructura del proyecto
-
-```
-KanaMe/
-├── index.html              # La app completa (interfaz + lógica)
-├── data/
-│   └── kanji.js            # Los 2136 kanji, agrupados en 7 niveles
-├── sw.js                   # Service worker (uso sin conexión)
-├── site.webmanifest        # Manifiesto PWA (nombre, colores, iconos)
-├── apple-touch-icon.png    # Icono que usa iOS en la pantalla de inicio
-├── favicon.ico
-├── icons/                  # Iconos en todos los tamaños de iOS / Android / navegador
-├── csv/                    # Mazos acumulativos en CSV para otras apps
-├── docs/                   # Capturas de pantalla
-└── .nojekyll               # Le dice a GitHub Pages que sirva los archivos tal cual
-```
-
-### Formato de los datos
-
-`data/kanji.js` define `window.KANJI_DATA`: una lista de 7 grupos (uno por curso; los niveles acumulativos se construyen en la app). Cada kanji es:
-
-```js
-["音", "オン・イン", "おと・ね", "sonido",
-  ["音 (おと) – sonido", "音楽 (おんがく) – música", "発音 (はつおん) – pronunciación", "本音 (ほんね) – verdadera intención"]]
-// [kanji, on'yomi, kun'yomi, significado en español, palabras de ejemplo]
-```
-
-Las palabras de ejemplo pueden ser un único texto o una lista, siempre con el formato `palabra (lectura) – significado`.
-
-### Personalizar
-
-- **Icono:** sustituye los PNG de `icons/` y `apple-touch-icon.png` por los tuyos (mismos nombres y tamaños). En iOS puede que tengas que borrar la app de la pantalla de inicio y volver a añadirla para ver el icono nuevo.
-- **Intervalos de repaso:** constante `INTERVALS` en `index.html`.
-- **Colores:** variables CSS al principio de `index.html`.
-- Si cambias archivos y quieres forzar que los móviles descarguen la versión nueva al instante, sube el número de `VERSION` en `sw.js`.
+| Archivo | Contenido |
+|---|---|
+| `index.html` | Interfaz y lógica de la app |
+| `data/kanji.js` | Los 2136 kanji: `[kanji, on, kun, significado, palabras]` |
+| `sw.js` | Service worker (modo sin conexión). Sube `VERSION` al publicar cambios |
+| `csv/` | Mazos en CSV para Anki, Quizlet y similares |
+| `icons/` | Iconos para iOS, Android y navegador |
 
 ## Créditos
 
-- Lecturas de la lista Jōyō: [kanji-data](https://github.com/davidluzgouveia/kanji-data) de David Gouveia, basado en **KANJIDIC2** del [Electronic Dictionary Research and Development Group](https://www.edrdg.org/) (licencia CC BY-SA 4.0).
-- Significados en español y palabras de ejemplo: elaboración propia (los niveles 1 y 2 incluyen hasta 4 palabras por kanji; el resto se irá ampliando). Si encuentras algún error, abre un *issue* o un *pull request*.
-- Listas oficiales: 常用漢字表 (Agencia de Asuntos Culturales de Japón, 2010) y 学年別漢字配当表 (MEXT, 2020).
+- Lecturas: [KANJIDIC2](https://www.edrdg.org/wiki/index.php/KANJIDIC_Project) (EDRDG, CC BY-SA 4.0), vía [kanji-data](https://github.com/davidluzgouveia/kanji-data).
+- Significados en español y palabras de ejemplo: elaboración propia.
+- Listas oficiales: 常用漢字表 (2010) y 学年別漢字配当表 (MEXT, 2020).
 
 ## Licencia
 
-El código se distribuye bajo licencia [MIT](LICENSE). Los datos de lecturas derivados de KANJIDIC2 mantienen su licencia original (CC BY-SA 4.0).
+© 2026 Lucas Suárez. Código publicado bajo la licencia **[GNU AGPL-3.0](LICENSE)**.
+
+Puedes usar y estudiar KanaMe libremente. Si copias o modificas el código y lo distribuyes o lo publicas como web o app, debes mantener el aviso de autoría y publicar tu código completo bajo la misma licencia. Los datos de lecturas derivados de KANJIDIC2 conservan su licencia CC BY-SA 4.0.
 
 <div align="center"><sub>Hecho con 墨 y paciencia · がんばって！</sub></div>
