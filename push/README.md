@@ -15,7 +15,7 @@ Una web no puede programar sola un aviso a una hora concreta con la app cerrada.
 5. **Conecta el almacén.** En el Worker: *Settings → Bindings → Add → KV namespace*.
    - *Variable name*: `SUBS`
    - *KV namespace*: `kaname-push`
-6. **Programa el envío.** En el Worker: *Settings → Triggers → Cron Triggers → Add*. Expresión: `*/15 * * * *` (cada 15 minutos).
+6. **Programa el envío.** En el Worker: *Settings → Trigger events → Cron triggers → Add → Cron expression*. Expresión: `*/15 * * * *` (cada 15 minutos). Pulsa *Add* y después *Save* en el aviso de cambios sin guardar (los pasos 5 y 6 no se aplican hasta guardar).
 7. **Comprueba que funciona.** Abre la dirección del Worker añadiendo `/key` al final, por ejemplo `https://kaname-push.tu-usuario.workers.dev/key`. Debe mostrar `{"publicKey":"B…"}`.
 8. **Conecta la app.** En `index.html`, pon esa dirección (sin `/key`) en la línea:
    ```js
@@ -24,6 +24,10 @@ Una web no puede programar sola un aviso a una hora concreta con la app cerrada.
    Sube el cambio y la app empezará a ofrecer el recordatorio.
 
 > Los nombres de los menús de Cloudflare pueden cambiar ligeramente con el tiempo, pero los pasos son siempre los mismos: KV, Worker, binding `SUBS` y cron cada 15 minutos.
+
+**Despliegue actual:** `https://kaname-push.lucassuarez1605.workers.dev`. Si cambias `worker.js`, vuelve a pegarlo en *Edit code* → *Deploy*; el binding y el cron se conservan.
+
+> No borres la clave `vapid` del KV: si se regenera, todas las suscripciones existentes dejan de recibir avisos hasta que cada usuario desactive y vuelva a activar el recordatorio.
 
 ## Cómo funciona
 

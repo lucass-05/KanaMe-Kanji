@@ -836,7 +836,7 @@
   /* ================= Recordatorio diario (Web Push) =================
      La app se suscribe a notificaciones push y le dice al servidor (push/worker.js) a qué hora avisar.
      El servidor guarda la hora en UTC en franjas de 15 min y no avisa si ese día ya has completado los kanji. */
-  var PUSH_URL = "";   // URL del Worker de Cloudflare, p. ej. "https://kaname-push.tu-usuario.workers.dev"
+  var PUSH_URL = "https://kaname-push.lucassuarez1605.workers.dev";   // URL del Worker de Cloudflare, p. ej. "https://kaname-push.tu-usuario.workers.dev"
   var REM_KEY = "kaname.reminder.v1";   // { state: "on" | "off", time: "HH:MM", id, slot }
   var rem = parse(lsGet(REM_KEY)) || {};
   var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
