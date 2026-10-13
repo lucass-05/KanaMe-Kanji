@@ -70,6 +70,11 @@ En Android (Chrome): menú **⋮ → Instalar aplicación**.
 
 Sin servidores ni registro. Todo se guarda en tu dispositivo, con copia en dos almacenes del navegador. Puedes exportar tu progreso como código o archivo y restaurarlo en otro móvil.
 
+## Familia KanaMe
+
+- **[KanaMe Kana](https://github.com/lucass-05/KanaMe-Kana)**: hiragana y katakana. El primer paso si aún no lees kana con soltura.
+- **KanaMe Kanji**: los 2136 kanji Jōyō (esta app).
+
 ## Para desarrolladores
 
 HTML, CSS y JavaScript puros, sin dependencias ni compilación.
