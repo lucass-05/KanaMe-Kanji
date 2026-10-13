@@ -148,6 +148,24 @@
   .pal.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
   .pal.locked { opacity: .38; cursor: default; }
 
+  /* Recordatorio */
+  .rem-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--surface-raised); border-radius: var(--radius-md); padding: 12px 14px; }
+  .rem-row .t { font-size: 15px; font-weight: 600; }
+  .rem-row .s { display: block; font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .switch { position: relative; flex: 0 0 auto; width: 46px; height: 28px; }
+  .switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; z-index: 1; }
+  .switch .track { position: absolute; inset: 0; border-radius: 999px; background: var(--bg); border: 1px solid var(--hairline); transition: background .15s, border-color .15s; pointer-events: none; }
+  .switch .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--text-muted); transition: transform .18s, background .15s; }
+  .switch input:checked + .track { background: var(--accent-soft); border-color: var(--accent); }
+  .switch input:checked + .track::after { transform: translateX(18px); background: var(--text); }
+  select.time { appearance: none; -webkit-appearance: none; background: var(--bg); color: var(--text); border: 1px solid var(--hairline); border-radius: var(--radius-sm); font: 600 16px/1 inherit; font-family: inherit; padding: 9px 30px 9px 12px; background-image: linear-gradient(45deg, transparent 50%, var(--text-muted) 50%), linear-gradient(135deg, var(--text-muted) 50%, transparent 50%); background-position: calc(100% - 15px) 52%, calc(100% - 10px) 52%; background-size: 5px 5px; background-repeat: no-repeat; font-variant-numeric: tabular-nums; }
+  .rem-time { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; padding: 0 2px; font-size: 14px; color: var(--text-muted); }
+  .rem-hero { text-align: center; padding: 6px 0 4px; }
+  .rem-hero .bell { font-size: 44px; line-height: 1; margin-bottom: 10px; }
+  .rem-hero h2 { margin: 0 0 8px; font-size: 20px; }
+  .rem-hero p { margin: 0 auto 16px; font-size: 14px; color: var(--text-muted); line-height: 1.5; max-width: 330px; }
+  .rem-pick { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 15px; color: var(--text-muted); margin-bottom: 6px; }
+
   /* Levels */
   .levels { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 14px; }
   .level-btn {
@@ -297,6 +315,15 @@
     <div class="palettes" id="palettes"></div>
     <p class="note">Completa los 20 kanji del día para sumar un día a tu racha. Cada 10 días seguidos desbloqueas una paleta de colores nueva.</p>
 
+    <div id="remSection" hidden>
+      <h3>Recordatorio diario</h3>
+      <div class="rem-row">
+        <span><span class="t">Avisarme cada día</span><span class="s" id="remStatus"></span></span>
+        <span class="switch"><input type="checkbox" id="remToggle" aria-label="Recordatorio diario"><span class="track"></span></span>
+      </div>
+      <div class="rem-time" id="remTimeRow"><span>Hora del aviso</span><select class="time" id="remTime"></select></div>
+    </div>
+
     <h3>Copia de seguridad</h3>
     <div class="row">
       <button class="pill-btn" id="exportBtn">Copiar código</button>
@@ -316,6 +343,22 @@
     <div class="row"><button class="pill-btn ghost danger" id="resetBtn">Borrar todo el progreso</button></div>
 
     <div class="row" style="margin-top:22px"><button class="pill-btn" id="closeSettings">Cerrar</button></div>
+  </div>
+</div>
+
+<div class="sheet-backdrop" id="remSheet">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="remTitle">
+    <div class="rem-hero">
+      <div class="bell">🔔</div>
+      <h2 id="remTitle">¿Te recordamos estudiar cada día?</h2>
+      <p>Un aviso diario a la hora que elijas para hacer tus 20 kanji. Si ese día ya los has hecho, no te molestamos.</p>
+      <div class="rem-pick"><span>Avisarme a las</span><select class="time" id="remTimeFirst"></select></div>
+    </div>
+    <div class="row">
+      <button class="pill-btn" id="remYes">Activar</button>
+      <button class="pill-btn ghost" id="remNo">Ahora no</button>
+    </div>
+    <p class="note" style="text-align:center">Puedes cambiar la hora o desactivarlo cuando quieras en Progreso.</p>
   </div>
 </div>
 
@@ -480,6 +523,7 @@
     streak.last = today;
     saveStreak();
     track("dia-completado");
+    reminderDone();
     var nuevas = PALETTES.filter(function (p) { return p.days > before && p.days <= streak.best; });
     if (nuevas.length) {
       var p = nuevas[nuevas.length - 1];
@@ -789,6 +833,120 @@
     buildQueue(); stage.innerHTML = ""; showNext(); renderLevels();
   }
 
+  /* ================= Recordatorio diario (Web Push) =================
+     La app se suscribe a notificaciones push y le dice al servidor (push/worker.js) a qué hora avisar.
+     El servidor guarda la hora en UTC en franjas de 15 min y no avisa si ese día ya has completado los kanji. */
+  var PUSH_URL = "";   // URL del Worker de Cloudflare, p. ej. "https://kaname-push.tu-usuario.workers.dev"
+  var REM_KEY = "kaname.reminder.v1";   // { state: "on" | "off", time: "HH:MM", id, slot }
+  var rem = parse(lsGet(REM_KEY)) || {};
+  var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+  function pushSupported() { return !!PUSH_URL && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window; }
+  function saveRem() { lsSet(REM_KEY, JSON.stringify(rem)); }
+  function remTime() { return rem.time || "20:00"; }
+  function utcSlot(time) {
+    var hm = time.split(":"), d = new Date(); d.setHours(+hm[0], +hm[1], 0, 0);
+    return pad(d.getUTCHours()) + pad(d.getUTCMinutes());
+  }
+  function newId() {
+    try { if (crypto.randomUUID) return crypto.randomUUID(); } catch (e) {}
+    return "k" + Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
+  }
+  function b64ToBytes(s) {
+    s = s.replace(/-/g, "+").replace(/_/g, "/"); while (s.length % 4) s += "=";
+    var bin = atob(s), out = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  function api(path, body) {
+    return fetch(PUSH_URL + path, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {})
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); });
+  }
+  function fillTimes(sel) {
+    if (sel.options.length) { sel.value = remTime(); return; }
+    for (var h = 0; h < 24; h++) for (var m = 0; m < 60; m += 15) {
+      var v = pad(h) + ":" + pad(m), o = document.createElement("option"); o.value = v; o.textContent = v; sel.appendChild(o);
+    }
+    sel.value = remTime();
+  }
+
+  // Activa (o actualiza) el recordatorio. Si ask = true, pide el permiso: debe llamarse desde un toque del usuario.
+  function enableReminder(time, ask) {
+    var perm = ask && Notification.permission === "default" ? Notification.requestPermission() : Promise.resolve(Notification.permission);
+    return Promise.resolve(perm).then(function (p) {
+      if (p !== "granted") throw new Error("permiso");
+      return navigator.serviceWorker.ready;
+    }).then(function (reg) {
+      return reg.pushManager.getSubscription().then(function (sub) {
+        if (sub) return sub;
+        return api("/key").then(function (k) { return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(k.publicKey) }); });
+      });
+    }).then(function (sub) {
+      var slot = utcSlot(time), id = rem.id || newId();
+      return api("/subscribe", { id: id, sub: sub.toJSON(), slot: slot, prevSlot: rem.slot || "", off: new Date().getTimezoneOffset(), done: streak.last === dayStr() ? dayStr() : "" })
+        .then(function () { rem = { state: "on", time: time, id: id, slot: slot }; saveRem(); track("recordatorio-activado"); });
+    });
+  }
+  function disableReminder() {
+    var old = rem; rem = { state: "off", time: remTime() }; saveRem();
+    if (old.id && old.slot) api("/unsubscribe", { id: old.id, slot: old.slot }).catch(function () {});
+    if ("serviceWorker" in navigator) navigator.serviceWorker.ready.then(function (reg) { return reg.pushManager.getSubscription(); }).then(function (s) { if (s) s.unsubscribe(); }).catch(function () {});
+  }
+  function reminderError(e) {
+    var msg = e && e.message === "permiso"
+      ? "Has bloqueado las notificaciones. Actívalas en los ajustes del navegador o del móvil."
+      : "No se pudo activar el recordatorio. Inténtalo con conexión.";
+    rem.state = "off"; saveRem(); renderReminder(); toast(msg);
+  }
+  // Al abrir la app: si estaba activado, comprueba que sigue válido (permiso, suscripción, cambio de horario de verano)
+  function syncReminder() {
+    if (!pushSupported() || rem.state !== "on") return;
+    if (Notification.permission !== "granted") { rem.state = "off"; saveRem(); return; }
+    navigator.serviceWorker.ready.then(function (reg) { return reg.pushManager.getSubscription(); }).then(function (sub) {
+      if (!sub || utcSlot(remTime()) !== rem.slot) return enableReminder(remTime(), false);
+    }).catch(function () {});
+  }
+  function reminderDone() {
+    if (rem.state === "on" && rem.id && PUSH_URL) api("/done", { id: rem.id, slot: rem.slot, date: dayStr() }).catch(function () {});
+  }
+  function renderReminder() {
+    var sec = $("remSection");
+    var iosTab = isIOS && !standalone;
+    sec.hidden = !PUSH_URL || !(pushSupported() || iosTab);
+    if (sec.hidden) return;
+    var on = rem.state === "on";
+    $("remToggle").checked = on; $("remToggle").disabled = iosTab;
+    fillTimes($("remTime")); $("remTimeRow").style.display = on ? "" : "none";
+    $("remStatus").textContent = iosTab ? "En iPhone, primero añade KanaMe a la pantalla de inicio."
+      : on ? "Te avisaremos a las " + remTime() + " si aún no has hecho los kanji del día."
+      : Notification.permission === "denied" ? "Notificaciones bloqueadas en los ajustes del móvil." : "Desactivado";
+  }
+  function maybeAskReminder() {
+    if (!pushSupported() || rem.state || Notification.permission === "denied") return;
+    setTimeout(function () {
+      if ($("sheet").classList.contains("open")) return;
+      fillTimes($("remTimeFirst"));
+      $("remSheet").classList.add("open");
+    }, 1200);
+  }
+  $("remYes").onclick = function () {
+    var t = $("remTimeFirst").value, btn = this;
+    btn.disabled = true;
+    enableReminder(t, true).then(function () { $("remSheet").classList.remove("open"); toast("🔔 Recordatorio activado a las " + t); })
+      .catch(function (e) { $("remSheet").classList.remove("open"); reminderError(e); })
+      .then(function () { btn.disabled = false; });
+  };
+  $("remNo").onclick = function () { rem = { state: "off", time: remTime() }; saveRem(); $("remSheet").classList.remove("open"); };
+  $("remToggle").onchange = function () {
+    if (this.checked) {
+      enableReminder($("remTime").value || remTime(), true).then(function () { renderReminder(); toast("🔔 Recordatorio activado a las " + remTime()); }).catch(reminderError);
+    } else { disableReminder(); renderReminder(); }
+  };
+  $("remTime").onchange = function () {
+    var t = this.value;
+    enableReminder(t, false).then(function () { renderReminder(); toast("Te avisaremos a las " + t); }).catch(reminderError);
+  };
+
   /* ================= Ajustes / copia de seguridad ================= */
   function toast(msg) { var t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(function () { t.classList.remove("show"); }, 2200); }
 
@@ -829,7 +987,7 @@
     toast(n + " tarjetas restauradas");
   }
 
-  function openSheet() { renderStats(); renderStreakSheet(); $("sheet").classList.add("open"); }
+  function openSheet() { renderStats(); renderStreakSheet(); renderReminder(); $("sheet").classList.add("open"); }
   $("openSettings").onclick = openSheet;
   $("streakBtn").onclick = openSheet;
   $("closeSettings").onclick = function () { $("sheet").classList.remove("open"); };
@@ -881,12 +1039,12 @@
     renderLevels(); if (current) renderStatus();
   }, 30000);
   document.addEventListener("keydown", function (e) {
-    if ($("sheet").classList.contains("open")) return;
+    if ($("sheet").classList.contains("open") || $("remSheet").classList.contains("open")) return;
     if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); }
     else if (flipped && "1234".indexOf(e.key) >= 0) rate(["again", "hard", "good", "easy"][+e.key - 1]);
   });
 
-  if ("serviceWorker" in navigator && location.protocol === "https:") {
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
     window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
   }
 
@@ -896,6 +1054,7 @@
     requestPersistence();
     ensureDaily();
     buildQueue(); renderLevels(); showNext();
+    syncReminder(); maybeAskReminder();
   });
 })();
 </script>

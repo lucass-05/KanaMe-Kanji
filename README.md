@@ -38,6 +38,7 @@ Tu progreso se guarda solo en el móvil y se comparte entre niveles: lo que ya s
 
 - **今日 Kanji de hoy.** Cada día, al abrir la app, KanaMe prepara 20 kanji nuevos elegidos al azar del nivel más sencillo que aún tengas sin estudiar. La lista se genera una sola vez al día y sin conexión.
 - **🔥 Racha.** Completa los 20 kanji del día para sumar un día a tu racha.
+- **🔔 Recordatorio diario.** La primera vez que abres la app te ofrece un aviso diario a la hora que elijas. Si ese día ya has hecho tus kanji, no te molesta. La hora se cambia o se desactiva en *Progreso*.
 - **Paletas de colores.** Cada 10 días seguidos desbloqueas una paleta nueva: 桜 Sakura, 抹茶 Matcha, 藍 Ai, 山吹 Yamabuki, 藤 Fuji, 海 Umi, 紅葉 Momiji, 夜 Yoru… y 金 Kin a los 100 días. Las paletas ganadas no se pierden aunque se rompa la racha.
 
 ## Por qué se aprende tan rápido
@@ -79,6 +80,8 @@ Añádela a la pantalla de inicio y se abrirá a pantalla completa, como una app
 
 Sin registro. Tu progreso, tu racha y tus kanji del día se guardan solo en tu dispositivo, con copia en dos almacenes del navegador. Puedes exportarlo como código o archivo y restaurarlo en otro móvil.
 
+Si activas el recordatorio, el servidor de avisos guarda solo la dirección anónima de notificaciones de tu móvil, la hora elegida y el último día que completaste. Al desactivarlo se borra.
+
 Para saber cuánta gente usa la app se cuentan las visitas de forma anónima con [GoatCounter](https://www.goatcounter.com): sin cookies, sin datos personales y sin seguimiento entre webs.
 
 ## Familia KanaMe
@@ -98,7 +101,8 @@ python3 -m http.server 8000   # y abre http://localhost:8000
 |---|---|
 | `index.html` | Interfaz y lógica de la app |
 | `data/kanji.js` | Los 2136 kanji: `[kanji, on, kun, significado, palabras]` |
-| `sw.js` | Service worker (modo sin conexión). Sube `VERSION` al publicar cambios |
+| `sw.js` | Service worker: modo sin conexión y avisos del recordatorio. Sube `VERSION` al publicar cambios |
+| `push/` | Servidor de recordatorios diarios (Cloudflare Worker) y [guía para ponerlo en marcha](push/README.md) |
 | `csv/` | Mazos en CSV para Anki, Quizlet y similares |
 | `icons/` | Iconos para iOS, Android y navegador |
 
