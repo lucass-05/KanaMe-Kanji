@@ -58,11 +58,14 @@ Cada nivel incluye todos los anteriores.
 | Kyōiku 1º | 1º–2º | 1º–3º | 1º–4º | 1º–5º | Kyōiku completo | **Jōyō completo** |
 | 80 | 240 | 440 | 642 | 835 | 1026 | **2136** |
 
-## Instalar en el iPhone
+## Instalar en el móvil
 
-Abre la app en **Safari** y toca **Compartir → Añadir a pantalla de inicio**. Se abrirá a pantalla completa, como una app nativa.
+Añádela a la pantalla de inicio y se abrirá a pantalla completa, como una app nativa.
 
-En Android (Chrome): menú **⋮ → Instalar aplicación**.
+| iPhone (Safari) | Samsung / Android |
+|:---:|:---:|
+| <img src="docs/instalar-iphone.png" width="320" alt="Cómo instalar en iPhone"> | <img src="docs/instalar-samsung.png" width="320" alt="Cómo instalar en Samsung"> |
+| **Compartir → Añadir a pantalla de inicio** | **Menú ≡ → Añadir página a → Pantalla de inicio**<br><sub>En Chrome: ⋮ → Añadir a pantalla de inicio</sub> |
 
 > En iOS, Safari y el icono de inicio guardan el progreso por separado. Estudia siempre desde el icono, o pasa tu progreso con **Progreso → Copia de seguridad**.
 
