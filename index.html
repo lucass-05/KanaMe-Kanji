@@ -366,7 +366,7 @@
     <h3>Racha</h3>
     <div class="streak-hero" id="streakHero"></div>
     <div class="palettes" id="palettes"></div>
-    <p class="note">Supera el reto de «Kanji de hoy» (los 20 kanji con ✓) para sumar un día a tu racha. Si un día no lo superas, la racha vuelve a 0: las paletas que ya tienes se quedan, pero las nuevas se desbloquean con días seguidos contados desde 0 (una cada 10 días). Toca una paleta para usarla.</p>
+    <p class="note">Supera el reto de «Kanji de hoy» (los 10 kanji con ✓) para sumar un día a tu racha. Si un día no lo superas, la racha vuelve a 0: las paletas que ya tienes se quedan, pero las nuevas se desbloquean con días seguidos contados desde 0 (una cada 10 días). Toca una paleta para usarla.</p>
 
     <div id="remSection" hidden>
       <h3>Recordatorio diario</h3>
@@ -404,7 +404,7 @@
     <div class="rem-hero">
       <div class="bell">🔔</div>
       <h2 id="remTitle">¿Te recordamos estudiar cada día?</h2>
-      <p>Un aviso diario a la hora que elijas para hacer tus 20 kanji. Si ese día ya los has hecho, no te molestamos.</p>
+      <p>Un aviso diario a la hora que elijas para hacer tus 10 kanji. Si ese día ya los has hecho, no te molestamos.</p>
       <div class="rem-pick"><span>Avisarme a las</span><select class="time" id="remTimeFirst"></select></div>
     </div>
     <div class="row">
@@ -426,7 +426,7 @@
       <span><b id="introPalName">Nueva paleta: Shiro 白</b><span>La de siempre, con los blancos y los negros intercambiados.</span></span>
     </div>
     <ul class="intro-list">
-      <li><span class="ic">📅</span><span><b>Para seguir la racha</b>, supera cada día el reto de «Kanji de hoy»: marca ✓ los 20 kanji (los que marques con ✕ se repiten hasta que te los sepas). Cada día seguido suma uno.</span></li>
+      <li><span class="ic">📅</span><span><b>Para seguir la racha</b>, supera cada día el reto de «Kanji de hoy»: marca ✓ los 10 kanji (los que marques con ✕ se repiten hasta que te los sepas). Cada día seguido suma uno.</span></li>
       <li><span class="ic">↺</span><span><b>Si un día no lo superas</b>, la racha vuelve a 0. Las paletas que ya tienes se quedan, pero para las nuevas tendrás que volver a sumar días seguidos desde 0.</span></li>
       <li><span class="ic">🎨</span><span><b>Cada 10 días seguidos</b> desbloqueas una paleta nueva.</span></li>
       <li><span class="ic">⚙︎</span><span><b>Para cambiar de paleta</b>, toca el contador 🔥 de arriba a la derecha y elige una en «Racha».</span></li>
@@ -488,10 +488,10 @@
   var KEY = "kaname.progress.v1";
   var LEVEL_KEY = "kaname.level.v1";
   var LEGACY_KEY = "kyoikuSR_progress_v1"; // versiones anteriores de la app
-  var DAILY_KEY = "kaname.daily.v1";       // "AAAA-MM-DD\n" + los 20 kanji del día + "\n" + los ya marcados con ✓ hoy
+  var DAILY_KEY = "kaname.daily.v1";       // "AAAA-MM-DD\n" + los 10 kanji del día + "\n" + los ya marcados con ✓ hoy
   var STREAK_KEY = "kaname.streak.v1";     // { cur, best, last: "AAAA-MM-DD" }
   var PALETTE_KEY = "kaname.palette.v1";
-  var DAILY_SIZE = 20;
+  var DAILY_SIZE = 10;
   var progress = {};       // kanji -> { due, reps, last, seen }
   var daily = { date: "", list: [], ticked: [] };
   var streak = { cur: 0, best: 0, last: "" };
@@ -554,7 +554,7 @@
   }
 
   /* ================= Kanji del día =================
-     Una vez al día (la primera vez que se abre la app) se genera una lista de 20 kanji nuevos,
+     Una vez al día (la primera vez que se abre la app) se genera una lista de 10 kanji nuevos,
      elegidos al azar del nivel más sencillo que aún tenga kanji sin estudiar. Se guarda como texto
      que empieza por la fecha; mientras la fecha sea la de hoy, no se vuelve a calcular. */
   function pad(n) { return (n < 10 ? "0" : "") + n; }
@@ -576,7 +576,17 @@
   }
   function ensureDaily() {
     var today = dayStr();
-    if (daily.date === today) return false;     // ya generado hoy: no se hace nada más
+    if (daily.date === today) {                  // ya generado hoy: no se hace nada más…
+      if (daily.list.length > DAILY_SIZE) {      // …salvo recortar una lista de cuando el reto era más largo (primero los ya marcados con ✓)
+        var keep = daily.ticked.slice(0, DAILY_SIZE);
+        daily.list.forEach(function (k) { if (keep.length < DAILY_SIZE && keep.indexOf(k) < 0) keep.push(k); });
+        daily = { date: today, list: keep, ticked: daily.ticked.filter(function (k) { return keep.indexOf(k) >= 0; }) };
+        saveDaily();
+        // si con la lista recortada ya están todos con ✓, el reto queda superado (racha incluida)
+        if (daily.ticked.length >= daily.list.length && streak.last !== today) completeDaily();
+      }
+      return false;
+    }
     var pick = [];
     for (var g = 0; g < GRADES.length && pick.length < DAILY_SIZE; g++) {
       var fresh = GRADES[g].map(function (r) { return r[0]; }).filter(function (k) { return !progress[k]; });
@@ -586,8 +596,8 @@
     saveDaily();
     return true;
   }
-  /* Reto diario: los 20 kanji salen siempre (estén o no pendientes en los niveles). Se marcan con ✕ o ✓;
-     los de ✕ se repiten hasta que los 20 tengan ✓. Al completarlo sube la racha y cada kanji del reto
+  /* Reto diario: los 10 kanji salen siempre (estén o no pendientes en los niveles). Se marcan con ✕ o ✓;
+     los de ✕ se repiten hasta que los 10 tengan ✓. Al completarlo sube la racha y cada kanji del reto
      queda como revisado y no vuelve a los niveles en al menos 5 días (si ya tenía un plazo mayor, se respeta).
      Después se pueden seguir viendo con «Siguiente», sin marcar nada. */
   var DAILY_MIN_GAP = 5 * DAY;
@@ -616,7 +626,7 @@
   function checkDayComplete() {
     var today = dayStr();
     if (streak.last === today) return;
-    if (daily.list.length && dailyDone() < daily.list.length) return; // el reto diario aún no tiene los 20 ✓
+    if (daily.list.length && dailyDone() < daily.list.length) return; // el reto diario aún no tiene los 10 ✓
     var before = streak.best;
     streak.cur = (streak.last === yesterdayStr()) ? streak.cur + 1 : 1;
     streak.best = Math.max(streak.best, streak.cur);
@@ -765,7 +775,7 @@
     b.appendChild(el("span", "jp", "今日"));
     var t = el("span", "txt");
     t.appendChild(el("span", "t", "Kanji de hoy"));
-    t.appendChild(el("span", "s", n === 0 ? "¡Ya has empezado todos los kanji!" : complete ? "Reto superado · repásalos cuando quieras" : "Marca ✓ los 20 para superar el reto de hoy"));
+    t.appendChild(el("span", "s", n === 0 ? "¡Ya has empezado todos los kanji!" : complete ? "Reto superado · repásalos cuando quieras" : "Marca ✓ los 10 para superar el reto de hoy"));
     b.appendChild(t);
     b.appendChild(el("span", "right", (complete ? "✓ " : "") + done + "/" + n));
     b.onclick = function () { selectLevel(0); };
@@ -909,7 +919,7 @@
       box.appendChild(el("div", "mark", "今"));
       box.appendChild(el("h2", null, daily.list.length ? "¡Kanji de hoy completados!" : "¡No te quedan kanji nuevos!"));
       box.appendChild(el("p", null, (wait != null && wait < DAY ? "Los que marcaste con Again vuelven en " + humanTime(wait) + ". " : "") +
-        "Mañana tendrás 20 kanji nuevos. Si quieres más, sigue en tu nivel."));
+        "Mañana tendrás 10 kanji nuevos. Si quieres más, sigue en tu nivel."));
       // Nivel más sencillo con algo pendiente (repasos primero; si no, kanji nuevos)
       var lv = 0, i;
       for (i = 1; i <= LEVELS.length && !lv; i++) if (levelCounts(i).due) lv = i;
@@ -1272,12 +1282,12 @@
   }
   function tourSteps() {
     var m = mode(), steps = [];
-    steps.push({ el: "todayBtn", t: "Kanji de hoy", h: "Cada día te damos <b>20 kanji nuevos</b>. Es tu reto diario: supéralo para sumar un día a tu <b>racha 🔥</b>." });
+    steps.push({ el: "todayBtn", t: "Kanji de hoy", h: "Cada día te damos <b>10 kanji nuevos</b>. Es tu reto diario: supéralo para sumar un día a tu <b>racha 🔥</b>." });
     if ($("card")) {
       steps.push({ el: "card", t: "Las tarjetas", h: "Intenta recordar la lectura y el significado del kanji. Después <b>toca la tarjeta para girarla</b> y ver la respuesta, con palabras de ejemplo.", go: function () { setTimeout(flip, 350); } });
-      if (m === "daily") steps.push({ el: "ratings", t: "¿Te lo sabías?", h: "Marca <b>✓</b> si te lo sabías y <b>✕</b> si no. Los de ✕ se repiten hasta que aciertes los 20: entonces el reto queda superado." });
+      if (m === "daily") steps.push({ el: "ratings", t: "¿Te lo sabías?", h: "Marca <b>✓</b> si te lo sabías y <b>✕</b> si no. Los de ✕ se repiten hasta que aciertes los 10: entonces el reto queda superado." });
       else if (m === "srs") steps.push({ el: "ratings", t: "¿Cuándo vuelve?", h: "Elige lo bien que te lo sabías. Debajo de cada botón ves <b>cuándo volverá</b> esa tarjeta." });
-      else steps.push({ el: "ratings", t: "Repaso libre", h: "Has superado el reto de hoy: puedes seguir viendo los 20 kanji con <b>Siguiente</b>, sin marcar nada." });
+      else steps.push({ el: "ratings", t: "Repaso libre", h: "Has superado el reto de hoy: puedes seguir viendo los 10 kanji con <b>Siguiente</b>, sin marcar nada." });
     }
     steps.push({ el: "levels", t: "Niveles", h: "Aquí eliges qué estudiar: de <b>1º a 6º de primaria</b> (cada uno incluye los anteriores) y <b>常</b>, los 2136 kanji Jōyō. El número es lo que tienes pendiente. Al superar el reto de hoy te llevamos solos al primer nivel sin terminar.",
       chips: true });

@@ -36,8 +36,8 @@ Tu progreso se guarda solo en el móvil y se comparte entre niveles: lo que ya s
 
 ## Kanji de hoy, racha y paletas
 
-- **今日 Kanji de hoy.** Cada día, al abrir la app, KanaMe prepara 20 kanji nuevos elegidos al azar del nivel más sencillo que aún tengas sin estudiar. La lista se genera una sola vez al día y sin conexión.
-- **🔥 Racha.** Completa los 20 kanji del día para sumar un día a tu racha.
+- **今日 Kanji de hoy.** Cada día, al abrir la app, KanaMe prepara 10 kanji nuevos elegidos al azar del nivel más sencillo que aún tengas sin estudiar. La lista se genera una sola vez al día y sin conexión.
+- **🔥 Racha.** Supera el reto diario (los 10 kanji de hoy marcados con ✓; los de ✕ se repiten hasta que te los sepas) para sumar un día a tu racha.
 - **🔔 Recordatorio diario.** La primera vez que abres la app te ofrece un aviso diario a la hora que elijas. Si ese día ya has hecho tus kanji, no te molesta. La hora se cambia o se desactiva en *Progreso*.
 - **Paletas de colores.** Cada 10 días seguidos desbloqueas una paleta nueva: 桜 Sakura, 抹茶 Matcha, 藍 Ai, 山吹 Yamabuki, 藤 Fuji, 海 Umi, 紅葉 Momiji, 夜 Yoru… y 金 Kin a los 100 días. Las paletas ganadas no se pierden aunque se rompa la racha.
 
@@ -54,7 +54,7 @@ A esto se suman tres decisiones de diseño:
 - **Orden pedagógico.** Los kanji siguen el orden en que se aprenden en la escuela japonesa, así que los simples sirven de pieza para los complejos.
 - **Sesiones cortas.** Diez minutos al día bastan.
 
-> **Con 20 kanji nuevos al día recorres la lista Jōyō completa en unos 4 meses.**
+> **Con 10 kanji nuevos al día recorres la lista Jōyō completa en unos 7 meses.**
 
 ## Niveles
 
