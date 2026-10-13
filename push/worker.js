@@ -88,7 +88,12 @@ async function sendReminders(env, when) {
       const localToday = localDate(when, m.off);
       if (m.done === localToday) continue; // ya ha hecho los kanji de hoy
       const status = await sendPush(m.sub, vapid);
-      if (status === 404 || status === 410) await env.SUBS.delete(k.name); // suscripción caducada
+      if (status === 404 || status === 410) {
+        // El servicio de push dice que esa suscripción ya no existe: se borró la app (o se quitaron
+        // los permisos de notificación en los ajustes del móvil). Se deja de avisar y se anota en GoatCounter.
+        await env.SUBS.delete(k.name);
+        await track("evento/app-desinstalada", "App desinstalada · " + platform(m.sub.endpoint));
+      }
     }
     cursor = page.list_complete ? null : page.cursor;
   } while (cursor);
@@ -124,6 +129,28 @@ async function vapidJWT(aud, vapid) {
   const key = await crypto.subtle.importKey("jwk", vapid.privateJwk, { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]);
   const sig = await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, key, new TextEncoder().encode(unsigned));
   return unsigned + "." + b64url(new Uint8Array(sig)); // WebCrypto ya devuelve r||s (formato JWS)
+}
+
+/* ---------------- Estadísticas (GoatCounter) ---------------- */
+
+const GOATCOUNTER = "https://lucassuarezzz.goatcounter.com/count";
+
+// Anota un evento anónimo, igual que los que manda la app (sin datos del usuario).
+async function track(path, title) {
+  try {
+    const u = GOATCOUNTER + "?e=true&p=" + encodeURIComponent(path) + "&t=" + encodeURIComponent(title) + "&rnd=" + Math.random().toString(36).slice(2);
+    await fetch(u, { headers: { "User-Agent": "Mozilla/5.0 (KanaMe recordatorios)", "Referer": "https://lucass-05.github.io/KanaMe-Kanji/" } });
+  } catch (e) {}
+}
+
+// Tipo de dispositivo según el servicio de push (no identifica a nadie).
+function platform(endpoint) {
+  const h = new URL(endpoint).hostname;
+  if (h.endsWith("push.apple.com")) return "Apple";
+  if (h.endsWith("googleapis.com")) return "Android/Chrome";
+  if (h.endsWith("mozilla.com")) return "Firefox";
+  if (h.endsWith("windows.com")) return "Edge";
+  return "otro";
 }
 
 /* ---------------- Utilidades ---------------- */
