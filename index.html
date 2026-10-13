@@ -163,6 +163,25 @@
   /* Paleta clara: en el iPhone la barra de estado (hora, batería) es blanca; se le pone fondo oscuro para que se lea */
   html.light body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top); background: #121212; z-index: 30; pointer-events: none; }
 
+  /* Tutorial de la primera vez: se oscurece todo menos la parte que se explica */
+  .tour { position: fixed; inset: 0; z-index: 40; }
+  .tour-hole { position: fixed; border-radius: 16px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, .68); transition: top .25s, left .25s, width .25s, height .25s; pointer-events: none; }
+  .tour-hole::after { content: ""; position: absolute; inset: -2px; border-radius: inherit; border: 2px solid var(--accent); }
+  .tour-bubble { position: fixed; background: var(--surface); color: var(--text); border: 1px solid var(--hairline); border-radius: 16px; padding: 14px 16px 12px; box-shadow: 0 12px 32px rgba(0, 0, 0, .45); transition: top .25s, left .25s; }
+  .tour-bubble h4 { margin: 0 0 6px; font-size: 16px; }
+  .tour-bubble p { margin: 0 0 6px; font-size: 13.5px; line-height: 1.5; color: var(--text-muted); }
+  .tour-bubble p b { color: var(--text); font-weight: 600; }
+  .tour-chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin: 8px 0 6px; }
+  .tour-chips span { border-radius: 9px; padding: 5px 2px; text-align: center; font-size: 11.5px; font-weight: 700; line-height: 1.3; }
+  .tour-chips small { display: block; font-weight: 500; font-size: 10.5px; opacity: .85; }
+  .tour-nav { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .tour-dots { flex: 1; display: flex; gap: 5px; }
+  .tour-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--hairline); }
+  .tour-dots i.on { background: var(--accent); }
+  .tour-skip { appearance: none; background: none; border: none; color: var(--text-muted); font-size: 13.5px; padding: 8px 4px; cursor: pointer; }
+  .tour-next { padding: 9px 18px; }
+  .tour-next:focus { outline: none; }
+
   /* Ventana «Has empezado una racha» */
   .intro-hero { text-align: center; padding: 4px 0 2px; }
   .intro-hero .fire { font-size: 44px; line-height: 1; margin-bottom: 10px; }
@@ -342,6 +361,7 @@
     <h2 id="sheetTitle">Tu progreso</h2>
     <p class="sub">Se guarda automáticamente en este dispositivo después de cada tarjeta. No hace falta cuenta.</p>
     <div class="stats" id="stats"></div>
+    <p class="note">Un kanji está <b>dominado</b> cuando lo sabes tan bien que no vuelve hasta dentro de 3 semanas o más. Cada vez que aciertas, tarda más en volver (con Easy, el triple).</p>
 
     <h3>Racha</h3>
     <div class="streak-hero" id="streakHero"></div>
@@ -453,7 +473,14 @@
 
   /* ================= Repetición espaciada ================= */
   var MIN = 60 * 1000, DAY = 24 * 60 * MIN;
-  var INTERVALS = { again: 10 * MIN, hard: 1 * DAY, good: 3 * DAY, easy: 16 * DAY };
+  /* Cada respuesta multiplica el último intervalo de la tarjeta, así los kanji que ya sabes salen cada vez menos:
+       Again → 10 min (y vuelve a empezar) · Hard ×1,2 (mín. 1 día) · Good ×2,5 (mín. 3 días) · Easy ×3 (mín. 16 días)
+     Ej.: Easy, Easy, Easy → 16 días, ~1,5 meses, ~5 meses. Máximo 1 año. Una tarjeta está «dominada» si no vuelve en 3 semanas o más. */
+  var RULES = { again: { mult: 0, min: 10 * MIN }, hard: { mult: 1.2, min: 1 * DAY }, good: { mult: 2.5, min: 3 * DAY }, easy: { mult: 3, min: 16 * DAY } };
+  var MAX_IVL = 365 * DAY, MASTERED = 21 * DAY;
+  var LEGACY_IVL = { again: 0, hard: 1 * DAY, good: 3 * DAY, easy: 16 * DAY }; // progreso guardado antes de existir «ivl»
+  function ivlOf(p) { return !p ? 0 : typeof p.ivl === "number" ? p.ivl : (LEGACY_IVL[p.last] || 0); }
+  function nextIvl(p, choice) { var r = RULES[choice]; return Math.min(MAX_IVL, Math.max(r.min, Math.round(ivlOf(p) * r.mult))); }
 
   /* ================= Almacenamiento =================
      El progreso se escribe en localStorage Y en IndexedDB.
@@ -571,6 +598,7 @@
     daily.list.forEach(function (k) {
       var p = progress[k] || { reps: 0 };
       if (!(typeof p.due === "number" && p.due > min)) p.due = min;
+      p.ivl = Math.max(ivlOf(p), DAILY_MIN_GAP);
       p.reps = (p.reps || 0) + 1;
       p.last = p.last || "good";
       p.seen = now;
@@ -809,9 +837,9 @@
 
     var m = mode(), r = el("div", "ratings " + m); r.id = "ratings"; r.dataset.mode = m;
     if (m === "srs") {
-      [["again", "Again", "10 min"], ["hard", "Hard", "1 día"], ["good", "Good", "3 días"], ["easy", "Easy", "16 días"]].forEach(function (x) {
+      [["again", "Again"], ["hard", "Hard"], ["good", "Good"], ["easy", "Easy"]].forEach(function (x) {
         var b = el("button", "rate-btn " + x[0]);
-        b.appendChild(el("span", "label", x[1])); b.appendChild(el("span", "interval", x[2]));
+        b.appendChild(el("span", "label", x[1])); b.appendChild(el("span", "interval")).dataset.choice = x[0];
         b.onclick = function (e) { e.stopPropagation(); rate(x[0]); };
         r.appendChild(b);
       });
@@ -922,8 +950,24 @@
     renderStatus();
   }
 
+  function ivlLabel(ms) {
+    if (ms < DAY) return Math.round(ms / MIN) + " min";
+    var d = Math.round(ms / DAY);
+    if (d < 60) return d + (d === 1 ? " día" : " días");
+    if (d < 365) { var m = Math.round(d / 30 * 2) / 2; return String(m).replace(".", ",") + (m === 1 ? " mes" : " meses"); }
+    return "1 año";
+  }
+  function updateIntervals() {
+    var p = progress[current];
+    [].forEach.call(document.querySelectorAll("#ratings .interval[data-choice]"), function (s) {
+      var c = s.dataset.choice;
+      s.textContent = c === "again" ? ivlLabel(RULES.again.min) : ivlLabel(nextIvl(p, c));
+    });
+  }
+
   function flip() {
     if (flipped || !current || busy) return;
+    if (mode() === "srs") updateIntervals();
     fillBack(CARDS[current]);
     flipped = true;
     $("card").classList.add("flipped");
@@ -936,7 +980,8 @@
     var now = Date.now();
     var p = progress[current] || { reps: 0 };
     p.reps = (p.reps || 0) + 1;
-    p.due = now + INTERVALS[choice];
+    p.ivl = choice === "again" ? 0 : nextIvl(p, choice);
+    p.due = now + (choice === "again" ? RULES.again.min : p.ivl);
     p.last = choice;
     p.seen = now;
     progress[current] = p;
@@ -964,9 +1009,19 @@
     $("card").classList.remove("flipped");
     setTimeout(function () {
       busy = false;
-      if (finished) { buildQueue(); stage.innerHTML = ""; }
+      if (finished) {
+        var lv = firstOpenLevel();
+        selectLevel(lv);
+        setTimeout(function () { toast("✓ Reto superado · Seguimos con el nivel " + LEVELS[lv - 1].short); }, 2300);
+        return;
+      }
       renderLevels(); showNext();
     }, 460);
+  }
+  // Primer nivel que aún tiene tarjetas por estudiar o repasar
+  function firstOpenLevel() {
+    for (var i = 1; i <= LEVELS.length; i++) if (levelCounts(i).available) return i;
+    return 1;
   }
   // Repaso libre tras superar el reto
   function nextBrowse() {
@@ -1074,7 +1129,7 @@
   function maybeAskReminder() {
     if (!pushSupported() || rem.state || Notification.permission === "denied") return;
     setTimeout(function () {
-      if ($("sheet").classList.contains("open") || $("introSheet").classList.contains("open")) return;
+      if (tour || $("sheet").classList.contains("open") || $("introSheet").classList.contains("open")) return;
       fillTimes($("remTimeFirst"));
       $("remSheet").classList.add("open");
     }, 1200);
@@ -1105,7 +1160,7 @@
     Object.keys(progress).forEach(function (k) {
       var p = progress[k]; if (!CARDS[k] || !p) return;
       seen++;
-      if (p.last === "good" || p.last === "easy") mature++;
+      if (ivlOf(p) >= MASTERED) mature++;
       if (p.due <= now) due++;
     });
     var s = $("stats"); s.innerHTML = "";
@@ -1193,7 +1248,7 @@
     renderLevels(); if (current) renderStatus();
   }, 30000);
   document.addEventListener("keydown", function (e) {
-    if ($("sheet").classList.contains("open") || $("remSheet").classList.contains("open") || $("introSheet").classList.contains("open")) return;
+    if (tour || $("sheet").classList.contains("open") || $("remSheet").classList.contains("open") || $("introSheet").classList.contains("open")) return;
     var m = mode();
     if (m === "browse" && (e.key === "Enter" || e.key === "ArrowRight")) { e.preventDefault(); nextBrowse(); }
     else if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); }
@@ -1205,14 +1260,101 @@
     window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
   }
 
+  /* ================= Tutorial de la primera vez =================
+     Ilumina cada parte de la pantalla con una explicación corta. Sale una sola vez (TOUR_KEY). */
+  var TOUR_KEY = "kaname.tour.v1";
+  var tour = null;
+  function unflip() {
+    if (!flipped || !$("card")) return;
+    flipped = false;
+    $("card").classList.remove("flipped");
+    $("ratings").classList.toggle("show", mode() === "browse");
+  }
+  function tourSteps() {
+    var m = mode(), steps = [];
+    steps.push({ el: "todayBtn", t: "Kanji de hoy", h: "Cada día te damos <b>20 kanji nuevos</b>. Es tu reto diario: supéralo para sumar un día a tu <b>racha 🔥</b>." });
+    if ($("card")) {
+      steps.push({ el: "card", t: "Las tarjetas", h: "Intenta recordar la lectura y el significado del kanji. Después <b>toca la tarjeta para girarla</b> y ver la respuesta, con palabras de ejemplo.", go: function () { setTimeout(flip, 350); } });
+      if (m === "daily") steps.push({ el: "ratings", t: "¿Te lo sabías?", h: "Marca <b>✓</b> si te lo sabías y <b>✕</b> si no. Los de ✕ se repiten hasta que aciertes los 20: entonces el reto queda superado." });
+      else if (m === "srs") steps.push({ el: "ratings", t: "¿Cuándo vuelve?", h: "Elige lo bien que te lo sabías. Debajo de cada botón ves <b>cuándo volverá</b> esa tarjeta." });
+      else steps.push({ el: "ratings", t: "Repaso libre", h: "Has superado el reto de hoy: puedes seguir viendo los 20 kanji con <b>Siguiente</b>, sin marcar nada." });
+    }
+    steps.push({ el: "levels", t: "Niveles", h: "Aquí eliges qué estudiar: de <b>1º a 6º de primaria</b> (cada uno incluye los anteriores) y <b>常</b>, los 2136 kanji Jōyō. El número es lo que tienes pendiente. Al superar el reto de hoy te llevamos solos al primer nivel sin terminar.",
+      chips: true });
+    steps.push({ el: "streakBtn", t: "Racha y colores", h: "Tu racha de días seguidos. Tócala para ver las <b>paletas de colores</b> que vas desbloqueando y elegir la que quieras." });
+    steps.push({ el: "openSettings", t: "Tu progreso", h: "Estadísticas, <b>recordatorio diario</b> y copia de seguridad para pasar tu progreso a otro móvil. ¡Listo, a estudiar!" });
+    return steps;
+  }
+  function startTour(done) {
+    if (tour) return;
+    var steps = tourSteps(), i = 0;
+    var root = el("div", "tour"), hole = el("div", "tour-hole"), bub = el("div", "tour-bubble");
+    root.setAttribute("role", "dialog"); root.setAttribute("aria-modal", "true"); root.setAttribute("aria-label", "Cómo funciona KanaMe");
+    root.appendChild(hole); root.appendChild(bub); document.body.appendChild(root);
+    tour = { root: root };
+    function finish() {
+      lsSet(TOUR_KEY, "1");
+      window.removeEventListener("resize", place);
+      root.remove(); tour = null; unflip();
+      track("tutorial-" + (i >= steps.length - 1 ? "completado" : "saltado"));
+      if (done) done();
+    }
+    function place() {
+      var s = steps[i], t = $(s.el); if (!t) return;
+      var r = t.getBoundingClientRect(), pad = 6, vw = window.innerWidth, vh = window.innerHeight;
+      hole.style.top = (r.top - pad) + "px"; hole.style.left = (r.left - pad) + "px";
+      hole.style.width = (r.width + pad * 2) + "px"; hole.style.height = (r.height + pad * 2) + "px";
+      var w = Math.min(360, vw - 24); bub.style.width = w + "px";
+      bub.style.left = Math.max(12, Math.min(vw - w - 12, r.left + r.width / 2 - w / 2)) + "px";
+      var bh = bub.offsetHeight, below = r.bottom + pad + 12, above = r.top - pad - 12 - bh;
+      bub.style.top = (below + bh <= vh - 12 ? below : above >= 12 ? above : Math.max(12, vh - bh - 12)) + "px";
+    }
+    function show() {
+      var s = steps[i];
+      bub.innerHTML = "";
+      bub.appendChild(el("h4", null, s.t));
+      var p = el("p"); p.innerHTML = s.h; bub.appendChild(p);
+      if (s.chips) {
+        var c = el("div", "tour-chips");
+        [["again", "Again", "10 min"], ["hard", "Hard", "×1,2"], ["good", "Good", "×2,5"], ["easy", "Easy", "×3"]].forEach(function (x) {
+          var sp = el("span", x[0], x[1]); sp.appendChild(el("small", null, x[2])); c.appendChild(sp);
+        });
+        bub.appendChild(c);
+        bub.appendChild(el("p", null, "En los niveles, cada acierto multiplica el tiempo hasta que la tarjeta vuelve: lo que ya sabes (como 一, «uno») apenas te saldrá."));
+      }
+      var nav = el("div", "tour-nav"), dots = el("div", "tour-dots");
+      steps.forEach(function (_, j) { dots.appendChild(el("i", j === i ? "on" : "")); });
+      nav.appendChild(dots);
+      var last = i === steps.length - 1;
+      if (!last) { var sk = el("button", "tour-skip", "Saltar"); sk.onclick = finish; nav.appendChild(sk); }
+      var nx = el("button", "pill-btn tour-next", last ? "¡Empezar!" : "Siguiente");
+      nx.onclick = function () { if (last) finish(); else { i++; show(); } };
+      nav.appendChild(nx);
+      bub.appendChild(nav);
+      if (s.go) s.go();
+      place();
+      setTimeout(place, 480); // tras girar la tarjeta o mostrar los botones
+      nx.focus();
+    }
+    window.addEventListener("resize", place);
+    show();
+  }
+  function maybeStartTour(done) {
+    if (lsGet(TOUR_KEY)) return false;
+    startTour(done);
+    return true;
+  }
+
   /* ================= Inicio ================= */
   if (!GRADES.length) { stage.textContent = "No se pudieron cargar los datos (data/kanji.js)."; return; }
   loadProgress().then(function () {
     requestPersistence();
     ensureDaily();
+    if (level === 0 && dailyComplete()) { level = firstOpenLevel(); lsSet(LEVEL_KEY, String(level)); }
     buildQueue(); renderLevels(); showNext();
     syncReminder();
-    if (!maybeShowStreakIntro()) maybeAskReminder();
+    var afterTour = function () { if (!maybeShowStreakIntro()) maybeAskReminder(); };
+    if (!maybeStartTour(afterTour)) afterTour();
   });
 })();
 </script>
