@@ -260,6 +260,11 @@
   .hard  { background: var(--hard-soft);  color: var(--hard); }
   .good  { background: var(--good-soft);  color: var(--good); }
   .easy  { background: var(--easy-soft);  color: var(--easy); }
+  .ratings.daily { grid-template-columns: 1fr 1fr; }
+  .ratings.daily .rate-btn .mark { font-size: 24px; font-weight: 700; line-height: 1; }
+  .ratings.browse { display: flex; }
+  .ratings.browse .next-btn { flex: 1; font-size: 16px; border-radius: var(--radius-md); }
+  .ratings button:focus:not(:focus-visible) { outline: none; }
 
   /* Empty */
   .empty { flex: 1; min-height: 360px; border: 1px solid var(--hairline); border-radius: var(--radius-lg); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px; }
@@ -341,7 +346,7 @@
     <h3>Racha</h3>
     <div class="streak-hero" id="streakHero"></div>
     <div class="palettes" id="palettes"></div>
-    <p class="note">Completa los 20 kanji del día para sumar un día a tu racha. Si un día no los completas, la racha vuelve a 0: las paletas que ya tienes se quedan, pero las nuevas se desbloquean con días seguidos contados desde 0 (una cada 10 días). Toca una paleta para usarla.</p>
+    <p class="note">Supera el reto de «Kanji de hoy» (los 20 kanji con ✓) para sumar un día a tu racha. Si un día no lo superas, la racha vuelve a 0: las paletas que ya tienes se quedan, pero las nuevas se desbloquean con días seguidos contados desde 0 (una cada 10 días). Toca una paleta para usarla.</p>
 
     <div id="remSection" hidden>
       <h3>Recordatorio diario</h3>
@@ -401,8 +406,8 @@
       <span><b id="introPalName">Nueva paleta: Shiro 白</b><span>La de siempre, con los blancos y los negros intercambiados.</span></span>
     </div>
     <ul class="intro-list">
-      <li><span class="ic">📅</span><span><b>Para seguir la racha</b>, completa los 20 kanji de hoy cada día. Cada día seguido suma uno.</span></li>
-      <li><span class="ic">↺</span><span><b>Si un día no los completas</b>, la racha vuelve a 0. Las paletas que ya tienes se quedan, pero para las nuevas tendrás que volver a sumar días seguidos desde 0.</span></li>
+      <li><span class="ic">📅</span><span><b>Para seguir la racha</b>, supera cada día el reto de «Kanji de hoy»: marca ✓ los 20 kanji (los que marques con ✕ se repiten hasta que te los sepas). Cada día seguido suma uno.</span></li>
+      <li><span class="ic">↺</span><span><b>Si un día no lo superas</b>, la racha vuelve a 0. Las paletas que ya tienes se quedan, pero para las nuevas tendrás que volver a sumar días seguidos desde 0.</span></li>
       <li><span class="ic">🎨</span><span><b>Cada 10 días seguidos</b> desbloqueas una paleta nueva.</span></li>
       <li><span class="ic">⚙︎</span><span><b>Para cambiar de paleta</b>, toca el contador 🔥 de arriba a la derecha y elige una en «Racha».</span></li>
     </ul>
@@ -456,12 +461,12 @@
   var KEY = "kaname.progress.v1";
   var LEVEL_KEY = "kaname.level.v1";
   var LEGACY_KEY = "kyoikuSR_progress_v1"; // versiones anteriores de la app
-  var DAILY_KEY = "kaname.daily.v1";       // "AAAA-MM-DD\n" + los 20 kanji del día
+  var DAILY_KEY = "kaname.daily.v1";       // "AAAA-MM-DD\n" + los 20 kanji del día + "\n" + los ya marcados con ✓ hoy
   var STREAK_KEY = "kaname.streak.v1";     // { cur, best, last: "AAAA-MM-DD" }
   var PALETTE_KEY = "kaname.palette.v1";
   var DAILY_SIZE = 20;
   var progress = {};       // kanji -> { due, reps, last, seen }
-  var daily = { date: "", list: [] };
+  var daily = { date: "", list: [], ticked: [] };
   var streak = { cur: 0, best: 0, last: "" };
 
   var idb = null;
@@ -513,7 +518,7 @@
       if (countKeys(progress)) save();
       // Kanji del día: la copia con la fecha más reciente
       var d1 = parseDaily(lsGet(DAILY_KEY)), d2 = parseDaily(r[1]);
-      daily = (d2.date > d1.date) ? d2 : d1;
+      daily = (d2.date > d1.date || (d2.date === d1.date && d2.ticked.length > d1.ticked.length)) ? d2 : d1;
       // Racha: la copia con el último día más reciente (y la mejor marca de las dos)
       var s1 = parse(lsGet(STREAK_KEY)) || {}, s2 = parse(r[2]) || {};
       var sb = ((s2.last || "") > (s1.last || "")) ? s2 : s1;
@@ -531,14 +536,15 @@
   function startOfToday() { var d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); }
 
   function parseDaily(text) {
-    if (typeof text !== "string") return { date: "", list: [] };
-    var nl = text.indexOf("\n");
-    var date = (nl < 0 ? text : text.slice(0, nl)).trim();
-    var list = Array.from(nl < 0 ? "" : text.slice(nl + 1).trim()).filter(function (k) { return CARDS[k]; });
-    return /^\d{4}-\d{2}-\d{2}$/.test(date) ? { date: date, list: list } : { date: "", list: [] };
+    if (typeof text !== "string") return { date: "", list: [], ticked: [] };
+    var lines = text.split("\n");
+    var date = (lines[0] || "").trim();
+    var list = Array.from((lines[1] || "").trim()).filter(function (k) { return CARDS[k]; });
+    var ticked = Array.from((lines[2] || "").trim()).filter(function (k) { return list.indexOf(k) >= 0; });
+    return /^\d{4}-\d{2}-\d{2}$/.test(date) ? { date: date, list: list, ticked: ticked } : { date: "", list: [], ticked: [] };
   }
   function saveDaily() {
-    var text = daily.date + "\n" + daily.list.join("");
+    var text = daily.date + "\n" + daily.list.join("") + "\n" + daily.ticked.join("");
     lsSet(DAILY_KEY, text); idbSet(DAILY_KEY, text);
   }
   function ensureDaily() {
@@ -549,14 +555,29 @@
       var fresh = GRADES[g].map(function (r) { return r[0]; }).filter(function (k) { return !progress[k]; });
       pick = pick.concat(shuffle(fresh).slice(0, DAILY_SIZE - pick.length));
     }
-    daily = { date: today, list: pick };
+    daily = { date: today, list: pick, ticked: [] };
     saveDaily();
     return true;
   }
-  // ¿Cuántos kanji del día has repasado ya hoy?
-  function dailyDone() {
-    var t0 = startOfToday();
-    return daily.list.filter(function (k) { return progress[k] && (progress[k].seen || 0) >= t0; }).length;
+  /* Reto diario: los 20 kanji salen siempre (estén o no pendientes en los niveles). Se marcan con ✕ o ✓;
+     los de ✕ se repiten hasta que los 20 tengan ✓. Al completarlo sube la racha y cada kanji del reto
+     queda como revisado y no vuelve a los niveles en al menos 5 días (si ya tenía un plazo mayor, se respeta).
+     Después se pueden seguir viendo con «Siguiente», sin marcar nada. */
+  var DAILY_MIN_GAP = 5 * DAY;
+  function dailyDone() { return daily.ticked.length; }
+  function dailyComplete() { return daily.list.length > 0 && (daily.ticked.length >= daily.list.length || streak.last === daily.date); }
+  function completeDaily() {
+    var now = Date.now(), min = now + DAILY_MIN_GAP;
+    daily.list.forEach(function (k) {
+      var p = progress[k] || { reps: 0 };
+      if (!(typeof p.due === "number" && p.due > min)) p.due = min;
+      p.reps = (p.reps || 0) + 1;
+      p.last = p.last || "good";
+      p.seen = now;
+      progress[k] = p;
+    });
+    save();
+    checkDayComplete();
   }
 
   /* ================= Racha y paletas ================= */
@@ -567,7 +588,7 @@
   function checkDayComplete() {
     var today = dayStr();
     if (streak.last === today) return;
-    if (daily.list.length && dailyDone() < daily.list.length) return;
+    if (daily.list.length && dailyDone() < daily.list.length) return; // el reto diario aún no tiene los 20 ✓
     var before = streak.best;
     streak.cur = (streak.last === yesterdayStr()) ? streak.cur + 1 : 1;
     streak.best = Math.max(streak.best, streak.cur);
@@ -644,7 +665,15 @@
     return { due: due, fresh: fresh, waiting: waiting, available: due + fresh, total: deck(l).length };
   }
 
+  // Modo de la tarjeta: "srs" (niveles), "daily" (reto de hoy: ✕ / ✓) o "browse" (reto superado: «Siguiente»)
+  function mode() { return level !== 0 ? "srs" : dailyComplete() ? "browse" : "daily"; }
+
   function buildQueue() {
+    if (level === 0 && daily.list.length) {
+      if (mode() === "daily") queue = shuffle(daily.list.filter(function (k) { return daily.ticked.indexOf(k) < 0; }));
+      else { queue = shuffle(daily.list.slice()); if (queue.length > 1 && queue[0] === current) queue.push(queue.shift()); }
+      return;
+    }
     var now = Date.now(), reviews = [], fresh = [];
     deck(level).forEach(function (k) {
       if (cramMode) { reviews.push(k); return; }
@@ -657,7 +686,7 @@
 
   // Añade al final de la cola las tarjetas que acaban de volver a estar disponibles (p. ej. "Again" tras 10 min)
   function refillQueue() {
-    if (cramMode) return;
+    if (cramMode || level === 0) return;
     var now = Date.now(), inQ = {};
     queue.forEach(function (k) { inQ[k] = 1; });
     if (current) inQ[current] = 1;
@@ -702,13 +731,13 @@
   }
 
   function renderToday() {
-    var b = $("todayBtn"), n = daily.list.length, done = dailyDone(), complete = streak.last === dayStr();
+    var b = $("todayBtn"), n = daily.list.length, complete = dailyComplete(), done = complete ? n : dailyDone();
     b.className = "today" + (level === 0 ? " active" : "") + (complete ? " done" : "");
     b.innerHTML = "";
     b.appendChild(el("span", "jp", "今日"));
     var t = el("span", "txt");
     t.appendChild(el("span", "t", "Kanji de hoy"));
-    t.appendChild(el("span", "s", n === 0 ? "¡Ya has empezado todos los kanji!" : complete ? "Completado · mañana tendrás 20 más" : "20 kanji nuevos, de los más sencillos que te quedan"));
+    t.appendChild(el("span", "s", n === 0 ? "¡Ya has empezado todos los kanji!" : complete ? "Reto superado · repásalos cuando quieras" : "Marca ✓ los 20 para superar el reto de hoy"));
     b.appendChild(t);
     b.appendChild(el("span", "right", (complete ? "✓ " : "") + done + "/" + n));
     b.onclick = function () { selectLevel(0); };
@@ -748,8 +777,16 @@
   }
 
   function renderStatus() {
-    var c = levelCounts(level);
     $("levelLabel").textContent = levelName(level);
+    if (level === 0 && daily.list.length) {
+      var n = daily.list.length, t = dailyDone(), m = mode();
+      $("statusRight").innerHTML = "";
+      $("statusRight").appendChild(el("b", null, m === "daily" ? (n - t) + " por acertar" : "Reto superado"));
+      $("statusRight").appendChild(document.createTextNode(m === "daily" ? " · " + t + " ✓" : " · repaso libre"));
+      $("progressBar").style.width = (m === "daily" ? (t / n) * 100 : 100) + "%";
+      return;
+    }
+    var c = levelCounts(level);
     var left = cramMode ? queue.length + (current ? 1 : 0) : c.available;
     $("statusRight").innerHTML = "";
     var b = el("b", null, left + " por repasar");
@@ -770,13 +807,27 @@
     card.appendChild(front); card.appendChild(back); wrap.appendChild(card);
     stage.appendChild(wrap);
 
-    var r = el("div", "ratings"); r.id = "ratings";
-    [["again", "Again", "10 min"], ["hard", "Hard", "1 día"], ["good", "Good", "3 días"], ["easy", "Easy", "16 días"]].forEach(function (x) {
-      var b = el("button", "rate-btn " + x[0]);
-      b.appendChild(el("span", "label", x[1])); b.appendChild(el("span", "interval", x[2]));
-      b.onclick = function (e) { e.stopPropagation(); rate(x[0]); };
-      r.appendChild(b);
-    });
+    var m = mode(), r = el("div", "ratings " + m); r.id = "ratings"; r.dataset.mode = m;
+    if (m === "srs") {
+      [["again", "Again", "10 min"], ["hard", "Hard", "1 día"], ["good", "Good", "3 días"], ["easy", "Easy", "16 días"]].forEach(function (x) {
+        var b = el("button", "rate-btn " + x[0]);
+        b.appendChild(el("span", "label", x[1])); b.appendChild(el("span", "interval", x[2]));
+        b.onclick = function (e) { e.stopPropagation(); rate(x[0]); };
+        r.appendChild(b);
+      });
+    } else if (m === "daily") {
+      [["again", "✕", "Repetir", false], ["good", "✓", "Me lo sé", true]].forEach(function (x) {
+        var b = el("button", "rate-btn " + x[0]);
+        b.setAttribute("aria-label", x[2]);
+        b.appendChild(el("span", "mark", x[1])); b.appendChild(el("span", "interval", x[2]));
+        b.onclick = function (e) { e.stopPropagation(); markDaily(x[3]); };
+        r.appendChild(b);
+      });
+    } else {
+      var nx = el("button", "pill-btn next-btn", "Siguiente →");
+      nx.onclick = function (e) { e.stopPropagation(); nextBrowse(); };
+      r.appendChild(nx);
+    }
     stage.appendChild(r);
     card.onclick = flip;
   }
@@ -855,15 +906,16 @@
 
   function showNext() {
     refillQueue();
+    if (!queue.length && level === 0 && daily.list.length) buildQueue();
     if (!queue.length) { if (cramMode) { cramMode = false; } renderEmpty(); renderLevels(); return; }
-    if (!$("card")) buildCard();
+    if (!$("card") || $("ratings").dataset.mode !== mode()) buildCard();
     current = queue.shift();
     var c = CARDS[current];
     flipped = false;
     var card = $("card");
     card.classList.add("no-anim"); card.classList.remove("flipped");
     void card.offsetWidth; card.classList.remove("no-anim");
-    $("ratings").classList.remove("show");
+    $("ratings").classList.toggle("show", mode() === "browse");
     $("kFront").textContent = c.k;
     $("tagFront").textContent = GRADE_TAG[c.grade];
     $("back").innerHTML = ""; // la respuesta se rellena solo al girar, así nunca se ve antes de tiempo
@@ -889,13 +941,40 @@
     p.seen = now;
     progress[current] = p;
     save();
-    checkDayComplete();
+    if (!daily.list.length) checkDayComplete(); // sin kanji nuevos para el reto: cualquier repaso cuenta para la racha
     if (cramMode && choice === "again") queue.push(current);
 
     // Gira de vuelta mostrando aún la carta actual; la siguiente se carga al terminar el giro
     $("ratings").classList.remove("show");
     $("card").classList.remove("flipped");
     setTimeout(function () { busy = false; renderLevels(); showNext(); }, 460);
+  }
+
+  // Reto diario: ✓ lo da por sabido hoy; ✕ lo devuelve al final de la cola
+  function markDaily(ok) {
+    if (!flipped || !current || busy || mode() !== "daily") return;
+    busy = true;
+    var k = current;
+    if (ok) {
+      if (daily.ticked.indexOf(k) < 0) { daily.ticked.push(k); saveDaily(); }
+    } else queue.push(k);
+    var finished = ok && daily.ticked.length >= daily.list.length;
+    if (finished) completeDaily();
+    $("ratings").classList.remove("show");
+    $("card").classList.remove("flipped");
+    setTimeout(function () {
+      busy = false;
+      if (finished) { buildQueue(); stage.innerHTML = ""; }
+      renderLevels(); showNext();
+    }, 460);
+  }
+  // Repaso libre tras superar el reto
+  function nextBrowse() {
+    if (!current || busy) return;
+    if (!flipped) { showNext(); return; }
+    busy = true;
+    $("card").classList.remove("flipped");
+    setTimeout(function () { busy = false; showNext(); }, 460);
   }
 
   function selectLevel(n) {
@@ -1115,7 +1194,10 @@
   }, 30000);
   document.addEventListener("keydown", function (e) {
     if ($("sheet").classList.contains("open") || $("remSheet").classList.contains("open") || $("introSheet").classList.contains("open")) return;
-    if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); }
+    var m = mode();
+    if (m === "browse" && (e.key === "Enter" || e.key === "ArrowRight")) { e.preventDefault(); nextBrowse(); }
+    else if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); }
+    else if (m === "daily") { if (e.key === "1" || e.key === "ArrowLeft") markDaily(false); else if (e.key === "2" || e.key === "ArrowRight") markDaily(true); }
     else if (flipped && "1234".indexOf(e.key) >= 0) rate(["again", "hard", "good", "easy"][+e.key - 1]);
   });
 
