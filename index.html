@@ -25,6 +25,38 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180x180.png">
 <link rel="manifest" href="site.webmanifest">
 
+<!-- Paletas de color (se desbloquean con la racha). Se aplican antes de pintar para evitar parpadeos. -->
+<script>
+  window.KANAME_PALETTES = [
+    { id: "sumi",     jp: "墨",   name: "Sumi",     days: 0,   accent: "#c0503a" },
+    { id: "sakura",   jp: "桜",   name: "Sakura",   days: 10,  accent: "#e07a9b" },
+    { id: "matcha",   jp: "抹茶", name: "Matcha",   days: 20,  accent: "#8db36a" },
+    { id: "ai",       jp: "藍",   name: "Ai",       days: 30,  accent: "#5f8fdc" },
+    { id: "yamabuki", jp: "山吹", name: "Yamabuki", days: 40,  accent: "#e0a832" },
+    { id: "fuji",     jp: "藤",   name: "Fuji",     days: 50,  accent: "#a07fdc" },
+    { id: "umi",      jp: "海",   name: "Umi",      days: 60,  accent: "#3fb3b0" },
+    { id: "momiji",   jp: "紅葉", name: "Momiji",   days: 70,  accent: "#e8663a" },
+    { id: "yoru",     jp: "夜",   name: "Yoru",     days: 80,  accent: "#c9b27a", bg: "#0e1120", surface: "#171b2c", raised: "#21263a", hairline: "#2e3450" },
+    { id: "kin",      jp: "金",   name: "Kin",      days: 100, accent: "#d4af37", bg: "#000000", surface: "#141210", raised: "#1f1c18", hairline: "#36302a" }
+  ];
+  window.applyKanamePalette = function (id) {
+    var P = window.KANAME_PALETTES, pal = P[0];
+    for (var i = 0; i < P.length; i++) if (P[i].id === id) pal = P[i];
+    var r = document.documentElement.style;
+    r.setProperty("--accent", pal.accent);
+    r.setProperty("--accent-soft", pal.accent + "2e");
+    r.setProperty("--bg", pal.bg || "#121212");
+    r.setProperty("--surface", pal.surface || "#1c1c1c");
+    r.setProperty("--surface-raised", pal.raised || "#262626");
+    r.setProperty("--hairline", pal.hairline || "#333");
+    var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute("content", pal.bg || "#121212");
+  };
+  try { window.applyKanamePalette(localStorage.getItem("kaname.palette.v1") || "sumi"); } catch (e) {}
+</script>
+
+<!-- Estadísticas de visitas anónimas y sin cookies (GoatCounter). Si no hay conexión, no hace nada. -->
+<script data-goatcounter="https://kaname.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+
 <style>
   :root {
     --bg: #121212;
@@ -77,6 +109,44 @@
   }
   .icon-btn:active { transform: scale(.94); }
   .icon-btn svg { width: 18px; height: 18px; }
+
+  .head-right { display: flex; gap: 8px; align-items: center; }
+  .streak-btn {
+    appearance: none; background: none; border: 1px solid var(--hairline); color: var(--text-muted);
+    height: 38px; padding: 0 12px 0 10px; border-radius: 999px; cursor: pointer;
+    display: flex; align-items: center; gap: 5px; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums;
+  }
+  .streak-btn svg { width: 17px; height: 17px; }
+  .streak-btn.on { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+  .streak-btn:active { transform: scale(.94); }
+
+  /* Kanji de hoy */
+  .today {
+    appearance: none; width: 100%; display: flex; align-items: center; gap: 12px; text-align: left; color: var(--text);
+    border: 1px solid var(--hairline); background: var(--surface); border-radius: var(--radius-md);
+    padding: 10px 14px; margin-bottom: 8px; cursor: pointer; transition: background .15s, border-color .15s;
+  }
+  .today:active { transform: scale(.98); }
+  .today .jp { font-size: 22px; font-weight: 700; color: var(--accent); }
+  .today .txt { flex: 1; min-width: 0; }
+  .today .t { display: block; font-size: 15px; font-weight: 700; }
+  .today .s { display: block; font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+  .today .right { font-size: 13px; font-weight: 700; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .today.active { background: var(--accent-soft); border-color: var(--accent); }
+  .today.done .right { color: var(--good); }
+
+  /* Racha y paletas (hoja de progreso) */
+  .streak-hero { display: flex; align-items: center; gap: 14px; background: var(--surface-raised); border-radius: var(--radius-md); padding: 14px 16px; }
+  .streak-hero .big { font-size: 38px; font-weight: 800; line-height: 1; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .streak-hero .big small { font-size: 15px; font-weight: 600; color: var(--text-muted); margin-left: 4px; }
+  .streak-hero .info { font-size: 12.5px; color: var(--text-muted); line-height: 1.45; }
+  .streak-hero .info b { color: var(--text); }
+  .palettes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; margin-top: 10px; }
+  .pal { appearance: none; border: 1px solid var(--hairline); background: var(--surface-raised); color: var(--text); border-radius: 12px; padding: 9px 0 7px; cursor: pointer; text-align: center; min-width: 0; }
+  .pal .sw { width: 26px; height: 26px; border-radius: 50%; margin: 0 auto 5px; display: grid; place-items: center; font-size: 12px; color: #fff; }
+  .pal .nm { display: block; font-size: 10.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pal.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .pal.locked { opacity: .38; cursor: default; }
 
   /* Levels */
   .levels { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 14px; }
@@ -149,6 +219,7 @@
   .empty { flex: 1; min-height: 360px; border: 1px solid var(--hairline); border-radius: var(--radius-lg); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px; }
   .empty .mark { font-size: 56px; color: var(--text-faint); margin-bottom: 14px; }
   .empty h2 { margin: 0 0 8px; font-size: 18px; }
+  .empty .row { justify-content: center; }
   .empty p { margin: 0 0 20px; font-size: 14px; color: var(--text-muted); line-height: 1.5; max-width: 290px; }
   .pill-btn { appearance: none; border: 1px solid var(--accent); background: var(--accent-soft); color: var(--text); font-size: 14px; font-weight: 600; padding: 11px 20px; border-radius: 999px; cursor: pointer; }
   .pill-btn.ghost { border-color: var(--hairline); background: transparent; color: var(--text-muted); }
@@ -174,7 +245,7 @@
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
-  @media (max-height: 760px) {
+  @media (max-height: 900px) {
     .face-back { padding: 12px 16px 14px; }
     .kanji-small { font-size: 36px; margin-bottom: 8px; }
     .readings { gap: 5px; margin-bottom: 10px; }
@@ -197,10 +268,15 @@
       <img src="icons/icon-192.png" alt="">
       <h1>KanaMe</h1>
     </div>
+    <div class="head-right">
+    <button class="streak-btn" id="streakBtn" aria-label="Racha de días"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 3.4-1.2 5.3-2.8 7C7.6 10.7 6 12.5 6 15a6 6 0 0 0 12 0c0-2.2-1-4.1-2.3-5.6-.2 1.6-1 2.8-2.2 3.4.4-3.9-.4-7.6-1.5-10.8z"/></svg><span id="streakNum">0</span></button>
     <button class="icon-btn" id="openSettings" aria-label="Progreso y ajustes">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>
     </button>
+    </div>
   </header>
+
+  <button class="today" id="todayBtn"></button>
 
   <div class="levels" id="levels"></div>
 
@@ -215,6 +291,11 @@
     <h2 id="sheetTitle">Tu progreso</h2>
     <p class="sub">Se guarda automáticamente en este dispositivo después de cada tarjeta. No hace falta cuenta.</p>
     <div class="stats" id="stats"></div>
+
+    <h3>Racha</h3>
+    <div class="streak-hero" id="streakHero"></div>
+    <div class="palettes" id="palettes"></div>
+    <p class="note">Completa los 20 kanji del día para sumar un día a tu racha. Cada 10 días seguidos desbloqueas una paleta de colores nueva.</p>
 
     <h3>Copia de seguridad</h3>
     <div class="row">
@@ -281,7 +362,13 @@
   var KEY = "kaname.progress.v1";
   var LEVEL_KEY = "kaname.level.v1";
   var LEGACY_KEY = "kyoikuSR_progress_v1"; // versiones anteriores de la app
+  var DAILY_KEY = "kaname.daily.v1";       // "AAAA-MM-DD\n" + los 20 kanji del día
+  var STREAK_KEY = "kaname.streak.v1";     // { cur, best, last: "AAAA-MM-DD" }
+  var PALETTE_KEY = "kaname.palette.v1";
+  var DAILY_SIZE = 20;
   var progress = {};       // kanji -> { due, reps, last, seen }
+  var daily = { date: "", list: [] };
+  var streak = { cur: 0, best: 0, last: "" };
 
   var idb = null;
   function openIDB() {
@@ -322,13 +409,90 @@
   }
 
   function loadProgress() {
-    return openIDB().then(function () { return idbGet(KEY); }).then(function (fromIdb) {
-      var a = parse(lsGet(KEY)), b = parse(fromIdb), legacy = parse(lsGet(LEGACY_KEY));
+    return openIDB().then(function () {
+      return Promise.all([idbGet(KEY), idbGet(DAILY_KEY), idbGet(STREAK_KEY)]);
+    }).then(function (r) {
+      var a = parse(lsGet(KEY)), b = parse(r[0]), legacy = parse(lsGet(LEGACY_KEY));
       // Quedarse con la copia más completa
       var best = [a, b, legacy].reduce(function (m, x) { return countKeys(x) > countKeys(m) ? x : m; }, null);
       progress = best || {};
       if (countKeys(progress)) save();
+      // Kanji del día: la copia con la fecha más reciente
+      var d1 = parseDaily(lsGet(DAILY_KEY)), d2 = parseDaily(r[1]);
+      daily = (d2.date > d1.date) ? d2 : d1;
+      // Racha: la copia con el último día más reciente (y la mejor marca de las dos)
+      var s1 = parse(lsGet(STREAK_KEY)) || {}, s2 = parse(r[2]) || {};
+      var sb = ((s2.last || "") > (s1.last || "")) ? s2 : s1;
+      streak = { cur: sb.cur || 0, best: Math.max(s1.best || 0, s2.best || 0, sb.cur || 0), last: sb.last || "" };
     });
+  }
+
+  /* ================= Kanji del día =================
+     Una vez al día (la primera vez que se abre la app) se genera una lista de 20 kanji nuevos,
+     elegidos al azar del nivel más sencillo que aún tenga kanji sin estudiar. Se guarda como texto
+     que empieza por la fecha; mientras la fecha sea la de hoy, no se vuelve a calcular. */
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function dayStr(d) { d = d || new Date(); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+  function yesterdayStr() { var d = new Date(); d.setDate(d.getDate() - 1); return dayStr(d); }
+  function startOfToday() { var d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); }
+
+  function parseDaily(text) {
+    if (typeof text !== "string") return { date: "", list: [] };
+    var nl = text.indexOf("\n");
+    var date = (nl < 0 ? text : text.slice(0, nl)).trim();
+    var list = Array.from(nl < 0 ? "" : text.slice(nl + 1).trim()).filter(function (k) { return CARDS[k]; });
+    return /^\d{4}-\d{2}-\d{2}$/.test(date) ? { date: date, list: list } : { date: "", list: [] };
+  }
+  function saveDaily() {
+    var text = daily.date + "\n" + daily.list.join("");
+    lsSet(DAILY_KEY, text); idbSet(DAILY_KEY, text);
+  }
+  function ensureDaily() {
+    var today = dayStr();
+    if (daily.date === today) return false;     // ya generado hoy: no se hace nada más
+    var pick = [];
+    for (var g = 0; g < GRADES.length && pick.length < DAILY_SIZE; g++) {
+      var fresh = GRADES[g].map(function (r) { return r[0]; }).filter(function (k) { return !progress[k]; });
+      pick = pick.concat(shuffle(fresh).slice(0, DAILY_SIZE - pick.length));
+    }
+    daily = { date: today, list: pick };
+    saveDaily();
+    return true;
+  }
+  // ¿Cuántos kanji del día has repasado ya hoy?
+  function dailyDone() {
+    var t0 = startOfToday();
+    return daily.list.filter(function (k) { return progress[k] && (progress[k].seen || 0) >= t0; }).length;
+  }
+
+  /* ================= Racha y paletas ================= */
+  var PALETTES = window.KANAME_PALETTES || [];
+  function saveStreak() { var s = JSON.stringify(streak); lsSet(STREAK_KEY, s); idbSet(STREAK_KEY, s); }
+  function currentStreak() { return (streak.last === dayStr() || streak.last === yesterdayStr()) ? streak.cur : 0; }
+  function unlocked(p) { return streak.best >= p.days; }
+  function checkDayComplete() {
+    var today = dayStr();
+    if (streak.last === today) return;
+    if (daily.list.length && dailyDone() < daily.list.length) return;
+    var before = streak.best;
+    streak.cur = (streak.last === yesterdayStr()) ? streak.cur + 1 : 1;
+    streak.best = Math.max(streak.best, streak.cur);
+    streak.last = today;
+    saveStreak();
+    track("dia-completado");
+    var nuevas = PALETTES.filter(function (p) { return p.days > before && p.days <= streak.best; });
+    if (nuevas.length) {
+      var p = nuevas[nuevas.length - 1];
+      setPalette(p.id);
+      toast("🎉 " + streak.cur + " días seguidos · Nueva paleta: " + p.name + " " + p.jp);
+    } else {
+      toast("🔥 ¡Día completado! Racha: " + streak.cur + (streak.cur === 1 ? " día" : " días"));
+    }
+    renderStreak();
+  }
+  function setPalette(id) { lsSet(PALETTE_KEY, id); if (window.applyKanamePalette) window.applyKanamePalette(id); }
+  function track(name) {
+    try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: "evento/" + name, title: name, event: true }); } catch (e) {}
   }
 
   function requestPersistence() {
@@ -336,8 +500,12 @@
   }
 
   /* ================= Estado ================= */
+  // level 0 = «Kanji de hoy»; 1–7 = niveles acumulativos
   var level = parseInt(lsGet(LEVEL_KEY), 10);
-  if (!(level >= 1 && level <= LEVELS.length)) level = 1;
+  if (!(level >= 0 && level <= LEVELS.length)) level = 0;
+  function deck(l) { return l === 0 ? daily.list : DECKS[l - 1]; }
+  function levelName(l) { return l === 0 ? "Hoy · " + dayLabel() : LEVELS[l - 1].name; }
+  function dayLabel() { return new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" }); }
   var queue = [];          // kanji pendientes ahora mismo
   var current = null;
   var flipped = false;
@@ -352,18 +520,18 @@
 
   function levelCounts(l) {
     var now = Date.now(), due = 0, fresh = 0, waiting = 0;
-    DECKS[l - 1].forEach(function (k) {
+    deck(l).forEach(function (k) {
       var p = progress[k];
       if (!p || typeof p.due !== "number") fresh++;
       else if (p.due <= now) due++;
       else waiting++;
     });
-    return { due: due, fresh: fresh, waiting: waiting, available: due + fresh, total: DECKS[l - 1].length };
+    return { due: due, fresh: fresh, waiting: waiting, available: due + fresh, total: deck(l).length };
   }
 
   function buildQueue() {
     var now = Date.now(), reviews = [], fresh = [];
-    DECKS[level - 1].forEach(function (k) {
+    deck(level).forEach(function (k) {
       if (cramMode) { reviews.push(k); return; }
       var p = progress[k];
       if (!p || typeof p.due !== "number") fresh.push(k);
@@ -378,7 +546,7 @@
     var now = Date.now(), inQ = {};
     queue.forEach(function (k) { inQ[k] = 1; });
     if (current) inQ[current] = 1;
-    DECKS[level - 1].forEach(function (k) {
+    deck(level).forEach(function (k) {
       var p = progress[k];
       if (!inQ[k] && p && typeof p.due === "number" && p.due <= now) queue.push(k);
     });
@@ -386,7 +554,7 @@
 
   function nextDueIn() {
     var now = Date.now(), min = Infinity;
-    DECKS[level - 1].forEach(function (k) { var p = progress[k]; if (p && p.due > now && p.due < min) min = p.due; });
+    deck(level).forEach(function (k) { var p = progress[k]; if (p && p.due > now && p.due < min) min = p.due; });
     return min === Infinity ? null : min - now;
   }
   function humanTime(ms) {
@@ -405,6 +573,7 @@
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
   function renderLevels() {
+    renderToday(); renderStreak();
     var box = $("levels"); box.innerHTML = "";
     LEVELS.forEach(function (L, i) {
       var n = i + 1, c = levelCounts(n);
@@ -417,9 +586,55 @@
     });
   }
 
+  function renderToday() {
+    var b = $("todayBtn"), n = daily.list.length, done = dailyDone(), complete = streak.last === dayStr();
+    b.className = "today" + (level === 0 ? " active" : "") + (complete ? " done" : "");
+    b.innerHTML = "";
+    b.appendChild(el("span", "jp", "今日"));
+    var t = el("span", "txt");
+    t.appendChild(el("span", "t", "Kanji de hoy"));
+    t.appendChild(el("span", "s", n === 0 ? "¡Ya has empezado todos los kanji!" : complete ? "Completado · mañana tendrás 20 más" : "20 kanji nuevos, de los más sencillos que te quedan"));
+    b.appendChild(t);
+    b.appendChild(el("span", "right", (complete ? "✓ " : "") + done + "/" + n));
+    b.onclick = function () { selectLevel(0); };
+  }
+  function renderStreak() {
+    var cur = currentStreak();
+    $("streakNum").textContent = cur;
+    $("streakBtn").classList.toggle("on", streak.last === dayStr());
+    $("streakBtn").setAttribute("aria-label", "Racha: " + cur + " días");
+  }
+  function renderStreakSheet() {
+    var cur = currentStreak(), next = PALETTES.filter(function (p) { return p.days > streak.best; })[0];
+    var h = $("streakHero"); h.innerHTML = "";
+    var big = el("div", "big", String(cur)); big.appendChild(el("small", null, cur === 1 ? "día" : "días"));
+    h.appendChild(big);
+    var info = el("div", "info");
+    info.appendChild(document.createTextNode("Mejor racha: ")); info.appendChild(el("b", null, streak.best + (streak.best === 1 ? " día" : " días")));
+    info.appendChild(el("br"));
+    info.appendChild(document.createTextNode(next ? "Siguiente paleta (" + next.name + ") a los " + next.days + " días." : "¡Has desbloqueado todas las paletas!"));
+    h.appendChild(info);
+    var box = $("palettes"); box.innerHTML = "";
+    var sel = lsGet(PALETTE_KEY) || "sumi";
+    PALETTES.forEach(function (p) {
+      var ok = unlocked(p);
+      var b = el("button", "pal" + (p.id === sel ? " sel" : "") + (ok ? "" : " locked"));
+      var sw = el("span", "sw", ok ? "" : "🔒"); sw.style.background = p.accent;
+      if (p.bg) sw.style.boxShadow = "inset 0 0 0 5px " + p.bg;
+      b.appendChild(sw);
+      b.appendChild(el("span", "nm", ok ? p.name : p.days + " días"));
+      b.setAttribute("aria-label", p.name + (ok ? "" : ", se desbloquea con " + p.days + " días de racha"));
+      b.onclick = function () {
+        if (!ok) { toast("Se desbloquea con una racha de " + p.days + " días"); return; }
+        setPalette(p.id); renderStreakSheet();
+      };
+      box.appendChild(b);
+    });
+  }
+
   function renderStatus() {
     var c = levelCounts(level);
-    $("levelLabel").textContent = LEVELS[level - 1].name;
+    $("levelLabel").textContent = levelName(level);
     var left = cramMode ? queue.length + (current ? 1 : 0) : c.available;
     $("statusRight").innerHTML = "";
     var b = el("b", null, left + " por repasar");
@@ -495,15 +710,30 @@
     current = null;
     stage.innerHTML = "";
     var box = el("div", "empty");
-    box.appendChild(el("div", "mark", "休"));
-    box.appendChild(el("h2", null, "¡Todo repasado!"));
     var wait = nextDueIn();
-    box.appendChild(el("p", null, wait != null
-      ? "No te queda nada pendiente en este nivel. La siguiente tarjeta vuelve en " + humanTime(wait) + "."
-      : "No te queda nada pendiente en este nivel."));
-    var b = el("button", "pill-btn", "Repasar todo igualmente");
-    b.onclick = function () { cramMode = true; buildQueue(); showNext(); };
-    box.appendChild(b);
+    if (level === 0) {
+      box.appendChild(el("div", "mark", "今"));
+      box.appendChild(el("h2", null, daily.list.length ? "¡Kanji de hoy completados!" : "¡No te quedan kanji nuevos!"));
+      box.appendChild(el("p", null, (wait != null && wait < DAY ? "Los que marcaste con Again vuelven en " + humanTime(wait) + ". " : "") +
+        "Mañana tendrás 20 kanji nuevos. Si quieres más, sigue en tu nivel."));
+      // Nivel más sencillo con algo pendiente (repasos primero; si no, kanji nuevos)
+      var lv = 0, i;
+      for (i = 1; i <= LEVELS.length && !lv; i++) if (levelCounts(i).due) lv = i;
+      for (i = 1; i <= LEVELS.length && !lv; i++) if (levelCounts(i).available) lv = i;
+      lv = lv || 1;
+      var go = el("button", "pill-btn", (levelCounts(lv).due ? "Repasar" : "Seguir con el") + " nivel " + LEVELS[lv - 1].short);
+      go.onclick = function () { selectLevel(lv); };
+      box.appendChild(go);
+    } else {
+      box.appendChild(el("div", "mark", "休"));
+      box.appendChild(el("h2", null, "¡Todo repasado!"));
+      box.appendChild(el("p", null, wait != null
+        ? "No te queda nada pendiente en este nivel. La siguiente tarjeta vuelve en " + humanTime(wait) + "."
+        : "No te queda nada pendiente en este nivel."));
+      var b = el("button", "pill-btn", "Repasar todo igualmente");
+      b.onclick = function () { cramMode = true; buildQueue(); showNext(); };
+      box.appendChild(b);
+    }
     stage.appendChild(box);
     renderStatus();
   }
@@ -544,6 +774,7 @@
     p.seen = now;
     progress[current] = p;
     save();
+    checkDayComplete();
     if (cramMode && choice === "again") queue.push(current);
 
     // Gira de vuelta mostrando aún la carta actual; la siguiente se carga al terminar el giro
@@ -574,7 +805,7 @@
       var d = el("div", "stat"); d.appendChild(el("b", null, String(x[0]))); d.appendChild(el("span", null, x[1])); s.appendChild(d);
     });
   }
-  function backupString() { return JSON.stringify({ app: "KanaMe", v: 1, date: new Date().toISOString(), progress: progress }); }
+  function backupString() { return JSON.stringify({ app: "KanaMe", v: 2, date: new Date().toISOString(), progress: progress, streak: streak, palette: lsGet(PALETTE_KEY) || "sumi" }); }
   function restoreFrom(text) {
     var o = parse((text || "").trim());
     var p = o && (o.progress || (o.app ? null : o));
@@ -587,11 +818,20 @@
       if (!merged[k] || (p[k].seen || 0) >= (merged[k].seen || 0)) { merged[k] = p[k]; n++; }
     });
     progress = merged; save();
-    buildQueue(); stage.innerHTML = ""; current = null; showNext(); renderLevels(); renderStats();
+    if (o.streak && typeof o.streak === "object") {
+      var st = o.streak;
+      if ((st.last || "") > streak.last) { streak.cur = st.cur || 0; streak.last = st.last; }
+      streak.best = Math.max(streak.best, st.best || 0, streak.cur);
+      saveStreak();
+      if (o.palette) { var pp = PALETTES.filter(function (x) { return x.id === o.palette; })[0]; if (pp && unlocked(pp)) setPalette(pp.id); }
+    }
+    buildQueue(); stage.innerHTML = ""; current = null; showNext(); renderLevels(); renderStats(); renderStreakSheet();
     toast(n + " tarjetas restauradas");
   }
 
-  $("openSettings").onclick = function () { renderStats(); $("sheet").classList.add("open"); };
+  function openSheet() { renderStats(); renderStreakSheet(); $("sheet").classList.add("open"); }
+  $("openSettings").onclick = openSheet;
+  $("streakBtn").onclick = openSheet;
   $("closeSettings").onclick = function () { $("sheet").classList.remove("open"); };
   $("sheet").onclick = function (e) { if (e.target === $("sheet")) $("sheet").classList.remove("open"); };
   $("exportBtn").onclick = function () {
@@ -618,18 +858,25 @@
   $("resetBtn").onclick = function () {
     if (!confirm("¿Borrar TODO tu progreso en este dispositivo? No se puede deshacer.")) return;
     progress = {}; save(); try { localStorage.removeItem(LEGACY_KEY); } catch (e) {}
-    selectLevel(level); renderStats(); toast("Progreso borrado");
+    streak = { cur: 0, best: 0, last: "" }; saveStreak(); setPalette("sumi");
+    daily = { date: "", list: [] }; ensureDaily();
+    selectLevel(level); renderStats(); renderStreakSheet(); toast("Progreso borrado");
   };
 
   /* ================= Ciclo de vida ================= */
   document.addEventListener("visibilitychange", function () {
     if (document.visibilityState === "hidden") save();
-    else { refillQueue(); renderLevels(); if (!current) { buildQueue(); stage.innerHTML = ""; showNext(); } else renderStatus(); }
+    else {
+      // Si ha cambiado el día con la app abierta, se generan los kanji del nuevo día
+      if (ensureDaily() && level === 0) { current = null; buildQueue(); stage.innerHTML = ""; showNext(); }
+      refillQueue(); renderLevels(); if (!current) { buildQueue(); stage.innerHTML = ""; showNext(); } else renderStatus();
+    }
   });
   window.addEventListener("pagehide", save);
   // Cada 30 s comprueba si alguna tarjeta ("Again") ha vuelto a estar disponible
   setInterval(function () {
     if (document.visibilityState !== "visible") return;
+    if (ensureDaily() && level === 0 && !current) buildQueue();
     if (!current && !cramMode) { buildQueue(); if (queue.length) { stage.innerHTML = ""; showNext(); } }
     renderLevels(); if (current) renderStatus();
   }, 30000);
@@ -647,6 +894,7 @@
   if (!GRADES.length) { stage.textContent = "No se pudieron cargar los datos (data/kanji.js)."; return; }
   loadProgress().then(function () {
     requestPersistence();
+    ensureDaily();
     buildQueue(); renderLevels(); showNext();
   });
 })();

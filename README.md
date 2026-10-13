@@ -34,6 +34,12 @@ Sin cuentas · Sin anuncios · Funciona sin conexión
 
 Tu progreso se guarda solo en el móvil y se comparte entre niveles: lo que ya sabes no vuelve a salir hasta que toca.
 
+## Kanji de hoy, racha y paletas
+
+- **今日 Kanji de hoy.** Cada día, al abrir la app, KanaMe prepara 20 kanji nuevos elegidos al azar del nivel más sencillo que aún tengas sin estudiar. La lista se genera una sola vez al día y sin conexión.
+- **🔥 Racha.** Completa los 20 kanji del día para sumar un día a tu racha.
+- **Paletas de colores.** Cada 10 días seguidos desbloqueas una paleta nueva: 桜 Sakura, 抹茶 Matcha, 藍 Ai, 山吹 Yamabuki, 藤 Fuji, 海 Umi, 紅葉 Momiji, 夜 Yoru… y 金 Kin a los 100 días. Las paletas ganadas no se pierden aunque se rompa la racha.
+
 ## Por qué se aprende tan rápido
 
 KanaMe aplica las dos técnicas de estudio con más respaldo científico:
@@ -71,7 +77,9 @@ Añádela a la pantalla de inicio y se abrirá a pantalla completa, como una app
 
 ## Privacidad
 
-Sin servidores ni registro. Todo se guarda en tu dispositivo, con copia en dos almacenes del navegador. Puedes exportar tu progreso como código o archivo y restaurarlo en otro móvil.
+Sin registro. Tu progreso, tu racha y tus kanji del día se guardan solo en tu dispositivo, con copia en dos almacenes del navegador. Puedes exportarlo como código o archivo y restaurarlo en otro móvil.
+
+Para saber cuánta gente usa la app se cuentan las visitas de forma anónima con [GoatCounter](https://www.goatcounter.com): sin cookies, sin datos personales y sin seguimiento entre webs.
 
 ## Familia KanaMe
 
