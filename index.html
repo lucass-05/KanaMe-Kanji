@@ -29,6 +29,11 @@
 <script>
   window.KANAME_PALETTES = [
     { id: "sumi",     jp: "墨",   name: "Sumi",     days: 0,   accent: "#c0503a" },
+    // Shiro: la paleta Sumi con blancos y negros intercambiados. Se desbloquea al empezar una racha (1 día).
+    { id: "shiro",    jp: "白",   name: "Shiro",    days: 1,   accent: "#c0503a", light: true,
+      bg: "#ededed", surface: "#e3e3e3", raised: "#d9d9d9", hairline: "#c4c4c4",
+      text: "#141414", muted: "#5c5c5c", faint: "#858585",
+      again: "#b4473b", hard: "#94661a", good: "#3d7d53", easy: "#3474a6" },
     { id: "sakura",   jp: "桜",   name: "Sakura",   days: 10,  accent: "#e07a9b" },
     { id: "matcha",   jp: "抹茶", name: "Matcha",   days: 20,  accent: "#8db36a" },
     { id: "ai",       jp: "藍",   name: "Ai",       days: 30,  accent: "#5f8fdc" },
@@ -49,7 +54,15 @@
     r.setProperty("--surface", pal.surface || "#1c1c1c");
     r.setProperty("--surface-raised", pal.raised || "#262626");
     r.setProperty("--hairline", pal.hairline || "#333");
+    r.setProperty("--text", pal.text || "#ebebeb");
+    r.setProperty("--text-muted", pal.muted || "#9a9a9a");
+    r.setProperty("--text-faint", pal.faint || "#686868");
+    var RATE = { again: "#d0685c", hard: "#c99a4a", good: "#6fae84", easy: "#7fb8e0" };
+    for (var k in RATE) { var c = pal[k] || RATE[k]; r.setProperty("--" + k, c); r.setProperty("--" + k + "-soft", c + (k === "easy" ? "24" : "1f")); }
+    r.setProperty("color-scheme", pal.light ? "light" : "dark");
+    document.documentElement.classList.toggle("light", !!pal.light);
     var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute("content", pal.bg || "#121212");
+    var cs = document.querySelector('meta[name="color-scheme"]'); if (cs) cs.setAttribute("content", pal.light ? "light" : "dark");
   };
   try { window.applyKanamePalette(localStorage.getItem("kaname.palette.v1") || "sumi"); } catch (e) {}
 </script>
@@ -141,12 +154,27 @@
   .streak-hero .big small { font-size: 15px; font-weight: 600; color: var(--text-muted); margin-left: 4px; }
   .streak-hero .info { font-size: 12.5px; color: var(--text-muted); line-height: 1.45; }
   .streak-hero .info b { color: var(--text); }
-  .palettes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; margin-top: 10px; }
+  .palettes { display: grid; grid-template-columns: repeat(6, 1fr); gap: 7px; margin-top: 10px; }
   .pal { appearance: none; border: 1px solid var(--hairline); background: var(--surface-raised); color: var(--text); border-radius: 12px; padding: 9px 0 7px; cursor: pointer; text-align: center; min-width: 0; }
   .pal .sw { width: 26px; height: 26px; border-radius: 50%; margin: 0 auto 5px; display: grid; place-items: center; font-size: 12px; color: #fff; }
   .pal .nm { display: block; font-size: 10.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .pal.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
   .pal.locked { opacity: .38; cursor: default; }
+  /* Paleta clara: en el iPhone la barra de estado (hora, batería) es blanca; se le pone fondo oscuro para que se lea */
+  html.light body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top); background: #121212; z-index: 30; pointer-events: none; }
+
+  /* Ventana «Has empezado una racha» */
+  .intro-hero { text-align: center; padding: 4px 0 2px; }
+  .intro-hero .fire { font-size: 44px; line-height: 1; margin-bottom: 10px; }
+  .intro-hero h2 { margin: 0 0 12px; font-size: 20px; }
+  .intro-pal { display: flex; align-items: center; gap: 12px; text-align: left; background: var(--surface-raised); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 14px; }
+  .intro-pal .sw { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; }
+  .intro-pal b { display: block; font-size: 15px; color: var(--text); }
+  .intro-pal span { font-size: 12.5px; color: var(--text-muted); line-height: 1.4; }
+  .intro-list { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .intro-list li { display: flex; gap: 10px; font-size: 14px; line-height: 1.45; color: var(--text-muted); }
+  .intro-list li .ic { flex: 0 0 22px; text-align: center; }
+  .intro-list li b { color: var(--text); font-weight: 600; }
 
   /* Recordatorio */
   .rem-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--surface-raised); border-radius: var(--radius-md); padding: 12px 14px; }
@@ -313,7 +341,7 @@
     <h3>Racha</h3>
     <div class="streak-hero" id="streakHero"></div>
     <div class="palettes" id="palettes"></div>
-    <p class="note">Completa los 20 kanji del día para sumar un día a tu racha. Cada 10 días seguidos desbloqueas una paleta de colores nueva.</p>
+    <p class="note">Completa los 20 kanji del día para sumar un día a tu racha. Si un día no los completas, la racha vuelve a 0: las paletas que ya tienes se quedan, pero las nuevas se desbloquean con días seguidos contados desde 0 (una cada 10 días). Toca una paleta para usarla.</p>
 
     <div id="remSection" hidden>
       <h3>Recordatorio diario</h3>
@@ -359,6 +387,29 @@
       <button class="pill-btn ghost" id="remNo">Ahora no</button>
     </div>
     <p class="note" style="text-align:center">Puedes cambiar la hora o desactivarlo cuando quieras en Progreso.</p>
+  </div>
+</div>
+
+<div class="sheet-backdrop" id="introSheet">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="introTitle">
+    <div class="intro-hero">
+      <div class="fire">🔥</div>
+      <h2 id="introTitle">¡Has empezado una racha!</h2>
+    </div>
+    <div class="intro-pal">
+      <span class="sw" id="introSwatch"></span>
+      <span><b id="introPalName">Nueva paleta: Shiro 白</b><span>La de siempre, con los blancos y los negros intercambiados.</span></span>
+    </div>
+    <ul class="intro-list">
+      <li><span class="ic">📅</span><span><b>Para seguir la racha</b>, completa los 20 kanji de hoy cada día. Cada día seguido suma uno.</span></li>
+      <li><span class="ic">↺</span><span><b>Si un día no los completas</b>, la racha vuelve a 0. Las paletas que ya tienes se quedan, pero para las nuevas tendrás que volver a sumar días seguidos desde 0.</span></li>
+      <li><span class="ic">🎨</span><span><b>Cada 10 días seguidos</b> desbloqueas una paleta nueva.</span></li>
+      <li><span class="ic">⚙︎</span><span><b>Para cambiar de paleta</b>, toca el contador 🔥 de arriba a la derecha y elige una en «Racha».</span></li>
+    </ul>
+    <div class="row">
+      <button class="pill-btn" id="introPalettes">Ver paletas</button>
+      <button class="pill-btn ghost" id="introOk">Entendido</button>
+    </div>
   </div>
 </div>
 
@@ -528,13 +579,33 @@
     if (nuevas.length) {
       var p = nuevas[nuevas.length - 1];
       setPalette(p.id);
-      toast("🎉 " + streak.cur + " días seguidos · Nueva paleta: " + p.name + " " + p.jp);
+      if (p.id === "shiro") showStreakIntro();
+      else toast("🎉 " + streak.cur + " días seguidos · Nueva paleta: " + p.name + " " + p.jp);
     } else {
       toast("🔥 ¡Día completado! Racha: " + streak.cur + (streak.cur === 1 ? " día" : " días"));
     }
     renderStreak();
   }
   function setPalette(id) { lsSet(PALETTE_KEY, id); if (window.applyKanamePalette) window.applyKanamePalette(id); }
+
+  // Ventana que explica cómo funcionan las rachas, al desbloquear la primera paleta (Shiro).
+  // Se muestra una sola vez; también a quien ya tenía racha antes de que existiera esta paleta.
+  var INTRO_KEY = "kaname.streakIntro.v1";
+  function showStreakIntro() {
+    var p = PALETTES.filter(function (x) { return x.id === "shiro"; })[0];
+    if (!p) return;
+    lsSet(INTRO_KEY, "1");
+    var sw = $("introSwatch"); sw.style.background = p.accent; sw.style.boxShadow = "inset 0 0 0 7px " + p.bg + ", 0 0 0 1px " + p.hairline;
+    $("introPalName").textContent = "Nueva paleta: " + p.name + " " + p.jp;
+    $("remSheet").classList.remove("open");
+    $("introSheet").classList.add("open");
+  }
+  function maybeShowStreakIntro() {
+    var p = PALETTES.filter(function (x) { return x.id === "shiro"; })[0];
+    if (p && unlocked(p) && !lsGet(INTRO_KEY)) { showStreakIntro(); return true; }
+    return false;
+  }
+  function closeIntro() { $("introSheet").classList.remove("open"); }
   function track(name) {
     try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: "evento/" + name, title: name, event: true }); } catch (e) {}
   }
@@ -656,7 +727,7 @@
     var info = el("div", "info");
     info.appendChild(document.createTextNode("Mejor racha: ")); info.appendChild(el("b", null, streak.best + (streak.best === 1 ? " día" : " días")));
     info.appendChild(el("br"));
-    info.appendChild(document.createTextNode(next ? "Siguiente paleta (" + next.name + ") a los " + next.days + " días." : "¡Has desbloqueado todas las paletas!"));
+    info.appendChild(document.createTextNode(next ? "Siguiente paleta (" + next.name + ") con " + next.days + (next.days === 1 ? " día" : " días seguidos") + "." : "¡Has desbloqueado todas las paletas!"));
     h.appendChild(info);
     var box = $("palettes"); box.innerHTML = "";
     var sel = lsGet(PALETTE_KEY) || "sumi";
@@ -666,10 +737,10 @@
       var sw = el("span", "sw", ok ? "" : "🔒"); sw.style.background = p.accent;
       if (p.bg) sw.style.boxShadow = "inset 0 0 0 5px " + p.bg;
       b.appendChild(sw);
-      b.appendChild(el("span", "nm", ok ? p.name : p.days + " días"));
-      b.setAttribute("aria-label", p.name + (ok ? "" : ", se desbloquea con " + p.days + " días de racha"));
+      b.appendChild(el("span", "nm", ok ? p.name : p.days + (p.days === 1 ? " día" : " días")));
+      b.setAttribute("aria-label", p.name + (ok ? "" : ", se desbloquea con " + p.days + (p.days === 1 ? " día" : " días seguidos")));
       b.onclick = function () {
-        if (!ok) { toast("Se desbloquea con una racha de " + p.days + " días"); return; }
+        if (!ok) { toast(p.days === 1 ? "Se desbloquea al completar tu primer día" : "Se desbloquea con " + p.days + " días seguidos"); return; }
         setPalette(p.id); renderStreakSheet();
       };
       box.appendChild(b);
@@ -924,7 +995,7 @@
   function maybeAskReminder() {
     if (!pushSupported() || rem.state || Notification.permission === "denied") return;
     setTimeout(function () {
-      if ($("sheet").classList.contains("open")) return;
+      if ($("sheet").classList.contains("open") || $("introSheet").classList.contains("open")) return;
       fillTimes($("remTimeFirst"));
       $("remSheet").classList.add("open");
     }, 1200);
@@ -991,6 +1062,9 @@
   $("openSettings").onclick = openSheet;
   $("streakBtn").onclick = openSheet;
   $("closeSettings").onclick = function () { $("sheet").classList.remove("open"); };
+  $("introOk").onclick = closeIntro;
+  $("introPalettes").onclick = function () { closeIntro(); openSheet(); setTimeout(function () { $("streakHero").scrollIntoView({ block: "start", behavior: "smooth" }); }, 50); };
+  $("introSheet").onclick = function (e) { if (e.target === $("introSheet")) closeIntro(); };
   $("sheet").onclick = function (e) { if (e.target === $("sheet")) $("sheet").classList.remove("open"); };
   $("exportBtn").onclick = function () {
     var s = backupString();
@@ -1017,6 +1091,7 @@
     if (!confirm("¿Borrar TODO tu progreso en este dispositivo? No se puede deshacer.")) return;
     progress = {}; save(); try { localStorage.removeItem(LEGACY_KEY); } catch (e) {}
     streak = { cur: 0, best: 0, last: "" }; saveStreak(); setPalette("sumi");
+    try { localStorage.removeItem(INTRO_KEY); } catch (e) {}
     daily = { date: "", list: [] }; ensureDaily();
     selectLevel(level); renderStats(); renderStreakSheet(); toast("Progreso borrado");
   };
@@ -1039,7 +1114,7 @@
     renderLevels(); if (current) renderStatus();
   }, 30000);
   document.addEventListener("keydown", function (e) {
-    if ($("sheet").classList.contains("open") || $("remSheet").classList.contains("open")) return;
+    if ($("sheet").classList.contains("open") || $("remSheet").classList.contains("open") || $("introSheet").classList.contains("open")) return;
     if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); }
     else if (flipped && "1234".indexOf(e.key) >= 0) rate(["again", "hard", "good", "easy"][+e.key - 1]);
   });
@@ -1054,7 +1129,8 @@
     requestPersistence();
     ensureDaily();
     buildQueue(); renderLevels(); showNext();
-    syncReminder(); maybeAskReminder();
+    syncReminder();
+    if (!maybeShowStreakIntro()) maybeAskReminder();
   });
 })();
 </script>
