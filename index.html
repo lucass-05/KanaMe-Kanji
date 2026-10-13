@@ -163,6 +163,19 @@
   /* Paleta clara: en el iPhone la barra de estado (hora, batería) es blanca; se le pone fondo oscuro para que se lea */
   html.light body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top); background: #121212; z-index: 30; pointer-events: none; }
 
+  /* Elección del reto diario (5, 10 o 20 kanji) */
+  .size-opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .size-opt { appearance: none; border: 1px solid var(--hairline); background: var(--surface-raised); color: var(--text); border-radius: var(--radius-md); padding: 12px 4px 10px; cursor: pointer; text-align: center; transition: border-color .15s, background .15s; }
+  .size-opt b { display: block; font-size: 26px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .size-opt span { display: block; font-size: 11.5px; color: var(--text-muted); margin-top: 5px; }
+  .size-opt.sel { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent); }
+  .size-opt:active { transform: scale(.97); }
+  .size-est { margin: 12px 0 2px; padding: 12px 14px; border-radius: var(--radius-md); background: var(--surface-raised); font-size: 14px; font-weight: 600; line-height: 1.45; text-align: center; min-height: 64px; display: grid; place-items: center; }
+  .size-hero { text-align: center; padding: 4px 0 12px; }
+  .size-hero .ic { font-size: 40px; line-height: 1; margin-bottom: 8px; }
+  .size-hero h2 { margin: 0 0 6px; font-size: 20px; }
+  .size-hero p { margin: 0 auto; font-size: 14px; color: var(--text-muted); line-height: 1.5; max-width: 330px; }
+
   /* Tutorial de la primera vez: se oscurece todo menos la parte que se explica */
   .tour { position: fixed; inset: 0; z-index: 40; }
   .tour-hole { position: fixed; border-radius: 16px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, .68); transition: top .25s, left .25s, width .25s, height .25s; pointer-events: none; }
@@ -363,10 +376,15 @@
     <div class="stats" id="stats"></div>
     <p class="note">Un kanji está <b>dominado</b> cuando lo sabes tan bien que no vuelve hasta dentro de 3 semanas o más. Cada vez que aciertas, tarda más en volver (con Easy, el triple).</p>
 
+    <h3>Reto diario</h3>
+    <div class="size-opts" id="sizeOptsSettings"></div>
+    <div class="size-est" id="sizeEstSettings"></div>
+    <p class="note" id="sizeNoteSettings">Kanji nuevos que te damos cada día en «Kanji de hoy».</p>
+
     <h3>Racha</h3>
     <div class="streak-hero" id="streakHero"></div>
     <div class="palettes" id="palettes"></div>
-    <p class="note">Supera el reto de «Kanji de hoy» (los 10 kanji con ✓) para sumar un día a tu racha. Si un día no lo superas, la racha vuelve a 0: las paletas que ya tienes se quedan, pero las nuevas se desbloquean con días seguidos contados desde 0 (una cada 10 días). Toca una paleta para usarla.</p>
+    <p class="note">Supera el reto de «Kanji de hoy» (todos los kanji del día con ✓) para sumar un día a tu racha. Si un día no lo superas, la racha vuelve a 0: las paletas que ya tienes se quedan, pero las nuevas se desbloquean con días seguidos contados desde 0 (una cada 10 días). Toca una paleta para usarla.</p>
 
     <div id="remSection" hidden>
       <h3>Recordatorio diario</h3>
@@ -399,12 +417,25 @@
   </div>
 </div>
 
+<div class="sheet-backdrop" id="sizeSheet">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sizeTitle">
+    <div class="size-hero">
+      <div class="ic">🎯</div>
+      <h2 id="sizeTitle">¿Cuántos kanji quieres aprender al día?</h2>
+      <p>Será tu reto diario. Puedes cambiarlo cuando quieras en Progreso.</p>
+    </div>
+    <div class="size-opts" id="sizeOptsFirst"></div>
+    <div class="size-est" id="sizeEstFirst"></div>
+    <div class="row" style="margin-top:14px"><button class="pill-btn" id="sizeGo">¡Empezar!</button></div>
+  </div>
+</div>
+
 <div class="sheet-backdrop" id="remSheet">
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="remTitle">
     <div class="rem-hero">
       <div class="bell">🔔</div>
       <h2 id="remTitle">¿Te recordamos estudiar cada día?</h2>
-      <p>Un aviso diario a la hora que elijas para hacer tus 10 kanji. Si ese día ya los has hecho, no te molestamos.</p>
+      <p>Un aviso diario a la hora que elijas para hacer tus kanji del día. Si ese día ya los has hecho, no te molestamos.</p>
       <div class="rem-pick"><span>Avisarme a las</span><select class="time" id="remTimeFirst"></select></div>
     </div>
     <div class="row">
@@ -426,7 +457,7 @@
       <span><b id="introPalName">Nueva paleta: Shiro 白</b><span>La de siempre, con los blancos y los negros intercambiados.</span></span>
     </div>
     <ul class="intro-list">
-      <li><span class="ic">📅</span><span><b>Para seguir la racha</b>, supera cada día el reto de «Kanji de hoy»: marca ✓ los 10 kanji (los que marques con ✕ se repiten hasta que te los sepas). Cada día seguido suma uno.</span></li>
+      <li><span class="ic">📅</span><span><b>Para seguir la racha</b>, supera cada día el reto de «Kanji de hoy»: marca ✓ todos los kanji del día (los que marques con ✕ se repiten hasta que te los sepas). Cada día seguido suma uno.</span></li>
       <li><span class="ic">↺</span><span><b>Si un día no lo superas</b>, la racha vuelve a 0. Las paletas que ya tienes se quedan, pero para las nuevas tendrás que volver a sumar días seguidos desde 0.</span></li>
       <li><span class="ic">🎨</span><span><b>Cada 10 días seguidos</b> desbloqueas una paleta nueva.</span></li>
       <li><span class="ic">⚙︎</span><span><b>Para cambiar de paleta</b>, toca el contador 🔥 de arriba a la derecha y elige una en «Racha».</span></li>
@@ -488,10 +519,12 @@
   var KEY = "kaname.progress.v1";
   var LEVEL_KEY = "kaname.level.v1";
   var LEGACY_KEY = "kyoikuSR_progress_v1"; // versiones anteriores de la app
-  var DAILY_KEY = "kaname.daily.v1";       // "AAAA-MM-DD\n" + los 10 kanji del día + "\n" + los ya marcados con ✓ hoy
+  var DAILY_KEY = "kaname.daily.v1";       // "AAAA-MM-DD\n" + los kanji del día + "\n" + los ya marcados con ✓ hoy
   var STREAK_KEY = "kaname.streak.v1";     // { cur, best, last: "AAAA-MM-DD" }
   var PALETTE_KEY = "kaname.palette.v1";
-  var DAILY_SIZE = 10;
+  var SIZE_KEY = "kaname.dailySize.v1";     // kanji del reto diario: 5, 10 o 20 (lo elige el usuario)
+  var SIZES = [5, 10, 20];
+  var DAILY_SIZE = SIZES.indexOf(+lsGet(SIZE_KEY)) >= 0 ? +lsGet(SIZE_KEY) : 10;
   var progress = {};       // kanji -> { due, reps, last, seen }
   var daily = { date: "", list: [], ticked: [] };
   var streak = { cur: 0, best: 0, last: "" };
@@ -554,7 +587,7 @@
   }
 
   /* ================= Kanji del día =================
-     Una vez al día (la primera vez que se abre la app) se genera una lista de 10 kanji nuevos,
+     Una vez al día (la primera vez que se abre la app) se genera una lista de DAILY_SIZE kanji nuevos (5, 10 o 20),
      elegidos al azar del nivel más sencillo que aún tenga kanji sin estudiar. Se guarda como texto
      que empieza por la fecha; mientras la fecha sea la de hoy, no se vuelve a calcular. */
   function pad(n) { return (n < 10 ? "0" : "") + n; }
@@ -574,30 +607,61 @@
     var text = daily.date + "\n" + daily.list.join("") + "\n" + daily.ticked.join("");
     lsSet(DAILY_KEY, text); idbSet(DAILY_KEY, text);
   }
+  // Kanji aún sin estudiar, del nivel más sencillo que quede, sin repetir los de «excluir»
+  function pickFresh(n, excluir) {
+    var pick = [];
+    for (var g = 0; g < GRADES.length && pick.length < n; g++) {
+      var fresh = GRADES[g].map(function (r) { return r[0]; }).filter(function (k) { return !progress[k] && excluir.indexOf(k) < 0; });
+      pick = pick.concat(shuffle(fresh).slice(0, n - pick.length));
+    }
+    return pick;
+  }
   function ensureDaily() {
     var today = dayStr();
-    if (daily.date === today) {                  // ya generado hoy: no se hace nada más…
-      if (daily.list.length > DAILY_SIZE) {      // …salvo recortar una lista de cuando el reto era más largo (primero los ya marcados con ✓)
-        var keep = daily.ticked.slice(0, DAILY_SIZE);
-        daily.list.forEach(function (k) { if (keep.length < DAILY_SIZE && keep.indexOf(k) < 0) keep.push(k); });
-        daily = { date: today, list: keep, ticked: daily.ticked.filter(function (k) { return keep.indexOf(k) >= 0; }) };
-        saveDaily();
-        // si con la lista recortada ya están todos con ✓, el reto queda superado (racha incluida)
-        if (daily.ticked.length >= daily.list.length && streak.last !== today) completeDaily();
-      }
-      return false;
-    }
-    var pick = [];
-    for (var g = 0; g < GRADES.length && pick.length < DAILY_SIZE; g++) {
-      var fresh = GRADES[g].map(function (r) { return r[0]; }).filter(function (k) { return !progress[k]; });
-      pick = pick.concat(shuffle(fresh).slice(0, DAILY_SIZE - pick.length));
-    }
-    daily = { date: today, list: pick, ticked: [] };
+    if (daily.date === today) return fitDaily();   // ya generado hoy: solo se ajusta si ha cambiado el tamaño del reto
+    daily = { date: today, list: pickFresh(DAILY_SIZE, []), ticked: [] };
     saveDaily();
     return true;
   }
-  /* Reto diario: los 10 kanji salen siempre (estén o no pendientes en los niveles). Se marcan con ✕ o ✓;
-     los de ✕ se repiten hasta que los 10 tengan ✓. Al completarlo sube la racha y cada kanji del reto
+  // Ajusta la lista de hoy al tamaño elegido (5, 10 o 20). Si se acorta, se quedan primero los ya marcados con ✓;
+  // si se alarga, se añaden kanji nuevos. Si el reto de hoy ya está superado, el cambio vale a partir de mañana.
+  function fitDaily() {
+    var today = dayStr(), n = daily.list.length;
+    if (!n || n === DAILY_SIZE || streak.last === today) return false;
+    if (n > DAILY_SIZE) {
+      var keep = daily.ticked.slice(0, DAILY_SIZE);
+      daily.list.forEach(function (k) { if (keep.length < DAILY_SIZE && keep.indexOf(k) < 0) keep.push(k); });
+      daily = { date: today, list: keep, ticked: daily.ticked.filter(function (k) { return keep.indexOf(k) >= 0; }) };
+    } else {
+      var extra = pickFresh(DAILY_SIZE - n, daily.list);
+      if (!extra.length) return false;
+      daily.list = daily.list.concat(extra);
+    }
+    saveDaily();
+    // si con la lista ajustada ya están todos con ✓, el reto queda superado (racha incluida)
+    if (daily.ticked.length >= daily.list.length) completeDaily();
+    return true;
+  }
+  // Cuánto se tardaría en empezar todos los kanji de primaria (Kyōiku, 1026) a «n» kanji nuevos al día
+  function primaryEstimate(n) {
+    var all = DECKS[5] || [], left = all.filter(function (k) { return !progress[k]; }).length;
+    var days = Math.ceil(left / n), t;
+    if (!left) t = "";
+    else if (days < 14) t = days + (days === 1 ? " día" : " días");
+    else if (days < 60) t = Math.round(days / 7) + " semanas";
+    else { var m = Math.round(days / 30 * 2) / 2; t = String(m).replace(".", ",") + " meses"; }
+    return { total: all.length, left: left, time: t };
+  }
+  function estimateText(n) {
+    var e = primaryEstimate(n);
+    if (!e.left) return "¡Ya has empezado todos los kanji de primaria! Ahora, a por los Jōyō.";
+    var cuantos = e.left === e.total ? "los " + e.total + " kanji" : "los " + e.left + " kanji que te quedan de los " + e.total;
+    if (n >= 20) return "🚀 ¡En solo " + e.time + " te sabrías " + cuantos + " que aprende un niño japonés en toda la primaria!";
+    if (n >= 10) return "🔥 ¡En " + e.time + " te sabrías " + cuantos + " que aprende un niño japonés en toda la primaria!";
+    return "🌱 En unos " + e.time + " te sabrías " + cuantos + " que aprende un niño japonés en toda la primaria, a tu ritmo.";
+  }
+  /* Reto diario: los kanji del día salen siempre (estén o no pendientes en los niveles). Se marcan con ✕ o ✓;
+     los de ✕ se repiten hasta que todos tengan ✓. Al completarlo sube la racha y cada kanji del reto
      queda como revisado y no vuelve a los niveles en al menos 5 días (si ya tenía un plazo mayor, se respeta).
      Después se pueden seguir viendo con «Siguiente», sin marcar nada. */
   var DAILY_MIN_GAP = 5 * DAY;
@@ -626,7 +690,7 @@
   function checkDayComplete() {
     var today = dayStr();
     if (streak.last === today) return;
-    if (daily.list.length && dailyDone() < daily.list.length) return; // el reto diario aún no tiene los 10 ✓
+    if (daily.list.length && dailyDone() < daily.list.length) return; // el reto diario aún no tiene todos los ✓
     var before = streak.best;
     streak.cur = (streak.last === yesterdayStr()) ? streak.cur + 1 : 1;
     streak.best = Math.max(streak.best, streak.cur);
@@ -775,7 +839,7 @@
     b.appendChild(el("span", "jp", "今日"));
     var t = el("span", "txt");
     t.appendChild(el("span", "t", "Kanji de hoy"));
-    t.appendChild(el("span", "s", n === 0 ? "¡Ya has empezado todos los kanji!" : complete ? "Reto superado · repásalos cuando quieras" : "Marca ✓ los 10 para superar el reto de hoy"));
+    t.appendChild(el("span", "s", n === 0 ? "¡Ya has empezado todos los kanji!" : complete ? "Reto superado · repásalos cuando quieras" : "Marca ✓ los " + n + " para superar el reto de hoy"));
     b.appendChild(t);
     b.appendChild(el("span", "right", (complete ? "✓ " : "") + done + "/" + n));
     b.onclick = function () { selectLevel(0); };
@@ -919,7 +983,7 @@
       box.appendChild(el("div", "mark", "今"));
       box.appendChild(el("h2", null, daily.list.length ? "¡Kanji de hoy completados!" : "¡No te quedan kanji nuevos!"));
       box.appendChild(el("p", null, (wait != null && wait < DAY ? "Los que marcaste con Again vuelven en " + humanTime(wait) + ". " : "") +
-        "Mañana tendrás 10 kanji nuevos. Si quieres más, sigue en tu nivel."));
+        "Mañana tendrás " + DAILY_SIZE + " kanji nuevos. Si quieres más, sigue en tu nivel."));
       // Nivel más sencillo con algo pendiente (repasos primero; si no, kanji nuevos)
       var lv = 0, i;
       for (i = 1; i <= LEVELS.length && !lv; i++) if (levelCounts(i).due) lv = i;
@@ -1139,7 +1203,7 @@
   function maybeAskReminder() {
     if (!pushSupported() || rem.state || Notification.permission === "denied") return;
     setTimeout(function () {
-      if (tour || $("sheet").classList.contains("open") || $("introSheet").classList.contains("open")) return;
+      if (tour || $("sheet").classList.contains("open") || $("introSheet").classList.contains("open") || $("sizeSheet").classList.contains("open")) return;
       fillTimes($("remTimeFirst"));
       $("remSheet").classList.add("open");
     }, 1200);
@@ -1202,7 +1266,7 @@
     toast(n + " tarjetas restauradas");
   }
 
-  function openSheet() { renderStats(); renderStreakSheet(); renderReminder(); $("sheet").classList.add("open"); }
+  function openSheet() { renderStats(); renderSizeSettings(); $("sizeNoteSettings").textContent = "Kanji nuevos que te damos cada día en «Kanji de hoy»."; renderStreakSheet(); renderReminder(); $("sheet").classList.add("open"); }
   $("openSettings").onclick = openSheet;
   $("streakBtn").onclick = openSheet;
   $("closeSettings").onclick = function () { $("sheet").classList.remove("open"); };
@@ -1258,7 +1322,7 @@
     renderLevels(); if (current) renderStatus();
   }, 30000);
   document.addEventListener("keydown", function (e) {
-    if (tour || $("sheet").classList.contains("open") || $("remSheet").classList.contains("open") || $("introSheet").classList.contains("open")) return;
+    if (tour || ["sheet", "remSheet", "introSheet", "sizeSheet"].some(function (id) { return $(id).classList.contains("open"); })) return;
     var m = mode();
     if (m === "browse" && (e.key === "Enter" || e.key === "ArrowRight")) { e.preventDefault(); nextBrowse(); }
     else if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); }
@@ -1268,6 +1332,53 @@
 
   if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
     window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+  }
+
+  /* ================= Tamaño del reto diario (5, 10 o 20) ================= */
+  var SIZE_LABELS = { 5: "Tranquilo", 10: "Constante", 20: "Intensivo" };
+  function renderSizePicker(boxId, estId, selected, onPick) {
+    var box = $(boxId); box.innerHTML = "";
+    SIZES.forEach(function (n) {
+      var b = el("button", "size-opt" + (n === selected ? " sel" : ""));
+      b.setAttribute("aria-pressed", n === selected ? "true" : "false");
+      b.setAttribute("aria-label", n + " kanji al día, " + SIZE_LABELS[n]);
+      b.appendChild(el("b", null, String(n))); b.appendChild(el("span", null, SIZE_LABELS[n]));
+      b.onclick = function () { onPick(n); };
+      box.appendChild(b);
+    });
+    $(estId).textContent = estimateText(selected);
+  }
+  function setDailySize(n) {
+    var before = DAILY_SIZE;
+    DAILY_SIZE = n; lsSet(SIZE_KEY, String(n));
+    if (n === before) return "";
+    track("reto-" + n);
+    var changed = fitDaily();
+    if (level === 0) { current = null; buildQueue(); stage.innerHTML = ""; showNext(); }
+    renderLevels();
+    return changed || streak.last !== dayStr() ? "" : "Hoy ya has superado el reto: el cambio se aplica desde mañana.";
+  }
+  function renderSizeSettings() {
+    renderSizePicker("sizeOptsSettings", "sizeEstSettings", DAILY_SIZE, function (n) {
+      var msg = setDailySize(n);
+      renderSizeSettings();
+      $("sizeNoteSettings").textContent = msg || "Kanji nuevos que te damos cada día en «Kanji de hoy».";
+      toast("🎯 Reto diario: " + n + " kanji al día");
+    });
+  }
+  // Primera vez: se pregunta antes que nada
+  function maybeAskSize(done) {
+    if (lsGet(SIZE_KEY)) return false;
+    var pick = DAILY_SIZE;
+    var draw = function () { renderSizePicker("sizeOptsFirst", "sizeEstFirst", pick, function (n) { pick = n; draw(); }); };
+    draw();
+    $("sizeGo").onclick = function () {
+      setDailySize(pick); lsSet(SIZE_KEY, String(pick)); track("reto-elegido-" + pick);
+      $("sizeSheet").classList.remove("open");
+      if (done) done();
+    };
+    $("sizeSheet").classList.add("open");
+    return true;
   }
 
   /* ================= Tutorial de la primera vez =================
@@ -1282,12 +1393,12 @@
   }
   function tourSteps() {
     var m = mode(), steps = [];
-    steps.push({ el: "todayBtn", t: "Kanji de hoy", h: "Cada día te damos <b>10 kanji nuevos</b>. Es tu reto diario: supéralo para sumar un día a tu <b>racha 🔥</b>." });
+    steps.push({ el: "todayBtn", t: "Kanji de hoy", h: "Cada día te damos <b>" + DAILY_SIZE + " kanji nuevos</b> (puedes cambiarlo en Progreso). Es tu reto diario: supéralo para sumar un día a tu <b>racha 🔥</b>." });
     if ($("card")) {
       steps.push({ el: "card", t: "Las tarjetas", h: "Intenta recordar la lectura y el significado del kanji. Después <b>toca la tarjeta para girarla</b> y ver la respuesta, con palabras de ejemplo.", go: function () { setTimeout(flip, 350); } });
-      if (m === "daily") steps.push({ el: "ratings", t: "¿Te lo sabías?", h: "Marca <b>✓</b> si te lo sabías y <b>✕</b> si no. Los de ✕ se repiten hasta que aciertes los 10: entonces el reto queda superado." });
+      if (m === "daily") steps.push({ el: "ratings", t: "¿Te lo sabías?", h: "Marca <b>✓</b> si te lo sabías y <b>✕</b> si no. Los de ✕ se repiten hasta que aciertes los " + daily.list.length + ": entonces el reto queda superado." });
       else if (m === "srs") steps.push({ el: "ratings", t: "¿Cuándo vuelve?", h: "Elige lo bien que te lo sabías. Debajo de cada botón ves <b>cuándo volverá</b> esa tarjeta." });
-      else steps.push({ el: "ratings", t: "Repaso libre", h: "Has superado el reto de hoy: puedes seguir viendo los 10 kanji con <b>Siguiente</b>, sin marcar nada." });
+      else steps.push({ el: "ratings", t: "Repaso libre", h: "Has superado el reto de hoy: puedes seguir viendo los " + daily.list.length + " kanji con <b>Siguiente</b>, sin marcar nada." });
     }
     steps.push({ el: "levels", t: "Niveles", h: "Aquí eliges qué estudiar: de <b>1º a 6º de primaria</b> (cada uno incluye los anteriores) y <b>常</b>, los 2136 kanji Jōyō. El número es lo que tienes pendiente. Al superar el reto de hoy te llevamos solos al primer nivel sin terminar.",
       chips: true });
@@ -1364,7 +1475,8 @@
     buildQueue(); renderLevels(); showNext();
     syncReminder();
     var afterTour = function () { if (!maybeShowStreakIntro()) maybeAskReminder(); };
-    if (!maybeStartTour(afterTour)) afterTour();
+    var startTour2 = function () { if (!maybeStartTour(afterTour)) afterTour(); };
+    if (!maybeAskSize(startTour2)) startTour2();
   });
 })();
 </script>

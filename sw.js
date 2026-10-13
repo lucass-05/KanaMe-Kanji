@@ -1,7 +1,7 @@
 /* KanaMe service worker — permite usar la app sin conexión.
    Estrategia "red primero": si hay internet siempre carga la última versión;
    si no, usa la copia guardada. Sube VERSION al publicar cambios grandes. */
-const VERSION = "kaname-v11";
+const VERSION = "kaname-v12";
 const CORE = ["./", "index.html", "data/kanji.js", "site.webmanifest", "icons/icon-192.png", "apple-touch-icon.png"];
 
 self.addEventListener("install", (e) => {
@@ -55,7 +55,7 @@ self.addEventListener("push", (e) => {
     let s = {}; try { s = JSON.parse(raw) || {}; } catch (err) {}
     const today = new Date(), y = new Date(); y.setDate(y.getDate() - 1);
     let title = "今日 · Tus kanji de hoy te esperan";
-    let body = "10 kanji nuevos y unos minutos de repaso. ¡Vamos!";
+    let body = "Tus kanji nuevos y unos minutos de repaso. ¡Vamos!";
     if (s.last === dayStr(today)) { title = "今日 · ¡Hoy ya has cumplido!"; body = "Si te apetece, repasa un poco más."; }
     else if (s.last === dayStr(y) && s.cur > 0) { title = "🔥 Racha de " + s.cur + (s.cur === 1 ? " día" : " días"); body = "Completa los kanji de hoy para no perderla."; }
     return self.registration.showNotification(title, {
