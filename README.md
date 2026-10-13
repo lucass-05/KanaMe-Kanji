@@ -32,7 +32,7 @@ Se abre en el navegador, se añade a la pantalla de inicio del iPhone como una a
 - **Ver el kanji solo** en el anverso y, al tocar, el reverso con:
   - lecturas **on'yomi** (オン, en katakana) y **kun'yomi** (くん, en hiragana),
   - **significado en español**,
-  - una **palabra de ejemplo** real con su lectura y traducción, para ver cómo se combina en el vocabulario.
+  - **palabras de ejemplo** reales con su lectura y traducción (hasta 4 en los niveles 1 y 2, elegidas para cubrir sus distintas lecturas), con el kanji resaltado dentro de cada palabra.
 - **Valorar cada tarjeta** y dejar que la app decida cuándo volver a enseñártela:
 
   | Botón | Cuándo vuelve |
@@ -79,7 +79,7 @@ Ver el kanji solo y obligarte a recordar su lectura y significado **antes** de g
 
 ### Y además…
 - **Orden pedagógico.** Empiezas por 一, 人, 山… y los kanji simples se convierten en piezas de los complejos que vienen después.
-- **Contexto real.** Cada kanji va acompañado de una palabra de uso común: aprendes cómo se *lee* de verdad en el vocabulario, no solo una lista de lecturas sueltas.
+- **Contexto real.** Cada kanji va acompañado de palabras de uso común: aprendes cómo se *lee* de verdad en el vocabulario, no solo una lista de lecturas sueltas. En los primeros niveles verás, por ejemplo, 上 leído como *ue* en 上, *jō* en 上手 y *a(garu)* en 上がる.
 - **Sesiones cortas.** Diez minutos al día bastan. La constancia gana a la intensidad.
 
 > Con unos 20 kanji nuevos al día, la lista Jōyō completa se recorre en unos 3–4 meses. A 10 al día, en unos 7. Lo importante es no saltarse los repasos.
@@ -145,9 +145,12 @@ KanaMe/
 `data/kanji.js` define `window.KANJI_DATA`: una lista de 7 grupos (uno por curso; los niveles acumulativos se construyen en la app). Cada kanji es:
 
 ```js
-["音", "オン・イン", "おと・ね", "sonido", "音楽 (おんがく) – música"]
-// [kanji, on'yomi, kun'yomi, significado en español, palabra de ejemplo]
+["音", "オン・イン", "おと・ね", "sonido",
+  ["音 (おと) – sonido", "音楽 (おんがく) – música", "発音 (はつおん) – pronunciación", "本音 (ほんね) – verdadera intención"]]
+// [kanji, on'yomi, kun'yomi, significado en español, palabras de ejemplo]
 ```
+
+Las palabras de ejemplo pueden ser un único texto o una lista, siempre con el formato `palabra (lectura) – significado`.
 
 ### Personalizar
 
@@ -159,7 +162,7 @@ KanaMe/
 ## Créditos
 
 - Lecturas de la lista Jōyō: [kanji-data](https://github.com/davidluzgouveia/kanji-data) de David Gouveia, basado en **KANJIDIC2** del [Electronic Dictionary Research and Development Group](https://www.edrdg.org/) (licencia CC BY-SA 4.0).
-- Significados en español y palabras de ejemplo: elaboración propia. Si encuentras algún error, abre un *issue* o un *pull request*.
+- Significados en español y palabras de ejemplo: elaboración propia (los niveles 1 y 2 incluyen hasta 4 palabras por kanji; el resto se irá ampliando). Si encuentras algún error, abre un *issue* o un *pull request*.
 - Listas oficiales: 常用漢字表 (Agencia de Asuntos Culturales de Japón, 2010) y 学年別漢字配当表 (MEXT, 2020).
 
 ## Licencia
