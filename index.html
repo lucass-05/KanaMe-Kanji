@@ -176,6 +176,12 @@
   .size-hero h2 { margin: 0 0 6px; font-size: 20px; }
   .size-hero p { margin: 0 auto; font-size: 14px; color: var(--text-muted); line-height: 1.5; max-width: 330px; }
 
+  /* «Mostrar kanji a partir de» */
+  .from-opts { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+  .from-opt { appearance: none; border: 1px solid var(--hairline); background: var(--surface-raised); color: var(--text-muted); border-radius: var(--radius-sm); padding: 9px 0; font-size: 15px; font-weight: 700; cursor: pointer; min-width: 0; }
+  .from-opt.sel { border-color: var(--accent); background: var(--accent-soft); color: var(--text); box-shadow: 0 0 0 1px var(--accent); }
+  .from-opt.skip { opacity: .45; text-decoration: line-through; }
+
   /* Tutorial de la primera vez: se oscurece todo menos la parte que se explica */
   .tour { position: fixed; inset: 0; z-index: 40; }
   .tour-hole { position: fixed; border-radius: 16px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, .68); transition: top .25s, left .25s, width .25s, height .25s; pointer-events: none; }
@@ -292,8 +298,8 @@
   .hard  { background: var(--hard-soft);  color: var(--hard); }
   .good  { background: var(--good-soft);  color: var(--good); }
   .easy  { background: var(--easy-soft);  color: var(--easy); }
-  .ratings.daily { grid-template-columns: 1fr 1fr; }
-  .ratings.daily .rate-btn .mark { font-size: 24px; font-weight: 700; line-height: 1; }
+  .ratings.daily, .ratings.cram { grid-template-columns: 1fr 1fr; }
+  .ratings.daily .rate-btn .mark, .ratings.cram .rate-btn .mark { font-size: 24px; font-weight: 700; line-height: 1; }
   .ratings.browse { display: flex; }
   .ratings.browse .next-btn { flex: 1; font-size: 16px; border-radius: var(--radius-md); }
   .ratings button:focus:not(:focus-visible) { outline: none; }
@@ -380,6 +386,10 @@
     <div class="size-opts" id="sizeOptsSettings"></div>
     <div class="size-est" id="sizeEstSettings"></div>
     <p class="note" id="sizeNoteSettings">Kanji nuevos que te damos cada día en «Kanji de hoy».</p>
+
+    <h3>Mostrar kanji a partir de</h3>
+    <div class="from-opts" id="fromOpts"></div>
+    <p class="note" id="fromNote"></p>
 
     <h3>Racha</h3>
     <div class="streak-hero" id="streakHero"></div>
@@ -611,6 +621,7 @@
   function pickFresh(n, excluir) {
     var pick = [];
     for (var g = 0; g < GRADES.length && pick.length < n; g++) {
+      if (g + 1 < fromGroup) continue;
       var fresh = GRADES[g].map(function (r) { return r[0]; }).filter(function (k) { return !progress[k] && excluir.indexOf(k) < 0; });
       pick = pick.concat(shuffle(fresh).slice(0, n - pick.length));
     }
@@ -644,7 +655,7 @@
   }
   // Cuánto se tardaría en empezar todos los kanji de primaria (Kyōiku, 1026) a «n» kanji nuevos al día
   function primaryEstimate(n) {
-    var all = DECKS[5] || [], left = all.filter(function (k) { return !progress[k]; }).length;
+    var all = DECKS[5] || [], left = all.filter(function (k) { return !progress[k] && !skipped(k); }).length;
     var days = Math.ceil(left / n), t;
     if (!left) t = "";
     else if (days < 14) t = days + (days === 1 ? " día" : " días");
@@ -654,7 +665,7 @@
   }
   function estimateText(n) {
     var e = primaryEstimate(n);
-    if (!e.left) return "¡Ya has empezado todos los kanji de primaria! Ahora, a por los Jōyō.";
+    if (!e.left) return fromGroup > 6 ? "Empiezas directamente por los Jōyō: ¡a por ellos!" : "¡Ya has empezado todos los kanji de primaria! Ahora, a por los Jōyō.";
     var cuantos = e.left === e.total ? "los " + e.total + " kanji" : "los " + e.left + " kanji que te quedan de los " + e.total;
     if (n >= 20) return "🚀 ¡En solo " + e.time + " te sabrías " + cuantos + " que aprende un niño japonés en toda la primaria!";
     if (n >= 10) return "🔥 ¡En " + e.time + " te sabrías " + cuantos + " que aprende un niño japonés en toda la primaria!";
@@ -741,7 +752,17 @@
   // level 0 = «Kanji de hoy»; 1–7 = niveles acumulativos
   var level = parseInt(lsGet(LEVEL_KEY), 10);
   if (!(level >= 0 && level <= LEVELS.length)) level = 0;
-  function deck(l) { return l === 0 ? daily.list : DECKS[l - 1]; }
+  /* «Mostrar kanji a partir de»: para estudiantes avanzados. Los kanji de los grupos anteriores cuentan como
+     repasados (sin tocar su progreso ni marcarlos como dominados), no salen en los niveles siguientes ni en el
+     reto diario. Al desactivarlo (volver a 1º) todo vuelve a la normalidad. */
+  var FROM_KEY = "kaname.fromGroup.v1";
+  var fromGroup = Math.max(1, Math.min(LEVELS.length, parseInt(lsGet(FROM_KEY), 10) || 1)); // 1 = desactivado
+  function skipped(k) { return CARDS[k] && CARDS[k].grade + 1 < fromGroup; }
+  function deck(l) {
+    if (l === 0) return daily.list;
+    if (l < fromGroup) return DECKS[l - 1];                                  // grupo saltado: se ve entero, como repasado
+    return fromGroup > 1 ? DECKS[l - 1].filter(function (k) { return !skipped(k); }) : DECKS[l - 1];
+  }
   function levelName(l) { return l === 0 ? "Hoy · " + dayLabel() : LEVELS[l - 1].name; }
   function dayLabel() { return new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" }); }
   var queue = [];          // kanji pendientes ahora mismo
@@ -760,7 +781,8 @@
     var now = Date.now(), due = 0, fresh = 0, waiting = 0;
     deck(l).forEach(function (k) {
       var p = progress[k];
-      if (!p || typeof p.due !== "number") fresh++;
+      if (skipped(k)) waiting++;
+      else if (!p || typeof p.due !== "number") fresh++;
       else if (p.due <= now) due++;
       else waiting++;
     });
@@ -768,7 +790,8 @@
   }
 
   // Modo de la tarjeta: "srs" (niveles), "daily" (reto de hoy: ✕ / ✓) o "browse" (reto superado: «Siguiente»)
-  function mode() { return level !== 0 ? "srs" : dailyComplete() ? "browse" : "daily"; }
+  // "cram" = «Repasar todo igualmente»: ✕ / ✓ como en el reto (✓ no cambia nada; ✕ = Again, vuelve en 10 min)
+  function mode() { return level !== 0 ? (cramMode ? "cram" : "srs") : dailyComplete() ? "browse" : "daily"; }
 
   function buildQueue() {
     if (level === 0 && daily.list.length) {
@@ -779,6 +802,7 @@
     var now = Date.now(), reviews = [], fresh = [];
     deck(level).forEach(function (k) {
       if (cramMode) { reviews.push(k); return; }
+      if (skipped(k)) return;
       var p = progress[k];
       if (!p || typeof p.due !== "number") fresh.push(k);
       else if (p.due <= now) reviews.push(k);
@@ -794,13 +818,13 @@
     if (current) inQ[current] = 1;
     deck(level).forEach(function (k) {
       var p = progress[k];
-      if (!inQ[k] && p && typeof p.due === "number" && p.due <= now) queue.push(k);
+      if (!inQ[k] && !skipped(k) && p && typeof p.due === "number" && p.due <= now) queue.push(k);
     });
   }
 
   function nextDueIn() {
     var now = Date.now(), min = Infinity;
-    deck(level).forEach(function (k) { var p = progress[k]; if (p && p.due > now && p.due < min) min = p.due; });
+    deck(level).forEach(function (k) { var p = progress[k]; if (!skipped(k) && p && p.due > now && p.due < min) min = p.due; });
     return min === Infinity ? null : min - now;
   }
   function humanTime(ms) {
@@ -917,12 +941,12 @@
         b.onclick = function (e) { e.stopPropagation(); rate(x[0]); };
         r.appendChild(b);
       });
-    } else if (m === "daily") {
+    } else if (m === "daily" || m === "cram") {
       [["again", "✕", "Repetir", false], ["good", "✓", "Me lo sé", true]].forEach(function (x) {
         var b = el("button", "rate-btn " + x[0]);
         b.setAttribute("aria-label", x[2]);
         b.appendChild(el("span", "mark", x[1])); b.appendChild(el("span", "interval", x[2]));
-        b.onclick = function (e) { e.stopPropagation(); markDaily(x[3]); };
+        b.onclick = function (e) { e.stopPropagation(); if (m === "cram") markCram(x[3]); else markDaily(x[3]); };
         r.appendChild(b);
       });
     } else {
@@ -1092,6 +1116,24 @@
       renderLevels(); showNext();
     }, 460);
   }
+  // «Repasar todo igualmente»: ✓ no toca la tarjeta; ✕ funciona como Again (vuelve en 10 min) y se repite en esta sesión.
+  // Los kanji saltados («Mostrar kanji a partir de») no se tocan: con ✕ solo se repiten en la sesión.
+  function markCram(ok) {
+    if (!flipped || !current || busy || mode() !== "cram") return;
+    busy = true;
+    var k = current;
+    if (!ok) {
+      if (!skipped(k)) {
+        var now = Date.now(), p = progress[k] || { reps: 0 };
+        p.reps = (p.reps || 0) + 1; p.ivl = 0; p.due = now + RULES.again.min; p.last = "again"; p.seen = now;
+        progress[k] = p; save();
+      }
+      queue.push(k);
+    }
+    $("ratings").classList.remove("show");
+    $("card").classList.remove("flipped");
+    setTimeout(function () { busy = false; renderLevels(); showNext(); }, 460);
+  }
   // Primer nivel que aún tiene tarjetas por estudiar o repasar
   function firstOpenLevel() {
     for (var i = 1; i <= LEVELS.length; i++) if (levelCounts(i).available) return i;
@@ -1242,7 +1284,7 @@
       var d = el("div", "stat"); d.appendChild(el("b", null, String(x[0]))); d.appendChild(el("span", null, x[1])); s.appendChild(d);
     });
   }
-  function backupString() { return JSON.stringify({ app: "KanaMe", v: 2, date: new Date().toISOString(), progress: progress, streak: streak, palette: lsGet(PALETTE_KEY) || "sumi" }); }
+  function backupString() { return JSON.stringify({ app: "KanaMe", v: 2, date: new Date().toISOString(), progress: progress, streak: streak, palette: lsGet(PALETTE_KEY) || "sumi", dailySize: DAILY_SIZE, fromGroup: fromGroup }); }
   function restoreFrom(text) {
     var o = parse((text || "").trim());
     var p = o && (o.progress || (o.app ? null : o));
@@ -1262,11 +1304,14 @@
       saveStreak();
       if (o.palette) { var pp = PALETTES.filter(function (x) { return x.id === o.palette; })[0]; if (pp && unlocked(pp)) setPalette(pp.id); }
     }
+    if (SIZES.indexOf(+o.dailySize) >= 0) { DAILY_SIZE = +o.dailySize; lsSet(SIZE_KEY, String(DAILY_SIZE)); fitDaily(); }
+    if (o.fromGroup >= 1 && o.fromGroup <= LEVELS.length) { fromGroup = +o.fromGroup; lsSet(FROM_KEY, String(fromGroup)); }
     buildQueue(); stage.innerHTML = ""; current = null; showNext(); renderLevels(); renderStats(); renderStreakSheet();
+    if ($("sheet").classList.contains("open")) { renderSizeSettings(); renderFromSettings(); }
     toast(n + " tarjetas restauradas");
   }
 
-  function openSheet() { renderStats(); renderSizeSettings(); $("sizeNoteSettings").textContent = "Kanji nuevos que te damos cada día en «Kanji de hoy»."; renderStreakSheet(); renderReminder(); $("sheet").classList.add("open"); }
+  function openSheet() { renderStats(); renderSizeSettings(); $("sizeNoteSettings").textContent = "Kanji nuevos que te damos cada día en «Kanji de hoy»."; renderFromSettings(); renderStreakSheet(); renderReminder(); $("sheet").classList.add("open"); }
   $("openSettings").onclick = openSheet;
   $("streakBtn").onclick = openSheet;
   $("closeSettings").onclick = function () { $("sheet").classList.remove("open"); };
@@ -1300,8 +1345,9 @@
     progress = {}; save(); try { localStorage.removeItem(LEGACY_KEY); } catch (e) {}
     streak = { cur: 0, best: 0, last: "" }; saveStreak(); setPalette("sumi");
     try { localStorage.removeItem(INTRO_KEY); } catch (e) {}
+    fromGroup = 1; try { localStorage.removeItem(FROM_KEY); } catch (e) {}
     daily = { date: "", list: [] }; ensureDaily();
-    selectLevel(level); renderStats(); renderStreakSheet(); toast("Progreso borrado");
+    selectLevel(level); renderStats(); renderStreakSheet(); renderFromSettings(); renderSizeSettings(); toast("Progreso borrado");
   };
 
   /* ================= Ciclo de vida ================= */
@@ -1326,7 +1372,7 @@
     var m = mode();
     if (m === "browse" && (e.key === "Enter" || e.key === "ArrowRight")) { e.preventDefault(); nextBrowse(); }
     else if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); }
-    else if (m === "daily") { if (e.key === "1" || e.key === "ArrowLeft") markDaily(false); else if (e.key === "2" || e.key === "ArrowRight") markDaily(true); }
+    else if (m === "daily" || m === "cram") { var mk = m === "cram" ? markCram : markDaily; if (e.key === "1" || e.key === "ArrowLeft") mk(false); else if (e.key === "2" || e.key === "ArrowRight") mk(true); }
     else if (flipped && "1234".indexOf(e.key) >= 0) rate(["again", "hard", "good", "easy"][+e.key - 1]);
   });
 
@@ -1379,6 +1425,37 @@
     };
     $("sizeSheet").classList.add("open");
     return true;
+  }
+
+  /* ================= Mostrar kanji a partir de… ================= */
+  function renderFromSettings() {
+    var box = $("fromOpts"); box.innerHTML = "";
+    LEVELS.forEach(function (L, i) {
+      var n = i + 1, b = el("button", "from-opt" + (n === fromGroup ? " sel" : n < fromGroup ? " skip" : ""), GRADE_TAG[i] === "Jōyō" ? "常" : GRADE_TAG[i]);
+      b.setAttribute("aria-pressed", n === fromGroup ? "true" : "false");
+      b.setAttribute("aria-label", n === 1 ? "Desde 1º (todos los kanji)" : "A partir de " + (n === 7 ? "los Jōyō de secundaria" : n + "º") + ": saltar los grupos anteriores");
+      b.onclick = function () { setFromGroup(n); };
+      box.appendChild(b);
+    });
+    var cuantos = DECKS[fromGroup - 2] ? DECKS[fromGroup - 2].length : 0;
+    $("fromNote").textContent = fromGroup === 1
+      ? "Para estudiantes avanzados: elige un grupo para saltarte los anteriores. Contarán como repasados (sin marcarse como dominados) y no saldrán en los demás niveles ni en el reto diario. Vuelve a 1º para desactivarlo."
+      : "Te saltas los " + cuantos + " kanji de " + (fromGroup === 2 ? "1º" : "1º a " + GRADE_TAG[fromGroup - 2]) + ": cuentan como repasados (no como dominados) y no salen en los demás niveles ni en el reto diario. Puedes repasarlos igualmente desde su nivel. Vuelve a 1º para desactivarlo.";
+  }
+  function setFromGroup(n) {
+    if (n === fromGroup) return;
+    fromGroup = n; lsSet(FROM_KEY, String(n));
+    track("a-partir-de-" + n);
+    // Reto de hoy (si no está superado): los kanji saltados sin ✓ se cambian por otros nuevos
+    if (daily.list.length && !dailyComplete()) {
+      var keep = daily.list.filter(function (k) { return !skipped(k) || daily.ticked.indexOf(k) >= 0; });
+      var extra = pickFresh(daily.list.length - keep.length, keep);
+      if (keep.length !== daily.list.length) { daily.list = keep.concat(extra); saveDaily(); }
+    }
+    if (level !== 0 && level < fromGroup) level = firstOpenLevel(), lsSet(LEVEL_KEY, String(level));
+    cramMode = false; current = null; buildQueue(); stage.innerHTML = ""; showNext(); renderLevels();
+    renderFromSettings(); renderSizeSettings();
+    toast(n === 1 ? "Mostrando todos los kanji" : "Mostrando kanji a partir de " + (n === 7 ? "常 Jōyō" : n + "º"));
   }
 
   /* ================= Tutorial de la primera vez =================
