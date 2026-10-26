@@ -34,15 +34,15 @@
       bg: "#ededed", surface: "#e3e3e3", raised: "#d9d9d9", hairline: "#c4c4c4",
       text: "#141414", muted: "#5c5c5c", faint: "#858585",
       again: "#b4473b", hard: "#94661a", good: "#3d7d53", easy: "#3474a6" },
-    { id: "sakura",   jp: "桜",   name: "Sakura",   days: 10,  accent: "#e07a9b" },
-    { id: "matcha",   jp: "抹茶", name: "Matcha",   days: 20,  accent: "#8db36a" },
-    { id: "ai",       jp: "藍",   name: "Ai",       days: 30,  accent: "#5f8fdc" },
-    { id: "yamabuki", jp: "山吹", name: "Yamabuki", days: 40,  accent: "#e0a832" },
-    { id: "fuji",     jp: "藤",   name: "Fuji",     days: 50,  accent: "#a07fdc" },
-    { id: "umi",      jp: "海",   name: "Umi",      days: 60,  accent: "#3fb3b0" },
-    { id: "momiji",   jp: "紅葉", name: "Momiji",   days: 70,  accent: "#e8663a" },
-    { id: "yoru",     jp: "夜",   name: "Yoru",     days: 80,  accent: "#c9b27a", bg: "#0e1120", surface: "#171b2c", raised: "#21263a", hairline: "#2e3450" },
-    { id: "kin",      jp: "金",   name: "Kin",      days: 100, accent: "#d4af37", bg: "#000000", surface: "#141210", raised: "#1f1c18", hairline: "#36302a" }
+    { id: "sakura",   jp: "桜",   name: "Sakura",   days: 2,  accent: "#e07a9b" },
+    { id: "matcha",   jp: "抹茶", name: "Matcha",   days: 4,  accent: "#8db36a" },
+    { id: "ai",       jp: "藍",   name: "Ai",       days: 8,  accent: "#5f8fdc" },
+    { id: "yamabuki", jp: "山吹", name: "Yamabuki", days: 16,  accent: "#e0a832" },
+    { id: "fuji",     jp: "藤",   name: "Fuji",     days: 32,  accent: "#a07fdc" },
+    { id: "umi",      jp: "海",   name: "Umi",      days: 64,  accent: "#3fb3b0" },
+    { id: "momiji",   jp: "紅葉", name: "Momiji",   days: 128,  accent: "#e8663a" },
+    { id: "yoru",     jp: "夜",   name: "Yoru",     days: 256,  accent: "#c9b27a", bg: "#0e1120", surface: "#171b2c", raised: "#21263a", hairline: "#2e3450" },
+    { id: "kin",      jp: "金",   name: "Kin",      days: 512, accent: "#d4af37", bg: "#000000", surface: "#141210", raised: "#1f1c18", hairline: "#36302a" }
   ];
   window.applyKanamePalette = function (id) {
     var P = window.KANAME_PALETTES, pal = P[0];
@@ -394,7 +394,7 @@
     <h3>Racha</h3>
     <div class="streak-hero" id="streakHero"></div>
     <div class="palettes" id="palettes"></div>
-    <p class="note">Supera el reto de «Kanji de hoy» (todos los kanji del día con ✓) para sumar un día a tu racha. Si un día no lo superas, la racha vuelve a 0: las paletas que ya tienes se quedan, pero las nuevas se desbloquean con días seguidos contados desde 0 (una cada 10 días). Toca una paleta para usarla.</p>
+    <p class="note">Supera el reto de «Kanji de hoy» (todos los kanji del día con ✓) para sumar un día a tu racha. Si un día no lo superas, la racha vuelve a 0: las paletas que ya tienes se quedan, pero las nuevas se desbloquean con días seguidos contados desde 0 (con 1, 2, 4, 8, 16… días: cada una al doble que la anterior). Toca una paleta para usarla.</p>
 
     <div id="remSection" hidden>
       <h3>Recordatorio diario</h3>
@@ -469,7 +469,7 @@
     <ul class="intro-list">
       <li><span class="ic">📅</span><span><b>Para seguir la racha</b>, supera cada día el reto de «Kanji de hoy»: marca ✓ todos los kanji del día (los que marques con ✕ se repiten hasta que te los sepas). Cada día seguido suma uno.</span></li>
       <li><span class="ic">↺</span><span><b>Si un día no lo superas</b>, la racha vuelve a 0. Las paletas que ya tienes se quedan, pero para las nuevas tendrás que volver a sumar días seguidos desde 0.</span></li>
-      <li><span class="ic">🎨</span><span><b>Cada 10 días seguidos</b> desbloqueas una paleta nueva.</span></li>
+      <li><span class="ic">🎨</span><span><b>Cada vez que doblas tu racha</b> desbloqueas una paleta nueva: con 2 días seguidos, 4, 8, 16, 32…</span></li>
       <li><span class="ic">⚙︎</span><span><b>Para cambiar de paleta</b>, toca el contador 🔥 de arriba a la derecha y elige una en «Racha».</span></li>
     </ul>
     <div class="row">
