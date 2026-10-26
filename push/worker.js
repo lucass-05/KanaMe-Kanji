@@ -3,7 +3,7 @@
  * Qué hace:
  *   - Guarda, para cada móvil que activa el recordatorio, su suscripción push y la hora elegida.
  *   - Cada 15 minutos (cron) envía un aviso a los que les toca a esa hora y aún no han
- *     completado los kanji de hoy.
+ *     completado el reto de hoy (KanaMe Kanji y KanaMe Kana comparten este servidor).
  *
  * Almacenamiento (KV, enlazado como SUBS):
  *   "s:HHMM:<id>"  -> valor vacío; metadata { sub, off, done }
@@ -47,6 +47,7 @@ export default {
         const off = Math.max(-840, Math.min(840, Math.round(Number(body.off) || 0)));
         const done = /^\d{4}-\d{2}-\d{2}$/.test(body.done || "") ? body.done : "";
         const meta = { sub: { endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth } }, off, done };
+        if (body.app === "kana") meta.app = "kana"; // KanaMe Kana usa el mismo servidor
         if (validSlot(body.prevSlot) && body.prevSlot !== body.slot) await env.SUBS.delete(key(body.prevSlot, body.id));
         // Si ya está guardada igual, no se vuelve a escribir (el plan gratuito limita las escrituras diarias)
         const k = key(body.slot, body.id);
@@ -95,7 +96,8 @@ async function sendReminders(env, when) {
         // El servicio de push dice que esa suscripción ya no existe: se borró la app (o se quitaron
         // los permisos de notificación en los ajustes del móvil). Se deja de avisar y se anota en GoatCounter.
         await env.SUBS.delete(k.name);
-        await track("evento/app-desinstalada-o-silenciada", "App desinstalada/silenciada · " + platform(m.sub.endpoint));
+        const kana = m.app === "kana";
+        await track("evento/" + (kana ? "kana-" : "") + "app-desinstalada-o-silenciada", (kana ? "KanaMe Kana · " : "") + "App desinstalada/silenciada · " + platform(m.sub.endpoint));
       }
     }
     cursor = page.list_complete ? null : page.cursor;
