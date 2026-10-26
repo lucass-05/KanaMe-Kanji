@@ -269,7 +269,7 @@
       amb: [{ kind: "rise", shape: "bubble", colors: ["#9ff0ea", "#d6fffb"], n: 13, size: [6, 14], dur: [11, 20], o: 0.5 }],
       burst: { shapes: ["bubble", "drop", "dot"], colors: ["#52e3d8", "#b4fff9", "#ffffff", "#1fb3c0"] } },
     // 紅葉色・朱・紅・黄金: bosque en otoño, sol bajo, montañas y hojas de arce
-    { id: "momiji", jp: "紅葉", name: "Momiji", days: 128, accent: "#ff7a3d",
+    { id: "momiji", jp: "紅葉", name: "Momiji", days: 70, accent: "#ff7a3d",
       bg: "#1e0806", surface: "#36120b", raised: "#441a10", hairline: "#6a2a18",
       text: "#fff1e8", muted: "#e0ad97", faint: "#9a6a59",
       grad: "radial-gradient(120% 70% at 12% -5%, #8a2a12 0%, #4a120a 40%, #1c0705 100%)", mountains: true, mark: "紅",
@@ -277,19 +277,19 @@
       amb: [{ kind: "fall", shape: "leaf", colors: ["#ff7a1a", "#e2442f", "#c8282f", "#f2b52a", "#ff9a3c"], n: 14, size: [13, 22], dur: [12, 20], o: 0.85 }],
       burst: { shapes: ["leaf", "leaf", "dot"], colors: ["#ff7a1a", "#e2442f", "#f2b52a", "#ff9a3c", "#c8282f"] } },
     // 濃藍・群青・金: noche estrellada con vía láctea, luna y estrellas fugaces
-    { id: "yoru", jp: "夜", name: "Yoru", days: 256, accent: "#f3d98f",
+    { id: "yoru", jp: "夜", name: "Yoru", days: 80, accent: "#f3d98f",
       bg: "#03061a", surface: "#0e1640", raised: "#16204f", hairline: "#2a3a78",
       text: "#f4f1e6", muted: "#bcb8c9", faint: "#757694",
       grad: "linear-gradient(180deg, #010312 0%, #08113a 55%, #1a2461 100%)", stars: true, moon: true, nebula: true, mark: "夜",
       glow: "rgba(243,217,143,.18)",
       burst: { shapes: ["star", "star", "dot"], colors: ["#fff6d6", "#f3d98f", "#ffffff", "#bfd4ff", "#e3c8ff"] } },
     // 金色・黒: laca negra y pan de oro, red 麻の葉, marco dorado, polvo de oro y destellos
-    { id: "kin", jp: "金", name: "Kin", days: 512, accent: "#f5c84c",
+    { id: "kin", jp: "金", name: "Kin", days: 90, accent: "#f5c84c",
       bg: "#070503", surface: "#16110a", raised: "#221a0e", hairline: "#5a4518",
       text: "#fff7df", muted: "#d6c393", faint: "#8f7c52",
       grad: "radial-gradient(120% 80% at 50% -5%, #3d2c08 0%, #120d05 50%, #050402 100%)",
       tile: triGrid("rgba(245,200,76,.11)"), tileSize: "40px 69.28px", tileMask: "radial-gradient(120% 80% at 50% 50%, transparent 25%, #000 100%)",
-      mark: "金", shimmer: true, corners: true, rays: "rgba(255,215,110,.06)", glow: "rgba(245,200,76,.25)",
+      mark: "金", shimmer: true, corners: true, glints: true, sheen: triGrid("#fff"), rays: "rgba(255,215,110,.06)", glow: "rgba(245,200,76,.25)",
       amb: [{ kind: "rise", shape: "star", colors: ["#f5c84c", "#ffe48f", "#fff6d0"], n: 16, size: [5, 11], dur: [16, 26], o: 0.85 }],
       burst: { shapes: ["star", "star", "dot"], colors: ["#f5c84c", "#ffe48f", "#fff6d0", "#d99a1c"] } }
   ];
@@ -335,6 +335,11 @@
     if (pal.corners) {
       var c = svg('<g fill="none" stroke="#f5c84c" stroke-linecap="round"><path d="M4 70V12Q4 4 12 4H70" stroke-width="1.6"/><path d="M10 52V18Q10 10 18 10H52" stroke-width=".8" stroke-opacity=".7"/><path d="M16 16h5v5h-5z" transform="rotate(45 18.5 18.5)" fill="#f5c84c" fill-opacity=".6" stroke-width=".6"/><circle cx="4" cy="76" r="1.6" fill="#f5c84c"/><circle cx="76" cy="4" r="1.6" fill="#f5c84c"/></g>', 80, 80);
       ["tl", "tr", "bl", "br"].forEach(function (k) { d.appendChild(node("corner " + k, "background-image:" + c)); });
+    }
+    if (pal.sheen) { var sh = node("sheen"); sh.style.webkitMaskImage = pal.sheen; sh.style.maskImage = pal.sheen; sh.style.webkitMaskSize = pal.tileSize; sh.style.maskSize = pal.tileSize; d.appendChild(sh); }
+    if (pal.glints) for (var g = 0; g < 16; g++) {
+      var gs = rnd(10, 22);
+      d.appendChild(node("glint", "left:" + rnd(2, 96) + "%;top:" + rnd(3, 95) + "%;width:" + gs + "px;height:" + gs + "px;background-image:" + window.KANAME_SHAPE("star", pick(["#fff6d0", "#ffe48f", "#ffffff"])) + ";animation-duration:" + rnd(5, 10) + "s;animation-delay:" + (-rnd(0, 10)) + "s"));
     }
     if (pal.tileDrift && d.querySelector(".tile")) d.querySelector(".tile").classList.add("drift");
     (pal.amb || []).forEach(function (a) {
@@ -811,6 +816,30 @@
     animation: kflash 1.2s cubic-bezier(.1, .7, .3, 1) forwards; }
   @keyframes kflash { from { transform: scale(1); opacity: .9; } to { transform: scale(30); opacity: 0; } }
   @media (prefers-reduced-motion: reduce) { #decor .godrays, #decor .mist, #decor .caus, #decor .tile.drift { animation: none !important; } }
+  /* ===== Kin: oro con relieve y un destello que recorre todo cada pocos segundos ===== */
+  html[data-pal="kin"] { --gold-grad: linear-gradient(115deg, #b8862a 0%, #e9c25a 22%, #f6d77a 38%, #fffbe6 48%, #f6d77a 58%, #e0b043 75%, #b8862a 100%); }
+  @keyframes kgold { 0%, 62% { background-position: 130% 0; } 100% { background-position: -30% 0; } }
+  html[data-pal="kin"] #decor .mark { color: transparent; background: linear-gradient(115deg, #5a3d08 0%, #b8862a 30%, #ffefb0 46%, #b8862a 60%, #5a3d08 100%);
+    background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; text-shadow: none; opacity: .3;
+    filter: drop-shadow(-1px -1px 0 rgba(255, 236, 170, .55)) drop-shadow(2px 3px 2px rgba(0, 0, 0, .9)); animation: kgold 8s ease-in-out infinite; }
+  html[data-pal="kin"] #decor .sheen { inset: 0; background: linear-gradient(115deg, transparent 42%, rgba(255, 236, 160, .75) 50%, transparent 58%) no-repeat; background-size: 300% 100%; animation: kgold 8s ease-in-out infinite; }
+  html[data-pal="kin"] #decor .glint { background-size: contain; opacity: 0; animation: kglint ease-in-out infinite; filter: drop-shadow(0 0 4px rgba(255, 220, 120, .9)); }
+  @keyframes kglint { 0%, 80%, 100% { opacity: 0; transform: scale(.2) rotate(0deg); } 88% { opacity: 1; transform: scale(1) rotate(45deg); } }
+  html[data-pal="kin"] .kanji-big, html[data-pal="kin"] .kanji-small, html[data-pal="kin"] .brand h1, html[data-pal="kin"] .today .jp, html[data-pal="kin"] .streak-hero .big {
+    color: #f6d77a; background: var(--gold-grad); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    animation: kgold 8s ease-in-out infinite; }
+  html[data-pal="kin"] .kanji-big { filter: drop-shadow(0 1px 0 #6e4b0a) drop-shadow(0 3px 6px rgba(0, 0, 0, .6)) drop-shadow(0 0 18px rgba(245, 200, 76, .25)); }
+  html[data-pal="kin"] .face::after, html[data-pal="kin"] .today::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1.5px; pointer-events: none;
+    background: linear-gradient(115deg, #6e4b0a 0%, #b8862a 25%, #fff4c2 48%, #b8862a 70%, #6e4b0a 100%); background-size: 300% 100%; animation: kgold 8s ease-in-out infinite;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+  html[data-pal="kin"] .today { position: relative; }
+  html[data-pal="kin"] .face { box-shadow: 0 0 50px -12px rgba(245, 200, 76, .35), inset 0 1px 0 rgba(255, 240, 190, .12); }
+  html[data-pal="kin"] .streak-btn { color: #f6d77a; border-color: #b8862a; }
+  .pal .well { position: relative; }
+  .pal[data-id="kin"]:not(.locked) .md { position: relative; }
+  .pal[data-id="kin"]:not(.locked) .md::after { content: ""; position: absolute; inset: 0; -webkit-mask-image: var(--m); mask-image: var(--m); -webkit-mask-size: contain; mask-size: contain;
+    background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, .9) 50%, transparent 60%) no-repeat; background-size: 300% 100%; animation: kgold 5s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) { html[data-pal="kin"] * { animation: none !important; } }
 </style>
 </head>
 <body>
@@ -857,7 +886,7 @@
     <h3>Racha y medallas</h3>
     <div class="streak-hero" id="streakHero"></div>
     <div class="palettes" id="palettes"></div>
-    <p class="note">Supera el reto de «Kanji de hoy» (todos los kanji del día con ✓) para sumar un día a tu racha. Si un día no lo superas, la racha vuelve a 0: las medallas que ya tienes se quedan, pero las nuevas se ganan con días seguidos contados desde 0 (con 1, 2, 4, 8, 16… días: cada una al doble que la anterior). Cada medalla trae su paleta, con su fondo y sus efectos. Toca una medalla para usar su paleta.</p>
+    <p class="note">Supera el reto de «Kanji de hoy» (todos los kanji del día con ✓) para sumar un día a tu racha. Si un día no lo superas, la racha vuelve a 0: las medallas que ya tienes se quedan, pero las nuevas se ganan con días seguidos contados desde 0 (con 1, 2, 4, 8, 16, 32 y 64 días, cada una al doble que la anterior, y las tres últimas con 70, 80 y 90). Cada medalla trae su paleta, con su fondo y sus efectos. Toca una medalla para usar su paleta.</p>
 
     <div id="remSection" hidden>
       <h3>Recordatorio diario</h3>
@@ -932,7 +961,7 @@
     <ul class="intro-list">
       <li><span class="ic">📅</span><span><b>Para seguir la racha</b>, supera cada día el reto de «Kanji de hoy»: marca ✓ todos los kanji del día (los que marques con ✕ se repiten hasta que te los sepas). Cada día seguido suma uno.</span></li>
       <li><span class="ic">↺</span><span><b>Si un día no lo superas</b>, la racha vuelve a 0. Las medallas y paletas que ya tienes se quedan, pero para las nuevas tendrás que volver a sumar días seguidos desde 0.</span></li>
-      <li><span class="ic">🎨</span><span><b>Cada vez que doblas tu racha</b> ganas una medalla con una paleta nueva (colores, fondo y efectos): con 2 días seguidos, 4, 8, 16, 32…</span></li>
+      <li><span class="ic">🎨</span><span><b>Cada vez que doblas tu racha</b> ganas una medalla con una paleta nueva (colores, fondo y efectos): con 2 días seguidos, 4, 8, 16, 32, 64… y las últimas a los 70, 80 y 90 días</span></li>
       <li><span class="ic">⚙︎</span><span><b>Para cambiar de paleta</b>, toca el contador 🔥 de arriba a la derecha y elige una en «Racha».</span></li>
     </ul>
     <div class="row">
@@ -1373,7 +1402,8 @@
     PALETTES.forEach(function (p) {
       var ok = unlocked(p);
       var b = el("button", "pal" + (p.id === sel ? " sel" : "") + (ok ? "" : " locked"));
-      var well = el("span", "well"), md = el("span", "md"); md.style.backgroundImage = window.KANAME_MEDAL(p.id);
+      b.dataset.id = p.id;
+      var well = el("span", "well"), md = el("span", "md"), murl = window.KANAME_MEDAL(p.id); md.style.backgroundImage = murl; md.style.setProperty("--m", murl);
       well.appendChild(md); b.appendChild(well);
       var nm = el("span", "nm");
       if (ok) { nm.appendChild(el("b", null, p.jp)); nm.appendChild(document.createTextNode(p.name)); }
