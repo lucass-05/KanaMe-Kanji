@@ -103,111 +103,180 @@
   }
   function wave(c) { return svg('<path d="M0 30 Q50 6 100 30 T200 30 T300 30 T400 30 V60 H0Z" fill="' + c + '"/>', 400, 60); }
 
-  // ===== Medallas (una por paleta). Diseños propios: forma de la medalla + grabado del motivo de la paleta =====
+  // ===== Medallas (una por paleta), con aspecto de orfebrería real: metal con relieve iluminado,
+  //       esmalte de color en el campo (guilloché en las altas) y adornos de metal que crecen con cada medalla =====
   function star(n, ro, ri, cx, cy, rot) {
     var p = [];
     for (var i = 0; i < n * 2; i++) { var r = i % 2 ? ri : ro, a = Math.PI * i / n - Math.PI / 2 + (rot || 0); p.push((cx + r * Math.cos(a)).toFixed(2) + " " + (cy + r * Math.sin(a)).toFixed(2)); }
     return "M" + p.join("L") + "Z";
   }
-  var BIG_PETAL = "M32 32C24 28 21.4 18.6 24.8 11.4 26.7 7.9 29.3 6.6 30.1 6.1L32 9.6 33.9 6.1C34.7 6.6 37.3 7.9 39.2 11.4 42.6 18.6 40 28 32 32Z";
-  var MEDALS = {
-    sumi: { c: ["#8a8a8a", "#3a3a3a", "#0d0d0d"], shape: "M32 4C32 4 11 28 11 40a21 21 0 0 0 42 0C53 28 32 4 32 4Z",
-      em: '<path d="M22 42c4 7 14 9 20 2" fill="none" stroke="HI" stroke-width="2.4" stroke-linecap="round"/><circle cx="27" cy="31" r="3" fill="HI"/>' },
-    shiro: { c: ["#ffffff", "#d6d6d6", "#8e8e8e"], shape: "M32 4a28 28 0 1 1 0 56a28 28 0 1 1 0-56Z",
-      em: '<circle cx="32" cy="32" r="20" fill="none" stroke="LO" stroke-width="1.6"/><rect x="21" y="21" width="22" height="22" rx="3" fill="#c0503a"/><path d="M26 27h12M26 32h12M26 37h12M32 24v16" stroke="#f3d9d3" stroke-width="1.8"/>' },
-    sakura: { c: ["#ffe3eb", "#f19db5", "#b83d62"], shape: null,
-      petals: true, em: '<circle cx="32" cy="32" r="5.5" fill="#f6c453" stroke="#b07a12" stroke-width="1"/><g stroke="#b83d62" stroke-width="1.2" stroke-linecap="round"><path d="M32 26.5V21M37.2 30.3l5.2-1.7M35.2 36.4l3.2 4.4M28.8 36.4l-3.2 4.4M26.8 30.3l-5.2-1.7"/></g>' },
-    matcha: { c: ["#e2efbf", "#8db35a", "#3f5c22"], shape: "M32 3C47 13 54 30 47 46 43 55 32 61 32 61S21 55 17 46C10 30 17 13 32 3Z",
-      em: '<path d="M32 10V56M32 22l-8-6M32 22l8-6M32 32l-10-7M32 32l10-7M32 42l-9-6M32 42l9-6" fill="none" stroke="LO" stroke-width="1.6" stroke-linecap="round"/><path d="M31 10V56" stroke="HI" stroke-width=".8"/>' },
-    ai: { c: ["#cfe0fb", "#5f8fdc", "#1d3670"], shape: "M32 3L57 13V32C57 47 46 57 32 61 18 57 7 47 7 32V13Z",
-      em: '<g fill="none" stroke="HI" stroke-width="1.6"><path d="M12 50a10 10 0 0 1 20 0M32 50a10 10 0 0 1 20 0M22 40a10 10 0 0 1 20 0M17 50a5 5 0 0 1 10 0M37 50a5 5 0 0 1 10 0M27 40a5 5 0 0 1 10 0M12 30a10 10 0 0 1 20 0M32 30a10 10 0 0 1 20 0"/></g>' },
-    yamabuki: { c: ["#fff0b8", "#f0b429", "#8c5d06"], shape: "M32 3L57 17.5V46.5L32 61 7 46.5V17.5Z",
-      em: '<circle cx="40" cy="23" r="6" fill="HI"/><path d="M13 47L26 27l7 9 5-6 13 17Z" fill="LO" stroke="HI" stroke-width="1.2" stroke-linejoin="round"/><path d="M22 33l4-6 4 5" fill="none" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>' },
-    fuji: { c: ["#eee5fb", "#a88be0", "#4f3488"], shape: "M32 61C23 52 8 37 8 22A24 19 0 0 1 56 22C56 37 41 52 32 61Z",
-      em: '<g fill="HI" fill-opacity=".85"><ellipse cx="22" cy="18" rx="5" ry="3.4"/><ellipse cx="32" cy="16" rx="5" ry="3.4"/><ellipse cx="42" cy="18" rx="5" ry="3.4"/><ellipse cx="26" cy="26" rx="4.5" ry="3"/><ellipse cx="38" cy="26" rx="4.5" ry="3"/><ellipse cx="32" cy="33" rx="4.2" ry="2.8"/><ellipse cx="28" cy="40" rx="3.6" ry="2.4"/><ellipse cx="36" cy="40" rx="3.6" ry="2.4"/><ellipse cx="32" cy="47" rx="3" ry="2"/></g>' },
-    umi: { c: ["#c8f5f1", "#3fc1bb", "#0f5552"], shape: "M32 4a28 28 0 1 1 0 56a28 28 0 1 1 0-56Z",
-      em: '<path d="M8 36c6-6 12-6 18 0s12 6 18 0 12-6 14-2" fill="none" stroke="HI" stroke-width="2.4" stroke-linecap="round"/><path d="M10 45c6-5 11-5 16 0s11 5 16 0 10-5 13-2" fill="none" stroke="LO" stroke-width="2" stroke-linecap="round"/><circle cx="24" cy="21" r="3.5" fill="none" stroke="HI" stroke-width="1.5"/><circle cx="34" cy="15" r="2.2" fill="none" stroke="HI" stroke-width="1.3"/><circle cx="40" cy="24" r="1.6" fill="HI"/>' },
-    momiji: { c: ["#ffc2a3", "#ec6a35", "#86230f"], shape: "M32 2.7L36.3 17.3 48 10.7 44.3 24 60 22.7 49.3 33.3 54.7 37.3 37.3 38.7 34.7 45.3 33.6 61.3H30.4L29.3 45.3 26.7 38.7 9.3 37.3 14.7 33.3 4 22.7 19.7 24 16 10.7 27.7 17.3Z",
-      em: '<path d="M32 58V24M32 36L14 26M32 36L50 26M32 30L22 14M32 30L42 14M32 30V8" fill="none" stroke="LO" stroke-width="1.5" stroke-linecap="round"/>' },
-    yoru: { c: ["#fff6da", "#d8c07e", "#6e5a24"], shape: "M42 5A28 28 0 1 0 59 43 22 22 0 1 1 42 5Z",
-      em: '<path d="' + star(4, 7, 2, 44, 24, 0) + '" fill="HI"/><circle cx="50" cy="35" r="1.4" fill="HI"/><path d="M14 30a17 17 0 0 0 14 22" fill="none" stroke="LO" stroke-width="1.4"/>' },
-    kin: { c: ["#fff4c2", "#e0b84a", "#7d570a"], shape: star(8, 30, 22, 32, 32, Math.PI / 8),
-      em: '<path d="' + star(8, 17, 13, 32, 32, Math.PI / 8) + '" fill="none" stroke="HI" stroke-width="1.4"/><circle cx="32" cy="32" r="8" fill="LO" stroke="HI" stroke-width="1.2"/><path d="' + star(4, 6, 1.6, 32, 32, 0) + '" fill="HI"/>' }
-  };
-  // Adornos que crecen con cada medalla: aro, rayos, cintas, laureles, gemas y corona
-  var ORN = {
-    matcha:   { scale: .86, ring: { w: 2.2 } },
-    ai:       { scale: .84, ring: { w: 2.4, beads: 24 } },
-    yamabuki: { scale: .8,  ring: { w: 2.2, beads: 24 }, rays: { n: 16, c: ["#ffe9a8", "#f0b429"] } },
-    fuji:     { scale: .78, ring: { w: 2.4, beads: 28 }, rays: { n: 20, c: ["#f1eafc", "#b8a3e6"] }, ribbon: ["#c9b6ec", "#6f4fb0"] },
-    umi:      { scale: .76, ring: { w: 2.6, beads: 28, double: true }, rays: { n: 24, c: ["#e6fbfa", "#7fd6d1"] }, ribbon: ["#5fd3cd", "#0f5552"], gems: { c: ["#e6fffd", "#3fc1bb", "#0b4a48"], n: 1 } },
-    momiji:   { scale: .74, ring: { w: 2.6, beads: 30 }, rays: { n: 24, c: ["#fff0c8", "#f0a040"] }, ribbon: ["#f2784a", "#7e1f0e"], laurel: ["#ffe08a", "#c98a14", "#6e4806"], gems: { c: ["#fff1c8", "#f0a020", "#7a4a00"], n: 1 } },
-    yoru:     { scale: .72, ring: { w: 2.8, beads: 32, double: true }, rays: { n: 32, c: ["#ffffff", "#bfd0ff"] }, ribbon: ["#3a4c8f", "#0e1636"], laurel: ["#ffffff", "#c7cbd6", "#5d6274"], gems: { c: ["#dbe6ff", "#4f78e0", "#152a6e"], n: 3 }, sparkles: true },
-    kin:      { scale: .7,  ring: { w: 3, beads: 36, double: true }, rays: { n: 32, c: ["#fff6d0", "#e0b84a"] }, ribbon: ["#e04a4a", "#6e0c12"], laurel: ["#fff4c2", "#e0b84a", "#7d570a"], gems: { c: ["#ffd6d6", "#d42a3a", "#5e0610"], n: 3 }, crown: true, sparkles: true }
-  };
-  var GOLD = ["#fff4c2", "#e0b84a", "#7d570a"];
-  function metalGrad(id, c) { return '<linearGradient id="' + id + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + c[0] + '"/><stop offset=".45" stop-color="' + c[1] + '"/><stop offset=".75" stop-color="' + c[2] + '"/><stop offset="1" stop-color="' + c[1] + '"/></linearGradient>'; }
+  function f(n) { return (+n).toFixed(2); }
   function pol(r, a) { return [32 + r * Math.cos(a), 32 + r * Math.sin(a)]; }
-  function f(n) { return n.toFixed(2); }
+  var BIG_PETAL = "M32 32C24 28 21.4 18.6 24.8 11.4 26.7 7.9 29.3 6.6 30.1 6.1L32 9.6 33.9 6.1C34.7 6.6 37.3 7.9 39.2 11.4 42.6 18.6 40 28 32 32Z";
+  var METAL = {
+    gold:   ["#fff6d2", "#f0cd6e", "#c5932f", "#8a611a", "#e9c463", "#5e400d"],
+    silver: ["#ffffff", "#e3e6ea", "#a9afb8", "#6e747e", "#d5d9df", "#454a52"],
+    rose:   ["#fff0ea", "#f0bfb2", "#c4877a", "#8a5248", "#e8b0a2", "#5a3029"],
+    bronze: ["#f6e3bc", "#d4a867", "#9c6a33", "#62401b", "#c99a5b", "#3e2810"],
+    copper: ["#ffe0cc", "#eea47a", "#bb6439", "#7a3518", "#e08a5a", "#4a1d0a"],
+    gun:    ["#d8dbe0", "#8a8f98", "#4c5058", "#25272c", "#777c85", "#121315"],
+    dark:   ["#f3f5fa", "#b8bfcc", "#7a8293", "#3e4454", "#a7aebd", "#232733"]
+  };
+  function grad(id, c) {
+    return '<linearGradient id="' + id + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + c[0] + '"/><stop offset=".22" stop-color="' + c[1] + '"/><stop offset=".45" stop-color="' + c[2] + '"/>' +
+      '<stop offset=".62" stop-color="' + c[3] + '"/><stop offset=".8" stop-color="' + c[4] + '"/><stop offset="1" stop-color="' + c[5] + '"/></linearGradient>';
+  }
+  // Relieve: luz difusa + brillo especular desde arriba a la izquierda, grano de metal cepillado y sombra proyectada
+  function bevel(id, blur, scale, opts) {
+    opts = opts || {};
+    var s = '<filter id="' + id + '" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">' +
+      '<feGaussianBlur in="SourceAlpha" stdDeviation="' + blur + '" result="b"/>' +
+      '<feDiffuseLighting in="b" surfaceScale="' + scale + '" diffuseConstant="1.18" lighting-color="#fff" result="d"><feDistantLight azimuth="235" elevation="50"/></feDiffuseLighting>' +
+      '<feSpecularLighting in="b" surfaceScale="' + scale + '" specularConstant="1.25" specularExponent="24" lighting-color="#fff" result="s"><feDistantLight azimuth="235" elevation="36"/></feSpecularLighting>' +
+      '<feComposite in="SourceGraphic" in2="d" operator="arithmetic" k1="1.3" result="lit"/>';
+    var last = "lit";
+    if (opts.grain) {
+      s += '<feTurbulence type="fractalNoise" baseFrequency="' + opts.grain + '" numOctaves="2" seed="7" result="n"/>' +
+        '<feColorMatrix in="n" type="matrix" values=".33 .33 .33 0 0 .33 .33 .33 0 0 .33 .33 .33 0 0 0 0 0 0 1" result="ng"/>' +
+        '<feComposite in="lit" in2="ng" operator="arithmetic" k1=".42" k2=".8" result="lg"/>';
+      last = "lg";
+    }
+    s += '<feComposite in="s" in2="SourceAlpha" operator="in" result="s2"/>' +
+      '<feComposite in="' + last + '" in2="s2" operator="arithmetic" k2="1" k3=".85" result="o"/>' +
+      '<feComposite in="o" in2="SourceAlpha" operator="in" result="o2"/>';
+    if (opts.shadow) s += '<feGaussianBlur in="SourceAlpha" stdDeviation="' + opts.shadow + '"/><feOffset dx="' + (opts.shadow * .9) + '" dy="' + (opts.shadow * 1.3) + '" result="sh0"/>' +
+      '<feFlood flood-color="#000" flood-opacity=".55"/><feComposite in2="sh0" operator="in" result="sh"/><feMerge><feMergeNode in="sh"/><feMergeNode in="o2"/></feMerge>';
+    return s + '</filter>';
+  }
+  var CIRCLE = "M32 4a28 28 0 1 1 0 56a28 28 0 1 1 0-56Z";
+  var MEDALS = {
+    sumi: { metal: "gun", shape: "M32 4C32 4 11 28 11 40a21 21 0 0 0 42 0C53 28 32 4 32 4Z", field: .76, fieldDy: 3, enamel: "#141417",
+      em: '<circle cx="32" cy="40" r="4"/><g fill="none" stroke-width="1.5"><circle cx="32" cy="40" r="8.5"/><circle cx="32" cy="40" r="13"/></g>' },
+    shiro: { metal: "silver", shape: CIRCLE, field: .8, enamel: "#f1eee6",
+      enamelExtra: '<rect x="22" y="22" width="20" height="20" rx="2" fill="#b8392a"/>',
+      em: '<rect x="21" y="21" width="22" height="22" rx="3" fill="none" stroke-width="2.2"/><path d="M26 27.5h12M26 32h12M26 36.5h12M32 25v14" fill="none" stroke-width="1.6"/>' },
+    sakura: { metal: "rose", petals: true, field: .74, enamel: "#f29bb6",
+      em: '<g fill="none" stroke-width="1.1" stroke-linecap="round"><path d="M32 27V16M36.8 30.5l10.4-3.4M35 36l6.4 8.9M29 36l-6.4 8.9M27.2 30.5l-10.4-3.4"/></g><circle cx="32" cy="32" r="4.6"/>' +
+        '<g><circle cx="32" cy="15.5" r="1.5"/><circle cx="47.7" cy="27" r="1.5"/><circle cx="41.7" cy="45.3" r="1.5"/><circle cx="22.3" cy="45.3" r="1.5"/><circle cx="16.3" cy="27" r="1.5"/></g>' },
+    matcha: { metal: "bronze", shape: "M32 3C47 13 54 30 47 46 43 55 32 61 32 61S21 55 17 46C10 30 17 13 32 3Z", field: .74, enamel: "#7fae3e",
+      em: '<path d="M32 11V56" fill="none" stroke-width="2"/><path d="M32 22l-7-5M32 22l7-5M32 31l-9-6M32 31l9-6M32 40l-8.5-5.5M32 40l8.5-5.5M32 48l-6-4M32 48l6-4" fill="none" stroke-width="1.3" stroke-linecap="round"/>' },
+    ai: { metal: "silver", shape: "M32 3L57 13V32C57 47 46 57 32 61 18 57 7 47 7 32V13Z", field: .8, enamel: "#1d3b8c", guil: true,
+      em: '<g fill="none" stroke-width="1.5"><path d="M14 48a9 9 0 0 1 18 0M32 48a9 9 0 0 1 18 0M23 39a9 9 0 0 1 18 0M18.5 48a4.5 4.5 0 0 1 9 0M36.5 48a4.5 4.5 0 0 1 9 0M27.5 39a4.5 4.5 0 0 1 9 0M14 30a9 9 0 0 1 18 0M32 30a9 9 0 0 1 18 0M18.5 30a4.5 4.5 0 0 1 9 0M36.5 30a4.5 4.5 0 0 1 9 0"/></g>' },
+    yamabuki: { metal: "gold", shape: "M32 3L57 17.5V46.5L32 61 7 46.5V17.5Z", field: .8, enamel: "#d97f0e", guil: true,
+      em: '<circle cx="39.5" cy="23.5" r="5.2"/><path d="M14 45L26 27.5 32.5 35.5 37.5 30 50 45Z"/>' },
+    fuji: { metal: "silver", shape: "M32 61C23 52 8 37 8 22A24 19 0 0 1 56 22C56 37 41 52 32 61Z", field: .78, fieldDy: -2, enamel: "#6a46b6", guil: true,
+      em: '<g><ellipse cx="23" cy="19" rx="4.4" ry="3"/><ellipse cx="32" cy="17" rx="4.4" ry="3"/><ellipse cx="41" cy="19" rx="4.4" ry="3"/><ellipse cx="27" cy="25.5" rx="4" ry="2.7"/><ellipse cx="37" cy="25.5" rx="4" ry="2.7"/>' +
+        '<ellipse cx="32" cy="31.5" rx="3.7" ry="2.5"/><ellipse cx="28.5" cy="37.5" rx="3.2" ry="2.2"/><ellipse cx="35.5" cy="37.5" rx="3.2" ry="2.2"/><ellipse cx="32" cy="43" rx="2.7" ry="1.9"/></g>' },
+    umi: { metal: "silver", shape: CIRCLE, field: .8, enamel: "#0c8784", guil: true,
+      em: '<path d="M11 36c5-5.5 10.5-5.5 15.5 0s10.5 5.5 15.5 0 10-5 12-2" fill="none" stroke-width="2.2" stroke-linecap="round"/><path d="M13 44.5c5-4.5 9.5-4.5 14 0s9.5 4.5 14 0 8.5-4 11-2" fill="none" stroke-width="1.6" stroke-linecap="round"/>' +
+        '<circle cx="24" cy="22" r="3"/><circle cx="33" cy="17" r="1.9"/><circle cx="38.5" cy="24" r="1.4"/>' },
+    momiji: { metal: "copper", shape: "M32 2.7L36.3 17.3 48 10.7 44.3 24 60 22.7 49.3 33.3 54.7 37.3 37.3 38.7 34.7 45.3 33.6 61.3H30.4L29.3 45.3 26.7 38.7 9.3 37.3 14.7 33.3 4 22.7 19.7 24 16 10.7 27.7 17.3Z", field: .7, fieldDy: -1, enamel: "#b52d1b",
+      em: '<path d="M32 58V26M32 37L16 28M32 37L48 28M32 31L23.5 16M32 31L40.5 16M32 31V10" fill="none" stroke-width="1.5" stroke-linecap="round"/>' },
+    yoru: { metal: "dark", shape: star(24, 29.2, 27.4, 32, 32, 0), field: .8, enamel: "#0f1a4a", guil: true,
+      enamelExtra: '<g fill="#f6e3a6"><circle cx="20" cy="22" r=".7"/><circle cx="25" cy="44" r=".6"/><circle cx="45" cy="45" r=".8"/><circle cx="19" cy="34" r=".5"/><circle cx="43" cy="17" r=".5"/></g>',
+      em: '<path d="M37 15A17 17 0 1 0 49 39 13.5 13.5 0 1 1 37 15Z"/><path d="' + star(4, 5.5, 1.6, 44, 23, 0) + '"/>' },
+    kin: { metal: "gold", shape: star(8, 30, 22, 32, 32, Math.PI / 8), field: .74, enamel: null, guil: true,
+      em: '<path d="' + star(8, 15, 11, 32, 32, 0) + '"/><circle cx="32" cy="32" r="6.5"/>' }
+  };
+  // Adornos que crecen con cada medalla: aro, rayos, cintas, laureles, gemas y corona (todo de metal)
+  var ORN = {
+    matcha:   { scale: .86, ring: { w: 2.6 } },
+    ai:       { scale: .84, ring: { w: 2.8, beads: 24 } },
+    yamabuki: { scale: .8,  ring: { w: 2.6, beads: 24 }, rays: 16 },
+    fuji:     { scale: .78, ring: { w: 2.8, beads: 28 }, rays: 20, ribbon: ["#b9a2ea", "#55389a"] },
+    umi:      { scale: .76, ring: { w: 3, beads: 28, double: true }, rays: 24, ribbon: ["#3fc6bf", "#0d5250"], gems: { c: ["#e6fffd", "#2fb8b2", "#063f3d"], n: 1 } },
+    momiji:   { scale: .74, ring: { w: 3, beads: 30 }, rays: 24, ribbon: ["#e8653a", "#6e1a0c"], laurel: "gold", gems: { c: ["#fff1c8", "#ee9a1c", "#6a3e00"], n: 1 } },
+    yoru:     { scale: .72, ring: { w: 3.2, beads: 32, double: true }, rays: 32, rayMetal: "silver", ribbon: ["#34478f", "#0c1433"], laurel: "silver", gems: { c: ["#dbe6ff", "#3e6ad8", "#0f225e"], n: 3 } },
+    kin:      { scale: .7,  ring: { w: 3.4, beads: 36, double: true }, rays: 32, ribbon: ["#d63a3a", "#5a0a10"], laurel: "gold", gems: { c: ["#ffd6d6", "#cc2233", "#4e050d"], n: 3 }, crown: true }
+  };
   window.KANAME_MEDAL = function (id) {
-    var m = MEDALS[id] || MEDALS.sumi, hi = m.c[0], base = m.c[1], lo = m.c[2], o = ORN[id] || {};
-    var ringC = o.ringC || [hi, base, lo];
-    var shape;
-    if (m.petals) { shape = ""; for (var k = 0; k < 5; k++) shape += '<path d="' + BIG_PETAL + '" transform="rotate(' + (72 * k) + ' 32 32) translate(32 32) scale(1.12) translate(-32 -32)"/>'; }
-    else shape = '<path d="' + m.shape + '"/>';
-    var defs = '<defs>' + metalGrad("m", [hi, base, lo]) + metalGrad("gd", GOLD) + metalGrad("rg", ringC) +
-      '<linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>';
+    var m = MEDALS[id] || MEDALS.sumi, o = ORN[id] || {}, mc = METAL[m.metal];
+    var shapeT = function (pre) {
+      pre = pre ? pre + " " : "";
+      if (!m.petals) return '<path d="' + m.shape + '"' + (pre ? ' transform="' + pre + '"' : "") + '/>';
+      var s = ""; for (var k = 0; k < 5; k++) s += '<path d="' + BIG_PETAL + '" transform="' + pre + 'rotate(' + (72 * k) + ' 32 32) translate(32 32) scale(1.12) translate(-32 -32)"/>'; return s;
+    };
+    var shape = shapeT("");
+    var fieldT = 'translate(32 ' + (32 + (m.fieldDy || 0)) + ') scale(' + m.field + ') translate(-32 -32)';
+    var defs = '<defs>' + grad("m", mc) + grad("g", METAL.gold) + grad("sv", METAL.silver) +
+      grad("md", [mc[2], mc[3], mc[4], mc[3], mc[2], mc[5]]) +
+      bevel("rim", 1.3, 3.2, { grain: ".015 .8", shadow: 1.2 }) + bevel("rel", .55, 2.2, { shadow: .5 }) + bevel("orn", .7, 2.4, { shadow: .7 }) +
+      '<clipPath id="fc">' + shapeT(fieldT) + '</clipPath>' +
+      '<radialGradient id="gl" cx=".3" cy=".25" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset=".35" stop-color="#fff" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity=".25"/></radialGradient>';
     var back = "", front = "";
+    // Rayos (estrella de orden) de metal
     if (o.rays) {
-      defs += '<radialGradient id="ry"><stop offset=".45" stop-color="' + o.rays.c[0] + '"/><stop offset="1" stop-color="' + o.rays.c[1] + '" stop-opacity="0"/></radialGradient>';
       var rs = "";
-      for (var i = 0; i < o.rays.n; i++) {
-        var a = Math.PI * 2 * i / o.rays.n - Math.PI / 2, w = Math.PI / o.rays.n * 0.42, L = i % 2 ? 27 : 31.5;
-        var p1 = pol(14, a - w * 1.6), p2 = pol(L, a), p3 = pol(14, a + w * 1.6);
+      for (var i = 0; i < o.rays; i++) {
+        var a = Math.PI * 2 * i / o.rays - Math.PI / 2, w = Math.PI / o.rays * 0.85, L = i % 2 ? 28.8 : 31.6;
+        var p1 = pol(17, a - w), p2 = pol(L, a), p3 = pol(17, a + w), pm = pol(L - 1.2, a);
         rs += "M" + f(p1[0]) + " " + f(p1[1]) + "L" + f(p2[0]) + " " + f(p2[1]) + "L" + f(p3[0]) + " " + f(p3[1]) + "Z";
       }
-      back += '<path d="' + rs + '" fill="url(#ry)" opacity=".9"/>';
+      back += '<path d="' + rs + '" fill="url(#' + (o.rayMetal === "silver" ? "sv" : "g") + ')" filter="url(#orn)"/>';
     }
+    // Cinta de tela (grogrén con rayas)
     if (o.ribbon) {
-      defs += '<linearGradient id="rb" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="' + o.ribbon[1] + '"/><stop offset=".5" stop-color="' + o.ribbon[0] + '"/><stop offset="1" stop-color="' + o.ribbon[1] + '"/></linearGradient>';
-      back += '<g fill="url(#rb)" stroke="' + o.ribbon[1] + '" stroke-width=".8" stroke-linejoin="round"><path d="M25 44L16.5 63 21.5 60 24.5 64.5 33 47Z"/><path d="M39 44L47.5 63 42.5 60 39.5 64.5 31 47Z"/></g>';
+      defs += '<linearGradient id="rb" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="' + o.ribbon[1] + '"/><stop offset=".3" stop-color="' + o.ribbon[0] + '"/><stop offset=".55" stop-color="' + o.ribbon[0] + '"/><stop offset="1" stop-color="' + o.ribbon[1] + '"/></linearGradient>' +
+        '<pattern id="gr" width="1.2" height="1.2" patternUnits="userSpaceOnUse"><rect width="1.2" height=".6" fill="#000" fill-opacity=".12"/></pattern>';
+      var tails = '<path d="M25 43L16 63 21.5 59.6 24.8 64.5 33.5 46Z"/><path d="M39 43L48 63 42.5 59.6 39.2 64.5 30.5 46Z"/>';
+      back += '<g fill="url(#rb)">' + tails + '</g><g fill="url(#gr)">' + tails + '</g><g fill="none" stroke="#fff" stroke-opacity=".35" stroke-width=".7"><path d="M23.6 46.5L18.2 59M40.4 46.5L45.8 59"/></g>';
     }
+    // Laurel de metal
     if (o.laurel) {
       var lv = "";
       [-1, 1].forEach(function (side) {
-        lv += '<path d="M' + f(32 + side * 6) + ' 58.5Q' + f(32 + side * 30) + ' 52 ' + f(32 + side * 27) + ' 16" fill="none" stroke="' + o.laurel[2] + '" stroke-width="1.1"/>';
-        for (var j = 0; j < 8; j++) {
-          var ang = (100 + j * 18) * Math.PI / 180, pt = [32 + side * 29.5 * Math.cos(ang - Math.PI / 2 + Math.PI / 2) * -1, 0];
-          var aa = Math.PI / 2 + 0.42 + j * 0.25; // de abajo hacia arriba por el lateral
-          var x = 32 - side * 29 * Math.cos(aa), y = 32 + 29 * Math.sin(aa);
-          var rot = (side < 0 ? 1 : -1) * (j * 17.2) + (side < 0 ? 25 : -25);
-          lv += '<ellipse cx="' + f(x) + '" cy="' + f(y) + '" rx="1.9" ry="4.2" transform="rotate(' + f(rot) + ' ' + f(x) + ' ' + f(y) + ')" fill="url(#lf)" stroke="' + o.laurel[2] + '" stroke-width=".5"/>';
+        lv += '<path d="M' + f(32 + side * 5) + ' 59Q' + f(32 + side * 31) + ' 53 ' + f(32 + side * 26) + ' 15" fill="none" stroke-width="1.4"/>';
+        for (var j = 0; j < 7; j++) {
+          var aa = Math.PI / 2 + 0.5 + j * 0.28;
+          var tx = side * Math.sin(aa), ty = Math.cos(aa), t = Math.atan2(-ty, -tx) * 180 / Math.PI; // dirección de la rama, hacia arriba
+          [[27.4, -38], [30.6, 38]].forEach(function (lf) {
+            var x = 32 - side * lf[0] * Math.cos(aa), y = 32 + lf[0] * Math.sin(aa);
+            var rot = t + 90 + side * lf[1] * -1;
+            lv += '<path d="M' + f(x) + ' ' + f(y - 4.3) + 'Q' + f(x + 2.7) + ' ' + f(y - .6) + ' ' + f(x) + ' ' + f(y + 4.3) + 'Q' + f(x - 2.7) + ' ' + f(y - .6) + ' ' + f(x) + ' ' + f(y - 4.3) + 'Z" transform="rotate(' + f(rot) + ' ' + f(x) + ' ' + f(y) + ')"/>';
+          });
         }
       });
-      defs += metalGrad("lf", o.laurel);
-      back += lv;
+      back += '<g fill="url(#' + (o.laurel === "silver" ? "sv" : "g") + ')" stroke="url(#' + (o.laurel === "silver" ? "sv" : "g") + ')" filter="url(#orn)">' + lv + '</g>';
     }
+    // Aro con perlado
     if (o.ring) {
-      var R = 26.5;
-      back += '<circle cx="32" cy="32" r="' + R + '" fill="' + lo + '" fill-opacity=".35" stroke="url(#gd)" stroke-width="' + o.ring.w + '"/>';
-      back += '<circle cx="32" cy="32" r="' + (R - o.ring.w / 2 - .4) + '" fill="none" stroke="' + GOLD[2] + '" stroke-opacity=".7" stroke-width=".6"/>';
-      if (o.ring.double) back += '<circle cx="32" cy="32" r="' + (R - 4.2) + '" fill="none" stroke="url(#gd)" stroke-width="1"/>';
-      if (o.ring.beads) for (var b2 = 0; b2 < o.ring.beads; b2++) { var bp = pol(R, Math.PI * 2 * b2 / o.ring.beads); back += '<circle cx="' + f(bp[0]) + '" cy="' + f(bp[1]) + '" r=".75" fill="' + GOLD[0] + '"/>'; }
+      var R = 26.8, rg = '<circle cx="32" cy="32" r="' + R + '" fill="none" stroke="#000" stroke-width="' + o.ring.w + '"/>';
+      if (o.ring.double) rg += '<circle cx="32" cy="32" r="' + (R - o.ring.w - 1.4) + '" fill="none" stroke="#000" stroke-width="1"/>';
+      back += '<circle cx="32" cy="32" r="' + (R - 1) + '" fill="url(#md)" filter="url(#rim)"/><g filter="url(#orn)" fill="url(#g)"><g style="mix-blend-mode:normal">' + rg.replace(/stroke="#000"/g, 'stroke="url(#g)"') + '</g>';
+      if (o.ring.beads) for (var b2 = 0; b2 < o.ring.beads; b2++) { var bp = pol(R, Math.PI * 2 * b2 / o.ring.beads + Math.PI / o.ring.beads); back += '<circle cx="' + f(bp[0]) + '" cy="' + f(bp[1]) + '" r="1.05"/>'; }
+      back += '</g>';
     }
-    var sc = o.scale || 1, wrap = function (x) { return sc === 1 ? x : '<g transform="translate(32 32) scale(' + sc + ') translate(-32 -32)">' + x + '</g>'; };
-    var main = '<g fill="' + lo + '" transform="translate(1.2 1.6)" opacity=".55">' + shape + '</g>' +
-      '<g fill="url(#m)" stroke="' + lo + '" stroke-width="1.6" stroke-linejoin="round">' + shape + '</g>' +
-      '<g fill="none" stroke="' + hi + '" stroke-opacity=".6" stroke-width=".9" transform="translate(32 32) scale(.9) translate(-32 -32)">' + shape + '</g>' +
-      m.em.replace(/HI/g, hi).replace(/LO/g, lo) + '<g fill="url(#s)">' + shape + '</g>';
+    // Cuerpo: metal con relieve, campo esmaltado (o metal guilloché en Kin) y motivo en relieve
+    var main = '<g fill="url(#m)" filter="url(#rim)">' + shape + '</g>';
+    var guil = "";
+    if (m.guil) {
+      for (var gk = 0; gk < 72; gk++) { var ga = Math.PI * 2 * gk / 72, gp = pol(34, ga); guil += "M32 32L" + f(gp[0]) + " " + f(gp[1]); }
+      guil = '<path d="' + guil + '" stroke="#000" stroke-opacity="' + (m.enamel ? ".22" : ".3") + '" stroke-width=".45"/>' +
+        '<g fill="none" stroke="#fff" stroke-opacity=".12" stroke-width=".4"><circle cx="32" cy="32" r="6"/><circle cx="32" cy="32" r="12"/><circle cx="32" cy="32" r="18"/><circle cx="32" cy="32" r="24"/></g>';
+    }
+    if (m.enamel) {
+      main += '<g clip-path="url(#fc)"><rect width="64" height="64" fill="' + m.enamel + '"/>' + guil + (m.enamelExtra || "") + '<rect width="64" height="64" fill="url(#gl)"/></g>';
+    } else {
+      main += '<g clip-path="url(#fc)"><rect width="64" height="64" fill="url(#md)"/>' + guil + '</g>';
+    }
+    main += '<g fill="none" stroke="#000" stroke-opacity=".45" stroke-width="1.1">' + shapeT(fieldT) + '</g>';
+    main += '<g fill="url(#m)" stroke="url(#m)" filter="url(#rel)">' + m.em + '</g>';
+    var sc = o.scale || 1;
+    if (sc !== 1) main = '<g transform="translate(32 32) scale(' + sc + ') translate(-32 -32)">' + main + '</g>';
+    // Gemas talladas y corona
     if (o.gems) {
-      defs += metalGrad("gm", o.gems.c);
-      var gem = function (x, y, s) { return '<path d="M' + x + ' ' + (y - 3.6 * s) + 'L' + (x + 3 * s) + ' ' + y + 'L' + x + ' ' + (y + 3.6 * s) + 'L' + (x - 3 * s) + ' ' + y + 'Z" fill="url(#gm)" stroke="' + GOLD[2] + '" stroke-width=".7"/><path d="M' + (x - 1) + ' ' + (y - 1.6 * s) + 'l1 -1.2" stroke="#fff" stroke-width=".7" stroke-linecap="round"/>'; };
-      front += gem(32, o.crown ? 9.5 : 5.2, 1);
-      if (o.gems.n > 1) front += gem(5.4, 32, .8) + gem(58.6, 32, .8);
+      defs += '<linearGradient id="gm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + o.gems.c[0] + '"/><stop offset=".45" stop-color="' + o.gems.c[1] + '"/><stop offset="1" stop-color="' + o.gems.c[2] + '"/></linearGradient>';
+      var gem = function (x, y, s) {
+        var d = 'M' + x + ' ' + (y - 3.8 * s) + 'L' + (x + 3.2 * s) + ' ' + y + 'L' + x + ' ' + (y + 3.8 * s) + 'L' + (x - 3.2 * s) + ' ' + y + 'Z';
+        return '<path d="' + d + '" fill="url(#g)" filter="url(#orn)" transform="translate(' + x + ' ' + y + ') scale(1.35) translate(' + (-x) + ' ' + (-y) + ')"/>' +
+          '<path d="' + d + '" fill="url(#gm)"/><path d="M' + x + ' ' + (y - 3.8 * s) + 'L' + x + ' ' + (y + 3.8 * s) + 'M' + (x - 3.2 * s) + ' ' + y + 'H' + (x + 3.2 * s) + '" stroke="#fff" stroke-opacity=".35" stroke-width=".4"/>' +
+          '<circle cx="' + (x - 1 * s) + '" cy="' + (y - 1.4 * s) + '" r="' + (.7 * s) + '" fill="#fff" fill-opacity=".9"/>';
+      };
+      front += gem(32, o.crown ? 10 : 5.6, 1);
+      if (o.gems.n > 1) front += gem(5.6, 32, .8) + gem(58.4, 32, .8);
     }
-    if (o.crown) front += '<path d="M23.5 7.5L25 1 28.6 4.6 32 -.2 35.4 4.6 39 1 40.5 7.5Z" fill="url(#gd)" stroke="' + GOLD[2] + '" stroke-width=".7" stroke-linejoin="round" transform="translate(0 .6)"/><circle cx="32" cy="1.6" r="1" fill="#ffd6d6"/>';
-    if (o.sparkles) [[9, 10, 1], [55, 9, .8], [56, 52, .7], [8, 50, .6]].forEach(function (q) { front += '<path d="' + star(4, 3.4 * q[2], .8 * q[2], q[0], q[1], 0) + '" fill="#fff" opacity=".9"/>'; });
-    return svg(defs + '</defs>' + back + wrap(main) + front, 64, 64);
+    if (o.crown) front += '<path d="M23 8L24.6 1.2 28.4 4.8 32 0 35.6 4.8 39.4 1.2 41 8Z" fill="url(#g)" filter="url(#orn)"/><circle cx="32" cy="1.4" r="1" fill="#ffe3e3"/><circle cx="24.6" cy="1.6" r=".7" fill="#fff"/><circle cx="39.4" cy="1.6" r=".7" fill="#fff"/>';
+    return svg(defs + '</defs>' + back + main + front, 64, 64);
   };
 
   window.KANAME_PALETTES = [
@@ -227,14 +296,16 @@
       tile: sakuraRelief(), tileSize: "200px 200px", tileOpacity: 0.9, mark: "桜",
       amb: [{ kind: "fall", shape: "petal", colors: ["#f6b3c6", "#f19db5", "#fbd0dc", "#ffffff"], n: 11, size: [10, 16], dur: [12, 20], o: 0.85 }],
       burst: { shapes: ["petal", "petal", "petal", "blossom"], colors: ["#f6b3c6", "#f19db5", "#fbd0dc", "#ffffff", "#ec8aa6"] } },
-    // 抹茶色・若竹・萌黄: verde té vivo, bambú en relieve, vapor y hojas de té flotando
-    { id: "matcha", jp: "抹茶", name: "Matcha", days: 4, accent: "#b8dc78",
-      bg: "#0d1a10", surface: "#162a19", raised: "#1f3721", hairline: "#2f4f2e",
-      text: "#f0f7e6", muted: "#a9bf9c", faint: "#6f8566",
-      grad: "radial-gradient(130% 70% at 50% -10%, #35602a 0%, #173019 42%, #0b160d 100%)",
-      bamboo: bamboo("rgba(184,220,120,.11)"), mark: "茶", steam: true, glow: "rgba(184,220,120,.14)",
-      amb: [{ kind: "fall", shape: "tea", colors: ["#b8dc78", "#8fbf4f", "#d8ebaa"], n: 6, size: [8, 12], dur: [18, 26], o: 0.45 }],
-      burst: { shapes: ["tea", "tea", "dot"], colors: ["#b8dc78", "#d8ebaa", "#8fbf4f", "#f2f7d0"] } },
+    // 抹茶色・白緑・若菜: verde matcha pastel con blanco; hojas de té y polvo de matcha arriba, té líquido abajo
+    { id: "matcha", jp: "抹茶", name: "Matcha", days: 4, accent: "#6a9a35", light: true,
+      bg: "#eef4e3", surface: "#fbfdf6", raised: "#e6efd3", hairline: "#cfdfb2",
+      text: "#22301a", muted: "#5d734f", faint: "#8ea27f", status: "#5f8f30",
+      again: "#c0485a", hard: "#a06a24", good: "#3f8a4e", easy: "#4a7fb0",
+      grad: "linear-gradient(180deg, #ffffff 0%, #f3f8ea 40%, #e6f0d2 100%)",
+      bamboo: bamboo("rgba(106,154,53,.10)"), mark: "茶", matchaDust: true, liquid: true, glow: "rgba(106,154,53,.18)",
+      amb: [{ kind: "sift", shape: "tea", colors: ["#8fbf4f", "#a9cf6a", "#6f9e3a", "#c3dd8e"], n: 9, size: [9, 14], dur: [10, 16], o: 0.85 },
+            { kind: "sift", shape: "dot", colors: ["#9cc45a", "#b7d77c", "#86b443"], n: 22, size: [3, 6], dur: [7, 12], o: 0.7 }],
+      burst: { shapes: ["tea", "tea", "dot"], colors: ["#8fbf4f", "#b7d77c", "#6f9e3a", "#d8ebaa"] } },
     // 藍色・紺青・瓶覗: índigo profundo con olas 青海波 que se mueven despacio
     { id: "ai", jp: "藍", name: "Ai", days: 8, accent: "#8fb6ff",
       bg: "#0c1736", surface: "#142250", raised: "#1c2c60", hairline: "#2d4180",
@@ -315,6 +386,13 @@
     if (pal.wisteria) { var w = node("wisteria"); w.style.backgroundImage = pal.wisteria; d.appendChild(w); }
     if (pal.mark) { var m = node("mark"); m.textContent = pal.mark; d.appendChild(m); }
     if (pal.steam) for (var s = 0; s < 3; s++) d.appendChild(node("steam", "left:" + (18 + s * 26) + "%;animation-delay:" + (-s * 4.5) + "s;animation-duration:" + (13 + s * 2) + "s"));
+    if (pal.matchaDust) d.appendChild(node("dust"));
+    if (pal.liquid) {
+      d.appendChild(node("tea-body"));
+      d.appendChild(node("wave tw2", "background-image:" + wave("#cfe5a6")));
+      d.appendChild(node("wave tw1", "background-image:" + wave("#a9cf6a")));
+      for (var bq = 0; bq < 7; bq++) d.appendChild(node("foam", "left:" + rnd(3, 95) + "%;width:" + rnd(3, 7) + "px;height:" + rnd(3, 7) + "px;animation-delay:" + (-rnd(0, 6)) + "s;animation-duration:" + rnd(4, 7) + "s"));
+    }
     if (pal.waves) { d.appendChild(node("wave w1", "background-image:" + wave("rgba(63,193,187,.07)"))); d.appendChild(node("wave w2", "background-image:" + wave("rgba(162,215,221,.05)"))); }
     if (pal.moon) d.appendChild(node("moon"));
     if (pal.stars) {
@@ -707,6 +785,7 @@
     font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
     color: rgba(255, 255, 255, .025); text-shadow: -1.5px -1.5px 0 rgba(255, 255, 255, .06), 2px 2px 2px rgba(0, 0, 0, .55); }
   html.light #decor .mark { color: rgba(255, 255, 255, .22); text-shadow: -1.5px -1.5px 0 rgba(255, 255, 255, .8), 1.5px 1.5px 2px rgba(120, 40, 60, .1); }
+  html[data-pal="matcha"] #decor .mark { text-shadow: -1.5px -1.5px 0 rgba(255, 255, 255, .9), 1.5px 1.5px 2px rgba(60, 100, 20, .14); }
   html[data-pal="shiro"] #decor .mark { color: rgba(0, 0, 0, .025); text-shadow: -1.5px -1.5px 0 rgba(255, 255, 255, .9), 1.5px 1.5px 2px rgba(0, 0, 0, .08); }
   /* Caída (pétalos, hojas) y subida (luciérnagas, burbujas, polvo de oro) */
   #decor .fall, #decor .rise { top: 0; will-change: transform; animation-timing-function: linear; animation-iteration-count: infinite; opacity: var(--o); }
@@ -840,6 +919,18 @@
   .pal[data-id="kin"]:not(.locked) .md::after { content: ""; position: absolute; inset: 0; -webkit-mask-image: var(--m); mask-image: var(--m); -webkit-mask-size: contain; mask-size: contain;
     background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, .9) 50%, transparent 60%) no-repeat; background-size: 300% 100%; animation: kgold 5s ease-in-out infinite; }
   @media (prefers-reduced-motion: reduce) { html[data-pal="kin"] * { animation: none !important; } }
+  /* Matcha: polvo y hojas que caen solo por arriba, té líquido abajo */
+  #decor .sift { top: 0; will-change: transform; animation: ksift linear infinite; }
+  #decor .sift i { display: block; background-size: contain; background-repeat: no-repeat; animation: ksway ease-in-out infinite alternate; }
+  @keyframes ksift { 0% { transform: translate3d(0, -4vh, 0) rotate(0deg); opacity: 0; } 12% { opacity: var(--o); } 70% { opacity: calc(var(--o) * .6); } 100% { transform: translate3d(calc(var(--dx) * .4), 42vh, 0) rotate(var(--r)); opacity: 0; } }
+  #decor .dust { top: 0; left: 0; right: 0; height: 26vh; background:
+      radial-gradient(60% 70% at 30% 0%, rgba(140, 190, 70, .22), transparent 70%), radial-gradient(50% 60% at 80% 0%, rgba(160, 205, 90, .18), transparent 70%); animation: kmist 14s ease-in-out infinite alternate; }
+  #decor .tea-body { left: 0; right: 0; bottom: 0; height: 9vh; background: linear-gradient(180deg, #a9cf6a, #86b443 60%, #6f9e3a); opacity: .55; }
+  #decor .wave.tw1 { bottom: calc(9vh - 2px); opacity: .55; height: 60px; animation-duration: 14s; }
+  #decor .wave.tw2 { bottom: calc(9vh + 8px); opacity: .6; animation-duration: 21s; animation-direction: reverse; }
+  #decor .foam { bottom: calc(9vh + 18px); border-radius: 50%; background: rgba(255, 255, 255, .85); box-shadow: 0 0 3px rgba(255, 255, 255, .8); animation: kfoam ease-in-out infinite; }
+  @keyframes kfoam { 0%, 100% { transform: translateY(0) scale(.7); opacity: 0; } 30%, 70% { opacity: .9; } 50% { transform: translateY(-6px) scale(1); } }
+  @media (prefers-reduced-motion: reduce) { #decor .sift { display: none; } }
 </style>
 </head>
 <body>
