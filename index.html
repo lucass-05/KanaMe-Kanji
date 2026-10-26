@@ -134,19 +134,80 @@
     kin: { c: ["#fff4c2", "#e0b84a", "#7d570a"], shape: star(8, 30, 22, 32, 32, Math.PI / 8),
       em: '<path d="' + star(8, 17, 13, 32, 32, Math.PI / 8) + '" fill="none" stroke="HI" stroke-width="1.4"/><circle cx="32" cy="32" r="8" fill="LO" stroke="HI" stroke-width="1.2"/><path d="' + star(4, 6, 1.6, 32, 32, 0) + '" fill="HI"/>' }
   };
+  // Adornos que crecen con cada medalla: aro, rayos, cintas, laureles, gemas y corona
+  var ORN = {
+    matcha:   { scale: .86, ring: { w: 2.2 } },
+    ai:       { scale: .84, ring: { w: 2.4, beads: 24 } },
+    yamabuki: { scale: .8,  ring: { w: 2.2, beads: 24 }, rays: { n: 16, c: ["#ffe9a8", "#f0b429"] } },
+    fuji:     { scale: .78, ring: { w: 2.4, beads: 28 }, rays: { n: 20, c: ["#f1eafc", "#b8a3e6"] }, ribbon: ["#c9b6ec", "#6f4fb0"] },
+    umi:      { scale: .76, ring: { w: 2.6, beads: 28, double: true }, rays: { n: 24, c: ["#e6fbfa", "#7fd6d1"] }, ribbon: ["#5fd3cd", "#0f5552"], gems: { c: ["#e6fffd", "#3fc1bb", "#0b4a48"], n: 1 } },
+    momiji:   { scale: .74, ring: { w: 2.6, beads: 30 }, rays: { n: 24, c: ["#fff0c8", "#f0a040"] }, ribbon: ["#f2784a", "#7e1f0e"], laurel: ["#ffe08a", "#c98a14", "#6e4806"], gems: { c: ["#fff1c8", "#f0a020", "#7a4a00"], n: 1 } },
+    yoru:     { scale: .72, ring: { w: 2.8, beads: 32, double: true }, rays: { n: 32, c: ["#ffffff", "#bfd0ff"] }, ribbon: ["#3a4c8f", "#0e1636"], laurel: ["#ffffff", "#c7cbd6", "#5d6274"], gems: { c: ["#dbe6ff", "#4f78e0", "#152a6e"], n: 3 }, sparkles: true },
+    kin:      { scale: .7,  ring: { w: 3, beads: 36, double: true }, rays: { n: 32, c: ["#fff6d0", "#e0b84a"] }, ribbon: ["#e04a4a", "#6e0c12"], laurel: ["#fff4c2", "#e0b84a", "#7d570a"], gems: { c: ["#ffd6d6", "#d42a3a", "#5e0610"], n: 3 }, crown: true, sparkles: true }
+  };
+  var GOLD = ["#fff4c2", "#e0b84a", "#7d570a"];
+  function metalGrad(id, c) { return '<linearGradient id="' + id + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + c[0] + '"/><stop offset=".45" stop-color="' + c[1] + '"/><stop offset=".75" stop-color="' + c[2] + '"/><stop offset="1" stop-color="' + c[1] + '"/></linearGradient>'; }
+  function pol(r, a) { return [32 + r * Math.cos(a), 32 + r * Math.sin(a)]; }
+  function f(n) { return n.toFixed(2); }
   window.KANAME_MEDAL = function (id) {
-    var m = MEDALS[id] || MEDALS.sumi, hi = m.c[0], base = m.c[1], lo = m.c[2];
+    var m = MEDALS[id] || MEDALS.sumi, hi = m.c[0], base = m.c[1], lo = m.c[2], o = ORN[id] || {};
+    var ringC = o.ringC || [hi, base, lo];
     var shape;
     if (m.petals) { shape = ""; for (var k = 0; k < 5; k++) shape += '<path d="' + BIG_PETAL + '" transform="rotate(' + (72 * k) + ' 32 32) translate(32 32) scale(1.12) translate(-32 -32)"/>'; }
     else shape = '<path d="' + m.shape + '"/>';
-    var s = '<defs><linearGradient id="m" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + hi + '"/><stop offset=".42" stop-color="' + base + '"/><stop offset=".72" stop-color="' + lo + '"/><stop offset="1" stop-color="' + base + '"/></linearGradient>' +
-      '<linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>' +
-      '<g fill="' + lo + '" transform="translate(1.2 1.6)" opacity=".55">' + shape + '</g>' +
+    var defs = '<defs>' + metalGrad("m", [hi, base, lo]) + metalGrad("gd", GOLD) + metalGrad("rg", ringC) +
+      '<linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>';
+    var back = "", front = "";
+    if (o.rays) {
+      defs += '<radialGradient id="ry"><stop offset=".45" stop-color="' + o.rays.c[0] + '"/><stop offset="1" stop-color="' + o.rays.c[1] + '" stop-opacity="0"/></radialGradient>';
+      var rs = "";
+      for (var i = 0; i < o.rays.n; i++) {
+        var a = Math.PI * 2 * i / o.rays.n - Math.PI / 2, w = Math.PI / o.rays.n * 0.42, L = i % 2 ? 27 : 31.5;
+        var p1 = pol(14, a - w * 1.6), p2 = pol(L, a), p3 = pol(14, a + w * 1.6);
+        rs += "M" + f(p1[0]) + " " + f(p1[1]) + "L" + f(p2[0]) + " " + f(p2[1]) + "L" + f(p3[0]) + " " + f(p3[1]) + "Z";
+      }
+      back += '<path d="' + rs + '" fill="url(#ry)" opacity=".9"/>';
+    }
+    if (o.ribbon) {
+      defs += '<linearGradient id="rb" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="' + o.ribbon[1] + '"/><stop offset=".5" stop-color="' + o.ribbon[0] + '"/><stop offset="1" stop-color="' + o.ribbon[1] + '"/></linearGradient>';
+      back += '<g fill="url(#rb)" stroke="' + o.ribbon[1] + '" stroke-width=".8" stroke-linejoin="round"><path d="M25 44L16.5 63 21.5 60 24.5 64.5 33 47Z"/><path d="M39 44L47.5 63 42.5 60 39.5 64.5 31 47Z"/></g>';
+    }
+    if (o.laurel) {
+      var lv = "";
+      [-1, 1].forEach(function (side) {
+        lv += '<path d="M' + f(32 + side * 6) + ' 58.5Q' + f(32 + side * 30) + ' 52 ' + f(32 + side * 27) + ' 16" fill="none" stroke="' + o.laurel[2] + '" stroke-width="1.1"/>';
+        for (var j = 0; j < 8; j++) {
+          var ang = (100 + j * 18) * Math.PI / 180, pt = [32 + side * 29.5 * Math.cos(ang - Math.PI / 2 + Math.PI / 2) * -1, 0];
+          var aa = Math.PI / 2 + 0.42 + j * 0.25; // de abajo hacia arriba por el lateral
+          var x = 32 - side * 29 * Math.cos(aa), y = 32 + 29 * Math.sin(aa);
+          var rot = (side < 0 ? 1 : -1) * (j * 17.2) + (side < 0 ? 25 : -25);
+          lv += '<ellipse cx="' + f(x) + '" cy="' + f(y) + '" rx="1.9" ry="4.2" transform="rotate(' + f(rot) + ' ' + f(x) + ' ' + f(y) + ')" fill="url(#lf)" stroke="' + o.laurel[2] + '" stroke-width=".5"/>';
+        }
+      });
+      defs += metalGrad("lf", o.laurel);
+      back += lv;
+    }
+    if (o.ring) {
+      var R = 26.5;
+      back += '<circle cx="32" cy="32" r="' + R + '" fill="' + lo + '" fill-opacity=".35" stroke="url(#gd)" stroke-width="' + o.ring.w + '"/>';
+      back += '<circle cx="32" cy="32" r="' + (R - o.ring.w / 2 - .4) + '" fill="none" stroke="' + GOLD[2] + '" stroke-opacity=".7" stroke-width=".6"/>';
+      if (o.ring.double) back += '<circle cx="32" cy="32" r="' + (R - 4.2) + '" fill="none" stroke="url(#gd)" stroke-width="1"/>';
+      if (o.ring.beads) for (var b2 = 0; b2 < o.ring.beads; b2++) { var bp = pol(R, Math.PI * 2 * b2 / o.ring.beads); back += '<circle cx="' + f(bp[0]) + '" cy="' + f(bp[1]) + '" r=".75" fill="' + GOLD[0] + '"/>'; }
+    }
+    var sc = o.scale || 1, wrap = function (x) { return sc === 1 ? x : '<g transform="translate(32 32) scale(' + sc + ') translate(-32 -32)">' + x + '</g>'; };
+    var main = '<g fill="' + lo + '" transform="translate(1.2 1.6)" opacity=".55">' + shape + '</g>' +
       '<g fill="url(#m)" stroke="' + lo + '" stroke-width="1.6" stroke-linejoin="round">' + shape + '</g>' +
       '<g fill="none" stroke="' + hi + '" stroke-opacity=".6" stroke-width=".9" transform="translate(32 32) scale(.9) translate(-32 -32)">' + shape + '</g>' +
-      m.em.replace(/HI/g, hi).replace(/LO/g, lo) +
-      '<g fill="url(#s)">' + shape + '</g>';
-    return svg(s, 64, 64);
+      m.em.replace(/HI/g, hi).replace(/LO/g, lo) + '<g fill="url(#s)">' + shape + '</g>';
+    if (o.gems) {
+      defs += metalGrad("gm", o.gems.c);
+      var gem = function (x, y, s) { return '<path d="M' + x + ' ' + (y - 3.6 * s) + 'L' + (x + 3 * s) + ' ' + y + 'L' + x + ' ' + (y + 3.6 * s) + 'L' + (x - 3 * s) + ' ' + y + 'Z" fill="url(#gm)" stroke="' + GOLD[2] + '" stroke-width=".7"/><path d="M' + (x - 1) + ' ' + (y - 1.6 * s) + 'l1 -1.2" stroke="#fff" stroke-width=".7" stroke-linecap="round"/>'; };
+      front += gem(32, o.crown ? 9.5 : 5.2, 1);
+      if (o.gems.n > 1) front += gem(5.4, 32, .8) + gem(58.6, 32, .8);
+    }
+    if (o.crown) front += '<path d="M23.5 7.5L25 1 28.6 4.6 32 -.2 35.4 4.6 39 1 40.5 7.5Z" fill="url(#gd)" stroke="' + GOLD[2] + '" stroke-width=".7" stroke-linejoin="round" transform="translate(0 .6)"/><circle cx="32" cy="1.6" r="1" fill="#ffd6d6"/>';
+    if (o.sparkles) [[9, 10, 1], [55, 9, .8], [56, 52, .7], [8, 50, .6]].forEach(function (q) { front += '<path d="' + star(4, 3.4 * q[2], .8 * q[2], q[0], q[1], 0) + '" fill="#fff" opacity=".9"/>'; });
+    return svg(defs + '</defs>' + back + wrap(main) + front, 64, 64);
   };
 
   window.KANAME_PALETTES = [
@@ -166,61 +227,71 @@
       tile: sakuraRelief(), tileSize: "200px 200px", tileOpacity: 0.9, mark: "桜",
       amb: [{ kind: "fall", shape: "petal", colors: ["#f6b3c6", "#f19db5", "#fbd0dc", "#ffffff"], n: 11, size: [10, 16], dur: [12, 20], o: 0.85 }],
       burst: { shapes: ["petal", "petal", "petal", "blossom"], colors: ["#f6b3c6", "#f19db5", "#fbd0dc", "#ffffff", "#ec8aa6"] } },
-    // 抹茶色・若竹: verde profundo, bambú en relieve, vapor del té
-    { id: "matcha", jp: "抹茶", name: "Matcha", days: 4, accent: "#a3c46a",
-      bg: "#101710", surface: "#182218", raised: "#212d20", hairline: "#2e3c2b",
-      text: "#e9efe0", muted: "#9cab92", faint: "#67745f",
-      grad: "radial-gradient(120% 60% at 50% 0%, #1d2b19 0%, #101710 60%)",
-      bamboo: bamboo("rgba(170,205,120,.09)"), mark: "茶", steam: true,
-      burst: { shapes: ["tea"], colors: ["#a3c46a", "#c5c56a", "#7ea650", "#d6e3a8"] } },
-    // 藍色・紺・瓶覗: índigo con olas 青海波
-    { id: "ai", jp: "藍", name: "Ai", days: 8, accent: "#6f9be6",
-      bg: "#0b1222", surface: "#121b30", raised: "#1a253d", hairline: "#273452",
-      text: "#e6ebf5", muted: "#94a0b8", faint: "#5f6b84",
-      tile: seigaiha("rgba(111,155,230,.16)", "#0b1222"), tileSize: "56px 28px", tileMask: "linear-gradient(to top, #000 0%, rgba(0,0,0,.55) 35%, transparent 75%)", mark: "藍",
-      burst: { shapes: ["drop", "star"], colors: ["#6f9be6", "#a2d7dd", "#ffffff", "#3e62ad"] } },
-    // 山吹色: ámbar cálido con luciérnagas
-    { id: "yamabuki", jp: "山吹", name: "Yamabuki", days: 16, accent: "#f0b429",
-      bg: "#15100a", surface: "#1f1810", raised: "#292116", hairline: "#3a2f1e",
-      text: "#f3eadb", muted: "#ad9e84", faint: "#75684f",
-      grad: "radial-gradient(90% 55% at 80% 100%, #2b1f0c 0%, #15100a 65%)", mark: "山",
-      amb: [{ kind: "rise", shape: "dot", colors: ["#f8c94a", "#ffe08a", "#f0b429"], n: 12, size: [7, 14], dur: [14, 24], o: 0.75 }],
-      burst: { shapes: ["dot", "star"], colors: ["#f8b500", "#ffd36b", "#fff1c2"] } },
-    // 藤色・藤紫: violeta con racimos de glicinia y pétalos
-    { id: "fuji", jp: "藤", name: "Fuji", days: 32, accent: "#b393ea",
-      bg: "#141020", surface: "#1d172a", raised: "#272035", hairline: "#372d49",
-      text: "#ede7f6", muted: "#a498b6", faint: "#6d6281",
-      grad: "linear-gradient(180deg, #221a35 0%, #141020 45%)",
-      wisteria: wisteria(), mark: "藤",
-      amb: [{ kind: "fall", shape: "wis", colors: ["#c9b6ec", "#a59aca", "#bbbcde"], n: 9, size: [7, 11], dur: [14, 22], o: 0.6 }],
-      burst: { shapes: ["wis", "wis", "star"], colors: ["#c9b6ec", "#a59aca", "#bbbcde", "#e6dcf7"] } },
-    // 浅葱・青碧: mar profundo con olas en movimiento y burbujas
-    { id: "umi", jp: "海", name: "Umi", days: 64, accent: "#3fc1bb",
-      bg: "#06161a", surface: "#0d2125", raised: "#142b30", hairline: "#1f3d42",
-      text: "#e1f1f0", muted: "#8db0ad", faint: "#587a77",
-      grad: "linear-gradient(180deg, #06161a 0%, #08232a 100%)", waves: true, mark: "海",
-      amb: [{ kind: "rise", shape: "bubble", colors: ["#7fd6d1", "#a2d7dd"], n: 9, size: [6, 13], dur: [12, 22], o: 0.4 }],
-      burst: { shapes: ["bubble", "drop"], colors: ["#3fc1bb", "#a2d7dd", "#ffffff"] } },
-    // 紅葉色・朱・黄金: otoño con hojas de arce cayendo
-    { id: "momiji", jp: "紅葉", name: "Momiji", days: 128, accent: "#ec6a35",
-      bg: "#190e0a", surface: "#231510", raised: "#2e1c15", hairline: "#432a1f",
-      text: "#f5e7df", muted: "#b9998b", faint: "#7e6357",
-      grad: "radial-gradient(110% 60% at 0% 0%, #2c1610 0%, #190e0a 60%)", mark: "紅",
-      amb: [{ kind: "fall", shape: "leaf", colors: ["#eb6101", "#bb5535", "#d9333f", "#e6b422"], n: 10, size: [13, 20], dur: [13, 21], o: 0.75 }],
-      burst: { shapes: ["leaf"], colors: ["#eb6101", "#bb5535", "#d9333f", "#e6b422", "#f08300"] } },
-    // 濃藍 y oro: noche estrellada con luna y estrellas fugaces
-    { id: "yoru", jp: "夜", name: "Yoru", days: 256, accent: "#d8c07e",
-      bg: "#090d1c", surface: "#121a2c", raised: "#1b2338", hairline: "#2a3350",
-      text: "#ebe7dc", muted: "#a5a193", faint: "#6c6b66",
-      grad: "linear-gradient(180deg, #050816 0%, #0d1530 100%)", stars: true, moon: true, mark: "夜",
-      burst: { shapes: ["star"], colors: ["#fff6d6", "#d8c07e", "#ffffff", "#bfd4ff"] } },
-    // 金色: negro y oro, red de 麻の葉, polvo dorado y destellos
-    { id: "kin", jp: "金", name: "Kin", days: 512, accent: "#e0b84a",
-      bg: "#0a0907", surface: "#15120d", raised: "#201b14", hairline: "#3a3021",
-      text: "#f4ebd6", muted: "#b4a789", faint: "#786d58",
-      tile: triGrid("rgba(224,184,74,.09)"), tileSize: "40px 69.28px", tileMask: "radial-gradient(120% 80% at 50% 50%, transparent 30%, #000 100%)", mark: "金", shimmer: true,
-      amb: [{ kind: "rise", shape: "star", colors: ["#e6b422", "#f6dd8a", "#fff3c4"], n: 10, size: [5, 10], dur: [16, 26], o: 0.7 }],
-      burst: { shapes: ["star", "star", "dot"], colors: ["#e6b422", "#f6dd8a", "#c9a227", "#fff3c4"] } }
+    // 抹茶色・若竹・萌黄: verde té vivo, bambú en relieve, vapor y hojas de té flotando
+    { id: "matcha", jp: "抹茶", name: "Matcha", days: 4, accent: "#b8dc78",
+      bg: "#0d1a10", surface: "#162a19", raised: "#1f3721", hairline: "#2f4f2e",
+      text: "#f0f7e6", muted: "#a9bf9c", faint: "#6f8566",
+      grad: "radial-gradient(130% 70% at 50% -10%, #35602a 0%, #173019 42%, #0b160d 100%)",
+      bamboo: bamboo("rgba(184,220,120,.11)"), mark: "茶", steam: true, glow: "rgba(184,220,120,.14)",
+      amb: [{ kind: "fall", shape: "tea", colors: ["#b8dc78", "#8fbf4f", "#d8ebaa"], n: 6, size: [8, 12], dur: [18, 26], o: 0.45 }],
+      burst: { shapes: ["tea", "tea", "dot"], colors: ["#b8dc78", "#d8ebaa", "#8fbf4f", "#f2f7d0"] } },
+    // 藍色・紺青・瓶覗: índigo profundo con olas 青海波 que se mueven despacio
+    { id: "ai", jp: "藍", name: "Ai", days: 8, accent: "#8fb6ff",
+      bg: "#0c1736", surface: "#142250", raised: "#1c2c60", hairline: "#2d4180",
+      text: "#eef3ff", muted: "#a9b7dd", faint: "#6c7ba6",
+      grad: "linear-gradient(180deg, #08102a 0%, #0f1d48 55%, #142a66 100%)",
+      tile: seigaiha("rgba(143,182,255,.2)", "#13285f"), tileSize: "56px 28px", tileDrift: true,
+      tileMask: "linear-gradient(to top, #000 0%, rgba(0,0,0,.6) 30%, transparent 62%)", mark: "藍", glow: "rgba(143,182,255,.16)",
+      amb: [{ kind: "rise", shape: "dot", colors: ["#bcd4ff", "#ffffff"], n: 7, size: [4, 8], dur: [16, 26], o: 0.5 }],
+      burst: { shapes: ["drop", "star", "dot"], colors: ["#8fb6ff", "#cfe0ff", "#ffffff", "#4f7fe0"] } },
+    // 山吹色・黄金・琥珀: atardecer ámbar con rayos de luz y luciérnagas
+    { id: "yamabuki", jp: "山吹", name: "Yamabuki", days: 16, accent: "#ffc23d",
+      bg: "#170e04", surface: "#2a1c09", raised: "#37260e", hairline: "#55391a",
+      text: "#fff5de", muted: "#d0b88f", faint: "#8f7a57",
+      grad: "radial-gradient(120% 75% at 88% 108%, #7a4a08 0%, #3a2207 40%, #160c03 100%)", mark: "山",
+      rays: "rgba(255,200,90,.07)", glow: "rgba(255,194,61,.18)",
+      amb: [{ kind: "rise", shape: "dot", colors: ["#ffd25e", "#ffe7a0", "#ffb52e"], n: 15, size: [7, 15], dur: [14, 24], o: 0.85 }],
+      burst: { shapes: ["dot", "star", "star"], colors: ["#ffc23d", "#ffe08a", "#fff4cc", "#ff9f1c"] } },
+    // 藤色・藤紫・菫: violeta luminoso, glicinia meciéndose, bruma y luz
+    { id: "fuji", jp: "藤", name: "Fuji", days: 32, accent: "#cfa9ff",
+      bg: "#170f2c", surface: "#251a44", raised: "#302456", hairline: "#4a3a7a",
+      text: "#f6f0ff", muted: "#c3b4e3", faint: "#8676ab",
+      grad: "linear-gradient(180deg, #4a2d78 0%, #2a1b4c 38%, #160e2a 100%)",
+      wisteria: wisteria(), mark: "藤", rays: "rgba(220,190,255,.06)", mist: "rgba(200,170,255,.10)", glow: "rgba(207,169,255,.2)",
+      amb: [{ kind: "fall", shape: "wis", colors: ["#e0cdfa", "#bfa3ef", "#a98ae0", "#f2e9ff"], n: 13, size: [7, 12], dur: [14, 22], o: 0.7 }],
+      burst: { shapes: ["wis", "wis", "star", "dot"], colors: ["#e0cdfa", "#bfa3ef", "#f2e9ff", "#9c7ae0"] } },
+    // 浅葱・青碧・白群: océano turquesa con reflejos de luz, olas y burbujas
+    { id: "umi", jp: "海", name: "Umi", days: 64, accent: "#52e3d8",
+      bg: "#03202a", surface: "#08303b", raised: "#0d3b48", hairline: "#17596a",
+      text: "#e8fdfb", muted: "#9fd1cc", faint: "#5f938e",
+      grad: "linear-gradient(180deg, #021820 0%, #05343f 55%, #0a5560 100%)", waves: true, caustics: true, mark: "海",
+      rays: "rgba(140,240,235,.05)", glow: "rgba(82,227,216,.2)",
+      amb: [{ kind: "rise", shape: "bubble", colors: ["#9ff0ea", "#d6fffb"], n: 13, size: [6, 14], dur: [11, 20], o: 0.5 }],
+      burst: { shapes: ["bubble", "drop", "dot"], colors: ["#52e3d8", "#b4fff9", "#ffffff", "#1fb3c0"] } },
+    // 紅葉色・朱・紅・黄金: bosque en otoño, sol bajo, montañas y hojas de arce
+    { id: "momiji", jp: "紅葉", name: "Momiji", days: 128, accent: "#ff7a3d",
+      bg: "#1e0806", surface: "#36120b", raised: "#441a10", hairline: "#6a2a18",
+      text: "#fff1e8", muted: "#e0ad97", faint: "#9a6a59",
+      grad: "radial-gradient(120% 70% at 12% -5%, #8a2a12 0%, #4a120a 40%, #1c0705 100%)", mountains: true, mark: "紅",
+      rays: "rgba(255,150,80,.06)", glow: "rgba(255,122,61,.22)",
+      amb: [{ kind: "fall", shape: "leaf", colors: ["#ff7a1a", "#e2442f", "#c8282f", "#f2b52a", "#ff9a3c"], n: 14, size: [13, 22], dur: [12, 20], o: 0.85 }],
+      burst: { shapes: ["leaf", "leaf", "dot"], colors: ["#ff7a1a", "#e2442f", "#f2b52a", "#ff9a3c", "#c8282f"] } },
+    // 濃藍・群青・金: noche estrellada con vía láctea, luna y estrellas fugaces
+    { id: "yoru", jp: "夜", name: "Yoru", days: 256, accent: "#f3d98f",
+      bg: "#03061a", surface: "#0e1640", raised: "#16204f", hairline: "#2a3a78",
+      text: "#f4f1e6", muted: "#bcb8c9", faint: "#757694",
+      grad: "linear-gradient(180deg, #010312 0%, #08113a 55%, #1a2461 100%)", stars: true, moon: true, nebula: true, mark: "夜",
+      glow: "rgba(243,217,143,.18)",
+      burst: { shapes: ["star", "star", "dot"], colors: ["#fff6d6", "#f3d98f", "#ffffff", "#bfd4ff", "#e3c8ff"] } },
+    // 金色・黒: laca negra y pan de oro, red 麻の葉, marco dorado, polvo de oro y destellos
+    { id: "kin", jp: "金", name: "Kin", days: 512, accent: "#f5c84c",
+      bg: "#070503", surface: "#16110a", raised: "#221a0e", hairline: "#5a4518",
+      text: "#fff7df", muted: "#d6c393", faint: "#8f7c52",
+      grad: "radial-gradient(120% 80% at 50% -5%, #3d2c08 0%, #120d05 50%, #050402 100%)",
+      tile: triGrid("rgba(245,200,76,.11)"), tileSize: "40px 69.28px", tileMask: "radial-gradient(120% 80% at 50% 50%, transparent 25%, #000 100%)",
+      mark: "金", shimmer: true, corners: true, rays: "rgba(255,215,110,.06)", glow: "rgba(245,200,76,.25)",
+      amb: [{ kind: "rise", shape: "star", colors: ["#f5c84c", "#ffe48f", "#fff6d0"], n: 16, size: [5, 11], dur: [16, 26], o: 0.85 }],
+      burst: { shapes: ["star", "star", "dot"], colors: ["#f5c84c", "#ffe48f", "#fff6d0", "#d99a1c"] } }
   ];
 
   function rnd(a, b) { return a + Math.random() * (b - a); }
@@ -254,6 +325,18 @@
       d.appendChild(node("shoot"));
     }
     if (pal.shimmer) d.appendChild(node("shimmer"));
+    if (pal.rays) d.appendChild(node("godrays", "--rc:" + pal.rays));
+    if (pal.mist) { d.appendChild(node("mist m1", "--mc:" + pal.mist)); d.appendChild(node("mist m2", "--mc:" + pal.mist)); }
+    if (pal.caustics) { d.appendChild(node("caus c1")); d.appendChild(node("caus c2")); }
+    if (pal.nebula) d.appendChild(node("nebula"));
+    if (pal.mountains) {
+      d.appendChild(node("mount", "background-image:" + svg('<path d="M0 120V70L40 48 70 62 120 20 160 52 190 40 240 78 280 55 330 30 370 58 400 50V120Z" fill="#5a160c" fill-opacity=".55"/><path d="M0 120V92L50 70 90 86 140 60 200 90 250 72 300 94 350 76 400 88V120Z" fill="#2c0905" fill-opacity=".8"/>', 400, 120)));
+    }
+    if (pal.corners) {
+      var c = svg('<g fill="none" stroke="#f5c84c" stroke-linecap="round"><path d="M4 70V12Q4 4 12 4H70" stroke-width="1.6"/><path d="M10 52V18Q10 10 18 10H52" stroke-width=".8" stroke-opacity=".7"/><path d="M16 16h5v5h-5z" transform="rotate(45 18.5 18.5)" fill="#f5c84c" fill-opacity=".6" stroke-width=".6"/><circle cx="4" cy="76" r="1.6" fill="#f5c84c"/><circle cx="76" cy="4" r="1.6" fill="#f5c84c"/></g>', 80, 80);
+      ["tl", "tr", "bl", "br"].forEach(function (k) { d.appendChild(node("corner " + k, "background-image:" + c)); });
+    }
+    if (pal.tileDrift && d.querySelector(".tile")) d.querySelector(".tile").classList.add("drift");
     (pal.amb || []).forEach(function (a) {
       for (var j = 0; j < a.n; j++) {
         var size = rnd(a.size[0], a.size[1]), dur = rnd(a.dur[0], a.dur[1]);
@@ -288,12 +371,14 @@
       ], { duration: dur, delay: delay, easing: "cubic-bezier(.2,.65,.35,1)", fill: "both" });
       a.onfinish = function () { e.remove(); };
     }
-    var n = big ? 26 : 9;
+    var tier = Math.max(0, window.KANAME_PALETTES.indexOf(pal) - 2); // 0 = Sakura … 8 = Kin
+    if (big && tier >= 3) { var fl = node("flash"); fl.style.left = ox + "px"; fl.style.top = oy + "px"; layer.appendChild(fl); setTimeout(function () { fl.remove(); }, 1300); }
+    var n = (big ? 26 : 8) + tier * (big ? 3 : 1);
     for (var k = 0; k < n; k++) {
       var ang = rnd(0, Math.PI * 2), sp = rnd(60, big ? 230 : 140);
       one(ox, oy, Math.cos(ang) * sp, Math.sin(ang) * sp - (big ? 80 : 40), rnd(1100, big ? 2200 : 1600), rnd(0, big ? 200 : 80), rnd(10, 18));
     }
-    if (big) for (var q = 0; q < 34; q++) one(rnd(0, W), -20, rnd(-60, 60), H * rnd(0.75, 1.05), rnd(2600, 4200), rnd(0, 1400), rnd(10, 19));
+    if (big) for (var q = 0; q < 34 + tier * 5; q++) one(rnd(0, W), -20, rnd(-60, 60), H * rnd(0.75, 1.05), rnd(2600, 4200), rnd(0, 1400), rnd(10, 19));
   };
 
   window.applyKanamePalette = function (id) {
@@ -313,6 +398,7 @@
     r.setProperty("--text-muted", pal.muted || "#9a9a9a");
     r.setProperty("--text-faint", pal.faint || "#686868");
     r.setProperty("--status", pal.status || "#121212");
+    r.setProperty("--glow", pal.glow || "transparent");
     var RATE = { again: "#d0685c", hard: "#c99a4a", good: "#6fae84", easy: "#7fb8e0" };
     for (var k in RATE) { var c = pal[k] || RATE[k]; r.setProperty("--" + k, c); r.setProperty("--" + k + "-soft", c + (k === "easy" ? "24" : "1f")); }
     r.setProperty("color-scheme", pal.light ? "light" : "dark");
@@ -656,10 +742,10 @@
     background: var(--bg); box-shadow: inset 0 2px 10px rgba(0, 0, 0, .35); border: 1px solid var(--hairline); }
   html.light .palettes { box-shadow: inset 0 2px 8px rgba(0, 0, 0, .1); }
   .pal { appearance: none; border: 1px solid transparent; background: none; color: var(--text); border-radius: 12px; padding: 6px 0 5px; cursor: pointer; text-align: center; min-width: 0; }
-  .pal .well { width: 52px; height: 52px; margin: 0 auto 4px; border-radius: 50%; display: grid; place-items: center;
+  .pal .well { width: 56px; height: 56px; margin: 0 auto 4px; border-radius: 50%; display: grid; place-items: center;
     background: radial-gradient(circle at 50% 40%, var(--surface-raised), var(--bg) 75%); box-shadow: inset 0 2px 5px rgba(0, 0, 0, .45), 0 1px 0 rgba(255, 255, 255, .05); }
   html.light .pal .well { box-shadow: inset 0 2px 5px rgba(0, 0, 0, .14), 0 1px 0 #fff; }
-  .pal .md { width: 44px; height: 44px; background-size: contain; background-repeat: no-repeat; background-position: center; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .35)); transition: transform .2s; }
+  .pal .md { width: 50px; height: 50px; background-size: contain; background-repeat: no-repeat; background-position: center; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .35)); transition: transform .2s; }
   .pal:active .md { transform: scale(.92); }
   .pal .nm { display: block; font-size: 11px; font-weight: 600; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .pal .nm b { font-weight: 500; color: var(--text-faint); margin-right: 3px; }
@@ -697,6 +783,34 @@
   .medal-reveal .pill-btn { opacity: 0; animation: kup .5s 1.6s ease-out forwards; color: #fff; }
   @keyframes kup { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   @media (prefers-reduced-motion: reduce) { .medal-big, .medal-big::after, .medal-rays { animation: none; opacity: 1; } }
+  /* Efectos de las paletas más altas */
+  .face, .today, .level-btn.active { box-shadow: 0 0 44px -14px var(--glow, transparent); }
+  #decor .tile.drift { inset: -60px; animation: kdrift 40s linear infinite; }
+  @keyframes kdrift { from { transform: translate(0, 0); } to { transform: translate(56px, 28px); } }
+  #decor .godrays { top: -40vh; right: -40vw; width: 140vw; height: 140vw; border-radius: 50%;
+    background: repeating-conic-gradient(from 0deg, var(--rc) 0deg 6deg, transparent 6deg 17deg);
+    -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 70%); mask-image: radial-gradient(circle, #000 0%, transparent 70%); animation: krays 120s linear infinite; }
+  #decor .mist { left: -30%; width: 160%; height: 40vh; border-radius: 50%; background: radial-gradient(closest-side, var(--mc), transparent); animation: kmist 30s ease-in-out infinite alternate; }
+  #decor .mist.m1 { top: 30vh; } #decor .mist.m2 { top: 62vh; animation-duration: 38s; animation-direction: alternate-reverse; }
+  @keyframes kmist { from { transform: translateX(-12%); } to { transform: translateX(12%); } }
+  #decor .caus { inset: -20%; opacity: .55; mix-blend-mode: screen;
+    background: radial-gradient(18% 12% at 20% 30%, rgba(120, 240, 230, .12), transparent 70%), radial-gradient(14% 10% at 70% 20%, rgba(160, 255, 245, .1), transparent 70%),
+      radial-gradient(22% 14% at 55% 65%, rgba(100, 220, 220, .1), transparent 70%), radial-gradient(16% 10% at 15% 80%, rgba(140, 250, 240, .09), transparent 70%);
+    animation: kcaus 18s ease-in-out infinite alternate; }
+  #decor .caus.c2 { animation-duration: 25s; animation-direction: alternate-reverse; transform: scale(1.3); }
+  @keyframes kcaus { from { transform: translate(-4%, -3%) rotate(0deg); } to { transform: translate(4%, 3%) rotate(8deg); } }
+  #decor .nebula { top: -10%; left: -30%; width: 160%; height: 70%; transform: rotate(-24deg); opacity: .9;
+    background: radial-gradient(40% 18% at 50% 50%, rgba(160, 130, 255, .14), transparent 70%), radial-gradient(25% 12% at 35% 45%, rgba(255, 190, 230, .08), transparent 70%), radial-gradient(30% 10% at 65% 55%, rgba(140, 200, 255, .1), transparent 70%); }
+  #decor .mount { left: 0; right: 0; bottom: 0; height: 22vh; background-size: 100% 100%; }
+  #decor .corner { width: 64px; height: 64px; background-size: contain; opacity: .45; }
+  #decor .corner.tl { top: calc(4px + env(safe-area-inset-top)); left: 4px; }
+  #decor .corner.tr { top: calc(4px + env(safe-area-inset-top)); right: 4px; transform: scaleX(-1); }
+  #decor .corner.bl { bottom: 4px; left: 4px; transform: scaleY(-1); }
+  #decor .corner.br { bottom: 4px; right: 4px; transform: scale(-1, -1); }
+  #burst .flash { position: absolute; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; border: 2px solid var(--accent); box-shadow: 0 0 30px var(--accent), inset 0 0 20px var(--accent);
+    animation: kflash 1.2s cubic-bezier(.1, .7, .3, 1) forwards; }
+  @keyframes kflash { from { transform: scale(1); opacity: .9; } to { transform: scale(30); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { #decor .godrays, #decor .mist, #decor .caus, #decor .tile.drift { animation: none !important; } }
 </style>
 </head>
 <body>
