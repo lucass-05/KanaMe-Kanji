@@ -202,6 +202,7 @@
     for (var i = 0; i <= 9; i++) { var a = 205 + 130 * i / 9, p = arcPt(32, 52, 3, a), q = arcPt(32, 52, 27.5, a); s += '<path d="M' + f(p[0]) + ' ' + f(p[1]) + 'L' + f(q[0]) + ' ' + f(q[1]) + '"/>'; }
     return s + '</g><path d="M22 52.5H42" fill="none" stroke-width="1.2"/>';
   })();
+  var MOMIJI_D = "M32 2.7L36.3 17.3 48 10.7 44.3 24 60 22.7 49.3 33.3 54.7 37.3 37.3 38.7 34.7 45.3 33.6 61.3H30.4L29.3 45.3 26.7 38.7 9.3 37.3 14.7 33.3 4 22.7 19.7 24 16 10.7 27.7 17.3Z";
   // Luna creciente con estrella (夜)
   var YORU_D = "M39 5A27 27 0 1 0 58 45 21.5 21.5 0 1 1 39 5Z";
   // Koban, moneda de oro ovalada (金)
@@ -233,13 +234,23 @@
     fuji: { metal: "lilac", shape: FUJI_D, fieldPath: beads(.8), enamel: "#8a63d6",
       em: '<path d="M36 4.5c4-2 9-1.6 12 .5" fill="none" stroke-width=".8"/>' },
     umi: { metal: "aqua", shape: UMI_D, field: .82, fieldDy: 4, enamel: "#0f8f8a", guil: true, em: UMI_EM },
-    momiji: { metal: "copper", shape: "M32 2.7L36.3 17.3 48 10.7 44.3 24 60 22.7 49.3 33.3 54.7 37.3 37.3 38.7 34.7 45.3 33.6 61.3H30.4L29.3 45.3 26.7 38.7 9.3 37.3 14.7 33.3 4 22.7 19.7 24 16 10.7 27.7 17.3Z", field: .7, fieldDy: -1, enamel: "#b52d1b",
+    momiji: { metal: "copper", shape: MOMIJI_D, field: .7, fieldDy: -1, enamel: "#b52d1b",
       em: '<path d="M32 58V26M32 37L16 28M32 37L48 28M32 31L23.5 16M32 31L40.5 16M32 31V10" fill="none" stroke-width="1.5" stroke-linecap="round"/>' },
     yoru: { metal: "blued", shape: YORU_D, field: .78, fieldDx: -3, enamel: "#0c1640", guil: true,
       enamelExtra: '<g fill="#f6e3a6"><circle cx="17" cy="24" r=".7"/><circle cx="21" cy="42" r=".6"/><circle cx="31" cy="49" r=".8"/><circle cx="14" cy="34" r=".5"/><circle cx="27" cy="14" r=".5"/></g>',
       gold: '<path d="' + star(4, 9, 2.4, 49, 19, 0) + '"/><circle cx="56.5" cy="32" r="1.6"/>' },
     kin: { metal: "gold", shape: KIN_D, fieldPath: KIN_FIELD, enamel: null, em: KIN_EM }
   };
+  // Fondos: las siluetas de las medallas en relieve, repartidas de forma discreta (luz arriba a la izquierda)
+  var RELIEF_SPOTS = [[38, 40, .62, -14], [168, 26, .42, 18], [112, 118, .5, 6], [214, 140, .36, -28], [30, 188, .44, 24], [150, 214, .56, -8], [80, 252, .34, 40], [228, 262, .46, 12]];
+  function reliefTile(d, c, inner) {
+    var s = "";
+    RELIEF_SPOTS.forEach(function (p) {
+      var g = function (dx, dy, col) { return '<g transform="translate(' + (p[0] + dx) + ' ' + (p[1] + dy) + ') rotate(' + p[3] + ') scale(' + p[2] + ') translate(-32 -32)"><path fill-rule="evenodd" d="' + d + '" fill="' + col + '"/>' + (inner ? '<path d="' + inner + '" fill="none" stroke-width="2.2" stroke="' + col + '"/>' : "") + '</g>'; };
+      s += g(1.3, 1.7, c.lo) + g(-.9, -.9, c.hi) + g(0, 0, c.base);
+    });
+    return svg(s, 260, 300);
+  }
   window.KANAME_MEDAL = function (id) {
     var m = MEDALS[id] || MEDALS.sumi, mc = METAL[m.metal];
     var shapeT = function (pre) {
@@ -316,6 +327,7 @@
       grad: "linear-gradient(180deg, #08102a 0%, #0f1d48 55%, #142a66 100%)",
       tile: seigaiha("rgba(143,182,255,.2)", "#13285f"), tileSize: "56px 28px", tileDrift: true,
       tileMask: "linear-gradient(to top, #000 0%, rgba(0,0,0,.6) 30%, transparent 62%)", mark: "藍", glow: "rgba(143,182,255,.16)",
+      relief: reliefTile(AI_D, { base: "rgba(143,182,255,.07)", hi: "rgba(255,255,255,.07)", lo: "rgba(0,0,0,.55)" }),
       amb: [{ kind: "rise", shape: "dot", colors: ["#bcd4ff", "#ffffff"], n: 7, size: [4, 8], dur: [16, 26], o: 0.5 }],
       burst: { shapes: ["drop", "star", "dot"], colors: ["#8fb6ff", "#cfe0ff", "#ffffff", "#4f7fe0"] } },
     // 山吹色・黄金・琥珀: atardecer ámbar con rayos de luz y luciérnagas
@@ -323,6 +335,9 @@
       bg: "#170e04", surface: "#2a1c09", raised: "#37260e", hairline: "#55391a",
       text: "#fff5de", muted: "#d0b88f", faint: "#8f7a57",
       grad: "radial-gradient(120% 75% at 88% 108%, #7a4a08 0%, #3a2207 40%, #160c03 100%)", mark: "山",
+      relief: reliefTile(YAMA_D, { base: "rgba(255,194,61,.07)", hi: "rgba(255,255,255,.07)", lo: "rgba(0,0,0,.55)" }), sun: "rgba(255,190,70,.5)",
+      land: svg('<path d="M0 160V96L46 60 70 74 118 30 150 58 176 46 226 96 262 70 300 40 350 84 400 64V160Z" fill="#3a2306" fill-opacity=".85"/><path d="M0 96L46 60 70 74 118 30 150 58 176 46 226 96 262 70 300 40 350 84 400 64" fill="none" stroke="#ffc23d" stroke-opacity=".28" stroke-width="1.5"/>' +
+        '<path d="M0 160V124L60 98 104 116 160 86 214 120 270 100 330 126 400 104V160Z" fill="#1d1104"/><path d="M0 124L60 98 104 116 160 86 214 120 270 100 330 126 400 104" fill="none" stroke="#ffc23d" stroke-opacity=".2" stroke-width="1.2"/>', 400, 160),
       rays: "rgba(255,200,90,.07)", glow: "rgba(255,194,61,.18)",
       amb: [{ kind: "rise", shape: "dot", colors: ["#ffd25e", "#ffe7a0", "#ffb52e"], n: 15, size: [7, 15], dur: [14, 24], o: 0.85 }],
       burst: { shapes: ["dot", "star", "star"], colors: ["#ffc23d", "#ffe08a", "#fff4cc", "#ff9f1c"] } },
@@ -331,14 +346,14 @@
       bg: "#170f2c", surface: "#251a44", raised: "#302456", hairline: "#4a3a7a",
       text: "#f6f0ff", muted: "#c3b4e3", faint: "#8676ab",
       grad: "linear-gradient(180deg, #4a2d78 0%, #2a1b4c 38%, #160e2a 100%)",
-      wisteria: wisteria(), mark: "藤", rays: "rgba(220,190,255,.06)", mist: "rgba(200,170,255,.10)", glow: "rgba(207,169,255,.2)",
+      wisteria: wisteria(), mark: "藤", relief: reliefTile(FUJI_D, { base: "rgba(207,169,255,.07)", hi: "rgba(255,255,255,.07)", lo: "rgba(0,0,0,.55)" }), rays: "rgba(220,190,255,.06)", mist: "rgba(200,170,255,.10)", glow: "rgba(207,169,255,.2)",
       amb: [{ kind: "fall", shape: "wis", colors: ["#e0cdfa", "#bfa3ef", "#a98ae0", "#f2e9ff"], n: 13, size: [7, 12], dur: [14, 22], o: 0.7 }],
       burst: { shapes: ["wis", "wis", "star", "dot"], colors: ["#e0cdfa", "#bfa3ef", "#f2e9ff", "#9c7ae0"] } },
     // 浅葱・青碧・白群: océano turquesa con reflejos de luz, olas y burbujas
     { id: "umi", jp: "海", name: "Umi", days: 64, accent: "#52e3d8",
       bg: "#03202a", surface: "#08303b", raised: "#0d3b48", hairline: "#17596a",
       text: "#e8fdfb", muted: "#9fd1cc", faint: "#5f938e",
-      grad: "linear-gradient(180deg, #021820 0%, #05343f 55%, #0a5560 100%)", waves: true, caustics: true, mark: "海",
+      grad: "linear-gradient(180deg, #021820 0%, #05343f 55%, #0a5560 100%)", waves: true, caustics: true, mark: "海", relief: reliefTile(UMI_D, { base: "rgba(82,227,216,.07)", hi: "rgba(255,255,255,.07)", lo: "rgba(0,0,0,.55)" }),
       rays: "rgba(140,240,235,.05)", glow: "rgba(82,227,216,.2)",
       amb: [{ kind: "rise", shape: "bubble", colors: ["#9ff0ea", "#d6fffb"], n: 13, size: [6, 14], dur: [11, 20], o: 0.5 }],
       burst: { shapes: ["bubble", "drop", "dot"], colors: ["#52e3d8", "#b4fff9", "#ffffff", "#1fb3c0"] } },
@@ -346,7 +361,7 @@
     { id: "momiji", jp: "紅葉", name: "Momiji", days: 70, accent: "#ff7a3d",
       bg: "#1e0806", surface: "#36120b", raised: "#441a10", hairline: "#6a2a18",
       text: "#fff1e8", muted: "#e0ad97", faint: "#9a6a59",
-      grad: "radial-gradient(120% 70% at 12% -5%, #8a2a12 0%, #4a120a 40%, #1c0705 100%)", mountains: true, mark: "紅",
+      grad: "radial-gradient(120% 70% at 12% -5%, #8a2a12 0%, #4a120a 40%, #1c0705 100%)", mountains: true, mark: "紅", relief: reliefTile(MOMIJI_D, { base: "rgba(255,122,61,.07)", hi: "rgba(255,255,255,.07)", lo: "rgba(0,0,0,.55)" }),
       rays: "rgba(255,150,80,.06)", glow: "rgba(255,122,61,.22)",
       amb: [{ kind: "fall", shape: "leaf", colors: ["#ff7a1a", "#e2442f", "#c8282f", "#f2b52a", "#ff9a3c"], n: 14, size: [13, 22], dur: [12, 20], o: 0.85 }],
       burst: { shapes: ["leaf", "leaf", "dot"], colors: ["#ff7a1a", "#e2442f", "#f2b52a", "#ff9a3c", "#c8282f"] } },
@@ -354,7 +369,7 @@
     { id: "yoru", jp: "夜", name: "Yoru", days: 80, accent: "#f3d98f",
       bg: "#03061a", surface: "#0e1640", raised: "#16204f", hairline: "#2a3a78",
       text: "#f4f1e6", muted: "#bcb8c9", faint: "#757694",
-      grad: "linear-gradient(180deg, #010312 0%, #08113a 55%, #1a2461 100%)", stars: true, moon: true, nebula: true, mark: "夜",
+      grad: "linear-gradient(180deg, #010312 0%, #08113a 55%, #1a2461 100%)", stars: true, moon: true, nebula: true, mark: "夜", relief: reliefTile(YORU_D, { base: "rgba(143,170,255,.05)", hi: "rgba(255,255,255,.06)", lo: "rgba(0,0,0,.6)" }),
       glow: "rgba(243,217,143,.18)",
       burst: { shapes: ["star", "star", "dot"], colors: ["#fff6d6", "#f3d98f", "#ffffff", "#bfd4ff", "#e3c8ff"] } },
     // 金色・黒: laca negra y pan de oro, red 麻の葉, marco dorado, polvo de oro y destellos
@@ -362,8 +377,8 @@
       bg: "#070503", surface: "#16110a", raised: "#221a0e", hairline: "#5a4518",
       text: "#fff7df", muted: "#d6c393", faint: "#8f7c52",
       grad: "radial-gradient(120% 80% at 50% -5%, #3d2c08 0%, #120d05 50%, #050402 100%)",
-      tile: triGrid("rgba(245,200,76,.11)"), tileSize: "40px 69.28px", tileMask: "radial-gradient(120% 80% at 50% 50%, transparent 25%, #000 100%)",
-      mark: "金", shimmer: true, corners: true, glints: true, sheen: triGrid("#fff"), rays: "rgba(255,215,110,.06)", glow: "rgba(245,200,76,.25)",
+      relief: reliefTile(KIN_D, { base: "rgba(245,200,76,.09)", hi: "rgba(255,240,190,.16)", lo: "rgba(0,0,0,.7)" }, KIN_FIELD),
+      mark: "金", shimmer: true, corners: true, glints: true, sheen: reliefTile(KIN_D, { base: "#fff", hi: "#fff", lo: "#fff" }), sheenSize: "260px 300px", rays: "rgba(255,215,110,.06)", glow: "rgba(245,200,76,.25)",
       amb: [{ kind: "rise", shape: "star", colors: ["#f5c84c", "#ffe48f", "#fff6d0"], n: 16, size: [5, 11], dur: [16, 26], o: 0.85 }],
       burst: { shapes: ["star", "star", "dot"], colors: ["#f5c84c", "#ffe48f", "#fff6d0", "#d99a1c"] } }
   ];
@@ -401,6 +416,7 @@
     if (pal.stars) {
       for (var i = 0; i < 46; i++) {
         var sz = rnd(1, 2.6);
+        if (i % 8 === 0) { var s4 = rnd(9, 15); d.appendChild(node("star star4", "left:" + rnd(4, 94) + "%;top:" + rnd(4, 80) + "%;width:" + s4 + "px;height:" + s4 + "px;background-image:" + window.KANAME_SHAPE("star", "#fff3cf") + ";animation-duration:" + rnd(3, 6) + "s;animation-delay:" + (-rnd(0, 6)) + "s;--o:.9")); continue; }
         d.appendChild(node("star", "left:" + rnd(0, 100) + "%;top:" + rnd(0, 92) + "%;width:" + sz + "px;height:" + sz + "px;animation-duration:" + rnd(2.5, 6) + "s;animation-delay:" + (-rnd(0, 6)) + "s;--o:" + rnd(0.45, 0.95)));
       }
       d.appendChild(node("shoot"));
@@ -417,12 +433,15 @@
       var c = svg('<g fill="none" stroke="#f5c84c" stroke-linecap="round"><path d="M4 70V12Q4 4 12 4H70" stroke-width="1.6"/><path d="M10 52V18Q10 10 18 10H52" stroke-width=".8" stroke-opacity=".7"/><path d="M16 16h5v5h-5z" transform="rotate(45 18.5 18.5)" fill="#f5c84c" fill-opacity=".6" stroke-width=".6"/><circle cx="4" cy="76" r="1.6" fill="#f5c84c"/><circle cx="76" cy="4" r="1.6" fill="#f5c84c"/></g>', 80, 80);
       ["tl", "tr", "bl", "br"].forEach(function (k) { d.appendChild(node("corner " + k, "background-image:" + c)); });
     }
-    if (pal.sheen) { var sh = node("sheen"); sh.style.webkitMaskImage = pal.sheen; sh.style.maskImage = pal.sheen; sh.style.webkitMaskSize = pal.tileSize; sh.style.maskSize = pal.tileSize; d.appendChild(sh); }
+    if (pal.sheen) { var sh = node("sheen"); sh.style.webkitMaskImage = pal.sheen; sh.style.maskImage = pal.sheen; sh.style.webkitMaskSize = pal.sheenSize || pal.tileSize; sh.style.maskSize = pal.sheenSize || pal.tileSize; d.appendChild(sh); }
     if (pal.glints) for (var g = 0; g < 16; g++) {
       var gs = rnd(10, 22);
       d.appendChild(node("glint", "left:" + rnd(2, 96) + "%;top:" + rnd(3, 95) + "%;width:" + gs + "px;height:" + gs + "px;background-image:" + window.KANAME_SHAPE("star", pick(["#fff6d0", "#ffe48f", "#ffffff"])) + ";animation-duration:" + rnd(5, 10) + "s;animation-delay:" + (-rnd(0, 10)) + "s"));
     }
-    if (pal.tileDrift && d.querySelector(".tile")) d.querySelector(".tile").classList.add("drift");
+    if (pal.relief) { var rl = node("tile relief"); rl.style.backgroundImage = pal.relief; rl.style.backgroundSize = "260px 300px"; d.insertBefore(rl, d.firstChild); }
+    if (pal.sun) d.appendChild(node("sun", "--sc:" + pal.sun));
+    if (pal.land) d.appendChild(node("mount land", "background-image:" + pal.land));
+    if (pal.tileDrift && d.querySelector(".tile:not(.relief)")) d.querySelector(".tile:not(.relief)").classList.add("drift");
     (pal.amb || []).forEach(function (a) {
       for (var j = 0; j < a.n; j++) {
         var size = rnd(a.size[0], a.size[1]), dur = rnd(a.dur[0], a.dur[1]);
@@ -965,6 +984,10 @@
   .mock .home { display: grid; grid-template-columns: repeat(4, 16px); gap: 5px; }
   .mock .home i { width: 16px; height: 16px; border-radius: 4px; background: var(--surface-raised); }
   .mock .home img { width: 16px; height: 16px; border-radius: 4px; outline: 1.5px solid var(--accent); outline-offset: 1px; }
+  /* Relieves y paisajes de los fondos */
+  #decor .sun { right: -14vw; bottom: 16vh; width: 64vw; height: 64vw; border-radius: 50%; background: radial-gradient(circle, var(--sc) 0%, rgba(255, 170, 40, .12) 45%, transparent 70%); }
+  #decor .mount.land { height: 26vh; }
+  #decor .star.star4 { border-radius: 0; background-color: transparent; background-size: contain; background-repeat: no-repeat; filter: drop-shadow(0 0 4px rgba(255, 240, 200, .8)); }
 </style>
 </head>
 <body>
