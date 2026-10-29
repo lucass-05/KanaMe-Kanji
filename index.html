@@ -103,36 +103,40 @@
   }
   function wave(c) { return svg('<path d="M0 30 Q50 6 100 30 T200 30 T300 30 T400 30 V60 H0Z" fill="' + c + '"/>', 400, 60); }
 
-  // ===== Medallas (una por paleta), con aspecto de orfebrería real: metal con relieve iluminado,
-  //       esmalte de color en el campo (guilloché en las altas) y adornos de metal que crecen con cada medalla =====
+  // ===== Medallas (una por paleta): piezas de orfebrería con silueta propia, sin aros ni marcos.
+  //       Metal con relieve iluminado y grano, campo esmaltado y detalles en relieve. Cada una con su material.
   function star(n, ro, ri, cx, cy, rot) {
     var p = [];
     for (var i = 0; i < n * 2; i++) { var r = i % 2 ? ri : ro, a = Math.PI * i / n - Math.PI / 2 + (rot || 0); p.push((cx + r * Math.cos(a)).toFixed(2) + " " + (cy + r * Math.sin(a)).toFixed(2)); }
     return "M" + p.join("L") + "Z";
   }
   function f(n) { return (+n).toFixed(2); }
-  function pol(r, a) { return [32 + r * Math.cos(a), 32 + r * Math.sin(a)]; }
+  function arcPt(cx, cy, r, deg) { var a = deg * Math.PI / 180; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; }
   var BIG_PETAL = "M32 32C24 28 21.4 18.6 24.8 11.4 26.7 7.9 29.3 6.6 30.1 6.1L32 9.6 33.9 6.1C34.7 6.6 37.3 7.9 39.2 11.4 42.6 18.6 40 28 32 32Z";
   var METAL = {
-    gold:   ["#fff6d2", "#f0cd6e", "#c5932f", "#8a611a", "#e9c463", "#5e400d"],
-    silver: ["#ffffff", "#e3e6ea", "#a9afb8", "#6e747e", "#d5d9df", "#454a52"],
-    rose:   ["#fff0ea", "#f0bfb2", "#c4877a", "#8a5248", "#e8b0a2", "#5a3029"],
-    bronze: ["#f6e3bc", "#d4a867", "#9c6a33", "#62401b", "#c99a5b", "#3e2810"],
-    copper: ["#ffe0cc", "#eea47a", "#bb6439", "#7a3518", "#e08a5a", "#4a1d0a"],
-    gun:    ["#d8dbe0", "#8a8f98", "#4c5058", "#25272c", "#777c85", "#121315"],
-    dark:   ["#f3f5fa", "#b8bfcc", "#7a8293", "#3e4454", "#a7aebd", "#232733"]
+    gold:     ["#fff6d2", "#f0cd6e", "#c5932f", "#8a611a", "#e9c463", "#5e400d"],
+    silver:   ["#ffffff", "#e3e6ea", "#a9afb8", "#6e747e", "#d5d9df", "#454a52"],
+    platinum: ["#ffffff", "#eef0f2", "#c4c9cf", "#8d939b", "#e6e9ec", "#5f656d"],
+    rose:     ["#fff0ea", "#f0bfb2", "#c4877a", "#8a5248", "#e8b0a2", "#5a3029"],
+    bronze:   ["#f6e3bc", "#d4a867", "#9c6a33", "#62401b", "#c99a5b", "#3e2810"],
+    copper:   ["#ffe0cc", "#eea47a", "#bb6439", "#7a3518", "#e08a5a", "#4a1d0a"],
+    gun:      ["#d8dbe0", "#8a8f98", "#4c5058", "#25272c", "#777c85", "#121315"],
+    blued:    ["#e6ecff", "#98a6cc", "#56628e", "#262e52", "#8592bd", "#11152b"],
+    lilac:    ["#fbf7ff", "#e2d8f0", "#b3a6c9", "#7a6d93", "#d3c8e4", "#4c4263"],
+    aqua:     ["#f2fffd", "#cfe9e6", "#94b9b5", "#5a7f7b", "#bfdcd8", "#34524f"],
+    amber:    ["#fff2cf", "#f6c862", "#d18f1e", "#91580a", "#efb54a", "#5c3604"]
   };
   function grad(id, c) {
     return '<linearGradient id="' + id + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + c[0] + '"/><stop offset=".22" stop-color="' + c[1] + '"/><stop offset=".45" stop-color="' + c[2] + '"/>' +
       '<stop offset=".62" stop-color="' + c[3] + '"/><stop offset=".8" stop-color="' + c[4] + '"/><stop offset="1" stop-color="' + c[5] + '"/></linearGradient>';
   }
-  // Relieve: luz difusa + brillo especular desde arriba a la izquierda, grano de metal cepillado y sombra proyectada
+  // Relieve: luz difusa + brillo especular desde arriba a la izquierda, grano del material y sombra proyectada
   function bevel(id, blur, scale, opts) {
     opts = opts || {};
     var s = '<filter id="' + id + '" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">' +
       '<feGaussianBlur in="SourceAlpha" stdDeviation="' + blur + '" result="b"/>' +
       '<feDiffuseLighting in="b" surfaceScale="' + scale + '" diffuseConstant="1.18" lighting-color="#fff" result="d"><feDistantLight azimuth="235" elevation="50"/></feDiffuseLighting>' +
-      '<feSpecularLighting in="b" surfaceScale="' + scale + '" specularConstant="1.25" specularExponent="24" lighting-color="#fff" result="s"><feDistantLight azimuth="235" elevation="36"/></feSpecularLighting>' +
+      '<feSpecularLighting in="b" surfaceScale="' + scale + '" specularConstant="' + (opts.spec || 1.25) + '" specularExponent="' + (opts.exp || 24) + '" lighting-color="#fff" result="s"><feDistantLight azimuth="235" elevation="36"/></feSpecularLighting>' +
       '<feComposite in="SourceGraphic" in2="d" operator="arithmetic" k1="1.3" result="lit"/>';
     var last = "lit";
     if (opts.grain) {
@@ -141,6 +145,14 @@
         '<feComposite in="lit" in2="ng" operator="arithmetic" k1=".42" k2=".8" result="lg"/>';
       last = "lg";
     }
+    if (opts.marble) { // vetas de mármol
+      s += '<feTurbulence type="turbulence" baseFrequency=".045 .11" numOctaves="4" seed="11" result="t"/>' +
+        '<feColorMatrix in="t" type="matrix" values="0 0 0 0 .5 0 0 0 0 .52 0 0 0 0 .58 -9 0 0 0 1.35" result="v"/>' +
+        '<feGaussianBlur in="v" stdDeviation=".25" result="vb"/>' +
+        '<feComposite in="vb" in2="SourceAlpha" operator="in" result="vc"/>' +
+        '<feComposite in="vc" in2="' + last + '" operator="over" result="mv"/>';
+      last = "mv";
+    }
     s += '<feComposite in="s" in2="SourceAlpha" operator="in" result="s2"/>' +
       '<feComposite in="' + last + '" in2="s2" operator="arithmetic" k2="1" k3=".85" result="o"/>' +
       '<feComposite in="o" in2="SourceAlpha" operator="in" result="o2"/>';
@@ -148,135 +160,126 @@
       '<feFlood flood-color="#000" flood-opacity=".55"/><feComposite in2="sh0" operator="in" result="sh"/><feMerge><feMergeNode in="sh"/><feMergeNode in="o2"/></feMerge>';
     return s + '</filter>';
   }
-  var CIRCLE = "M32 4a28 28 0 1 1 0 56a28 28 0 1 1 0-56Z";
+  // ---- Siluetas ----
+  var SHIRO_D = "M18 15H27.2L29.6 2.6 38.6 4.6 34.6 15H46a4 4 0 0 1 4 4V57a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4V19a4 4 0 0 1 4-4ZM21.5 22.5V34H42.5V22.5ZM21.5 41.5V53.5H42.5V41.5Z";
+  function fanPath(cx, cy, R, r, a0, a1) {
+    var p1 = arcPt(cx, cy, R, a0), p2 = arcPt(cx, cy, R, a1), p3 = arcPt(cx, cy, r, a1), p4 = arcPt(cx, cy, r, a0);
+    return "M" + f(p1[0]) + " " + f(p1[1]) + "A" + R + " " + R + " 0 0 1 " + f(p2[0]) + " " + f(p2[1]) + "L" + f(p3[0]) + " " + f(p3[1]) + "A" + r + " " + r + " 0 0 0 " + f(p4[0]) + " " + f(p4[1]) + "Z";
+  }
+  // Abanico (藍): varillas en relieve y olas 青海波 en el esmalte
+  var AI_D = fanPath(32, 46, 30, 6, 192, 348) + "M28.5 44L32 61 35.5 44Z";
+  var AI_FIELD = fanPath(32, 46, 26.5, 9, 196, 344);
+  var AI_EM = (function () {
+    var s = '<g fill="none" stroke-width="1.1">';
+    for (var i = 0; i <= 8; i++) { var a = 196 + i * 148 / 8, p = arcPt(32, 46, 9, a), q = arcPt(32, 46, 26.5, a); s += '<path d="M' + f(p[0]) + ' ' + f(p[1]) + 'L' + f(q[0]) + ' ' + f(q[1]) + '"/>'; }
+    return s + '</g><circle cx="32" cy="46" r="3.4"/>';
+  })();
+  var AI_ENAMEL = (function () { // olas en el esmalte
+    var s = '<g fill="none" stroke="#9fc0ff" stroke-opacity=".35" stroke-width=".7">';
+    for (var y = 20; y < 50; y += 5) for (var x = (y / 5) % 2 ? 0 : 5; x < 64; x += 10) s += '<path d="M' + (x - 5) + ' ' + y + 'a5 5 0 0 1 10 0M' + (x - 2.5) + ' ' + y + 'a2.5 2.5 0 0 1 5 0"/>';
+    return s + '</g>';
+  })();
+  // Monte con sol (山吹)
+  var YAMA_D = "M41 6.5a11 11 0 1 1 0 22a11 11 0 1 1 0-22ZM3 56.5L23.5 19.5 30 28.5 35 22.5 61 56.5Z";
+  var YAMA_FIELD = "M41 9.8a7.7 7.7 0 1 1 0 15.4a7.7 7.7 0 1 1 0-15.4ZM10 53L23.5 28.5 29.6 37 35 30.5 54 53Z";
+  // Racimo de glicinia (藤)
+  var FUJI_BEADS = [[20, 15, 6.4], [32, 13.5, 6.6], [44, 15, 6.4], [26, 24.5, 6], [38, 24.5, 6], [32, 33.5, 5.6], [26.5, 41.5, 4.8], [37.5, 41.5, 4.8], [32, 49, 4.2], [32, 56.5, 3.2]];
+  function beads(scale, dx) { return FUJI_BEADS.map(function (b) { var rx = b[2] * scale, ry = b[2] * .78 * scale; return "M" + f(b[0] - rx + (dx || 0)) + " " + f(b[1]) + "a" + f(rx) + " " + f(ry) + " 0 1 0 " + f(rx * 2) + " 0a" + f(rx) + " " + f(ry) + " 0 1 0 " + f(-rx * 2) + " 0Z"; }).join(""); }
+  var FUJI_D = beads(1) + "M30.6 1.5h2.8v8h-2.8Z" + "M33 4c6-5 14-3 17 1-6 3-12 3-17-1Z";
+  // Concha (海)
+  var UMI_D = (function () {
+    var cx = 32, cy = 52, R = 30, n = 9, a0 = 205, a1 = 335, s = "";
+    for (var i = 0; i < n; i++) {
+      var aa = a0 + (a1 - a0) * i / n, ab = a0 + (a1 - a0) * (i + 1) / n, p = arcPt(cx, cy, R, aa), q = arcPt(cx, cy, R, ab);
+      if (!i) s += "M" + f(p[0]) + " " + f(p[1]);
+      var m = arcPt(cx, cy, R + 3.2, (aa + ab) / 2);
+      s += "Q" + f(m[0]) + " " + f(m[1]) + " " + f(q[0]) + " " + f(q[1]);
+    }
+    return s + "L37.5 53 43 50.5 41.5 59.5H22.5L21 50.5 26.5 53Z";
+  })();
+  var UMI_EM = (function () {
+    var s = '<g fill="none" stroke-width="1.6" stroke-linecap="round">';
+    for (var i = 0; i <= 9; i++) { var a = 205 + 130 * i / 9, p = arcPt(32, 52, 3, a), q = arcPt(32, 52, 27.5, a); s += '<path d="M' + f(p[0]) + ' ' + f(p[1]) + 'L' + f(q[0]) + ' ' + f(q[1]) + '"/>'; }
+    return s + '</g><path d="M22 52.5H42" fill="none" stroke-width="1.2"/>';
+  })();
+  // Luna creciente con estrella (夜)
+  var YORU_D = "M39 5A27 27 0 1 0 58 45 21.5 21.5 0 1 1 39 5Z";
+  // Koban, moneda de oro ovalada (金)
+  var KIN_D = "M32 2.5C46 2.5 54 15 54 32S46 61.5 32 61.5 10 49 10 32 18 2.5 32 2.5Z";
+  var KIN_FIELD = "M32 7.5C43 7.5 49.5 18 49.5 32S43 56.5 32 56.5 14.5 46 14.5 32 21 7.5 32 7.5Z";
+  var KIN_EM = (function () {
+    var s = '<g fill="none" stroke-width=".8">';
+    for (var y = 12; y <= 52; y += 2.6) { var w = 17.5 * Math.sqrt(Math.max(0, 1 - Math.pow((y - 32) / 24.5, 2))); s += '<path d="M' + f(32 - w) + ' ' + f(y) + 'H' + f(32 + w) + '" stroke-opacity=".6"/>'; }
+    s += '</g>';
+    // sellos: flor de paulownia arriba y abajo, cartela central
+    [[32, 14], [32, 50]].forEach(function (c) { s += '<g transform="translate(' + c[0] + ' ' + c[1] + ')"><ellipse cx="0" cy="0" rx="5" ry="4"/><path d="M-3 -1.5v-3M0 -1.8v-4M3 -1.5v-3" stroke-width="1.6" stroke-linecap="round" fill="none"/></g>'; });
+    s += '<rect x="25" y="23" width="14" height="18" rx="2" fill="none" stroke-width="1.6"/><path d="M28 27h8M32 25v14M28.5 31.5h7M28 36h8M29.5 33.5l-1.5 3M34.5 33.5l1.5 3" fill="none" stroke-width="1.3" stroke-linecap="round"/>';
+    for (var k = 0; k < 40; k++) { var a = k / 40 * Math.PI * 2; s += '<circle cx="' + f(32 + 19.6 * Math.cos(a)) + '" cy="' + f(32 + 27 * Math.sin(a)) + '" r=".75"/>'; }
+    return s;
+  })();
   var MEDALS = {
-    sumi: { metal: "gun", shape: "M32 4C32 4 11 28 11 40a21 21 0 0 0 42 0C53 28 32 4 32 4Z", field: .76, fieldDy: 3, enamel: "#141417",
-      em: '<circle cx="32" cy="40" r="4"/><g fill="none" stroke-width="1.5"><circle cx="32" cy="40" r="8.5"/><circle cx="32" cy="40" r="13"/></g>' },
-    shiro: { metal: "silver", shape: CIRCLE, field: .8, enamel: "#f1eee6",
-      enamelExtra: '<rect x="22" y="22" width="20" height="20" rx="2" fill="#b8392a"/>',
-      em: '<rect x="21" y="21" width="22" height="22" rx="3" fill="none" stroke-width="2.2"/><path d="M26 27.5h12M26 32h12M26 36.5h12M32 25v14" fill="none" stroke-width="1.6"/>' },
+    sumi: { metal: "gun", shape: "M32 3C32 3 10 28 10 40.5a22 22 0 0 0 44 0C54 28 32 3 32 3Z", field: .76, fieldDy: 3, enamel: "#141417",
+      em: '<circle cx="32" cy="41" r="4"/><g fill="none" stroke-width="1.5"><circle cx="32" cy="41" r="8.5"/><circle cx="32" cy="41" r="13"/></g>' },
+    shiro: { metal: "platinum", marble: true, noField: true, shape: SHIRO_D,
+      em: '<path d="M17.2 19.5a2.3 2.3 0 0 1 2.3-2.3h25a2.3 2.3 0 0 1 2.3 2.3" fill="none" stroke-width=".9"/>', gems: [[17.6, 18.6, 1.6], [46.4, 18.6, 1.6], [17.6, 57.4, 1.6], [46.4, 57.4, 1.6], [32, 37.75, 2]] },
     sakura: { metal: "rose", petals: true, field: .74, enamel: "#f29bb6",
       em: '<g fill="none" stroke-width="1.1" stroke-linecap="round"><path d="M32 27V16M36.8 30.5l10.4-3.4M35 36l6.4 8.9M29 36l-6.4 8.9M27.2 30.5l-10.4-3.4"/></g><circle cx="32" cy="32" r="4.6"/>' +
         '<g><circle cx="32" cy="15.5" r="1.5"/><circle cx="47.7" cy="27" r="1.5"/><circle cx="41.7" cy="45.3" r="1.5"/><circle cx="22.3" cy="45.3" r="1.5"/><circle cx="16.3" cy="27" r="1.5"/></g>' },
-    matcha: { metal: "bronze", shape: "M32 3C47 13 54 30 47 46 43 55 32 61 32 61S21 55 17 46C10 30 17 13 32 3Z", field: .74, enamel: "#7fae3e",
-      em: '<path d="M32 11V56" fill="none" stroke-width="2"/><path d="M32 22l-7-5M32 22l7-5M32 31l-9-6M32 31l9-6M32 40l-8.5-5.5M32 40l8.5-5.5M32 48l-6-4M32 48l6-4" fill="none" stroke-width="1.3" stroke-linecap="round"/>' },
-    ai: { metal: "silver", shape: "M32 3L57 13V32C57 47 46 57 32 61 18 57 7 47 7 32V13Z", field: .8, enamel: "#1d3b8c", guil: true,
-      em: '<g fill="none" stroke-width="1.5"><path d="M14 48a9 9 0 0 1 18 0M32 48a9 9 0 0 1 18 0M23 39a9 9 0 0 1 18 0M18.5 48a4.5 4.5 0 0 1 9 0M36.5 48a4.5 4.5 0 0 1 9 0M27.5 39a4.5 4.5 0 0 1 9 0M14 30a9 9 0 0 1 18 0M32 30a9 9 0 0 1 18 0M18.5 30a4.5 4.5 0 0 1 9 0M36.5 30a4.5 4.5 0 0 1 9 0"/></g>' },
-    yamabuki: { metal: "gold", shape: "M32 3L57 17.5V46.5L32 61 7 46.5V17.5Z", field: .8, enamel: "#d97f0e", guil: true,
-      em: '<circle cx="39.5" cy="23.5" r="5.2"/><path d="M14 45L26 27.5 32.5 35.5 37.5 30 50 45Z"/>' },
-    fuji: { metal: "silver", shape: "M32 61C23 52 8 37 8 22A24 19 0 0 1 56 22C56 37 41 52 32 61Z", field: .78, fieldDy: -2, enamel: "#6a46b6", guil: true,
-      em: '<g><ellipse cx="23" cy="19" rx="4.4" ry="3"/><ellipse cx="32" cy="17" rx="4.4" ry="3"/><ellipse cx="41" cy="19" rx="4.4" ry="3"/><ellipse cx="27" cy="25.5" rx="4" ry="2.7"/><ellipse cx="37" cy="25.5" rx="4" ry="2.7"/>' +
-        '<ellipse cx="32" cy="31.5" rx="3.7" ry="2.5"/><ellipse cx="28.5" cy="37.5" rx="3.2" ry="2.2"/><ellipse cx="35.5" cy="37.5" rx="3.2" ry="2.2"/><ellipse cx="32" cy="43" rx="2.7" ry="1.9"/></g>' },
-    umi: { metal: "silver", shape: CIRCLE, field: .8, enamel: "#0c8784", guil: true,
-      em: '<path d="M11 36c5-5.5 10.5-5.5 15.5 0s10.5 5.5 15.5 0 10-5 12-2" fill="none" stroke-width="2.2" stroke-linecap="round"/><path d="M13 44.5c5-4.5 9.5-4.5 14 0s9.5 4.5 14 0 8.5-4 11-2" fill="none" stroke-width="1.6" stroke-linecap="round"/>' +
-        '<circle cx="24" cy="22" r="3"/><circle cx="33" cy="17" r="1.9"/><circle cx="38.5" cy="24" r="1.4"/>' },
+    matcha: { metal: "bronze", shape: "M32 2C47 12 54 29 47.5 44.5 44 52 38 56.5 33.5 58L34 62.5H30L30.5 58C26 56.5 20 52 16.5 44.5 10 29 17 12 32 2Z", field: .74, fieldDy: -1, enamel: "#7fae3e",
+      em: '<path d="M32 9V60" fill="none" stroke-width="2"/><path d="M32 20l-7-5M32 20l7-5M32 29l-9-6M32 29l9-6M32 38l-8.5-5.5M32 38l8.5-5.5M32 47l-6-4M32 47l6-4" fill="none" stroke-width="1.3" stroke-linecap="round"/>' },
+    ai: { metal: "silver", shape: AI_D, fieldPath: AI_FIELD, enamel: "#1d3b8c", enamelExtra: AI_ENAMEL, em: AI_EM },
+    yamabuki: { metal: "amber", shape: YAMA_D, fieldPath: YAMA_FIELD, enamel: "#e2741a", guil: true,
+      em: '<path d="M18 38.5L23.5 28.5 29.6 37 35 30.5 41 38.5 35.5 36 30 41 24 35Z"/><path d="M14 50L23.5 33M32 51L33 37M50 50L37 33" fill="none" stroke-width=".9" stroke-opacity=".7"/>' },
+    fuji: { metal: "lilac", shape: FUJI_D, fieldPath: beads(.8), enamel: "#8a63d6",
+      em: '<path d="M36 4.5c4-2 9-1.6 12 .5" fill="none" stroke-width=".8"/>' },
+    umi: { metal: "aqua", shape: UMI_D, field: .82, fieldDy: 4, enamel: "#0f8f8a", guil: true, em: UMI_EM },
     momiji: { metal: "copper", shape: "M32 2.7L36.3 17.3 48 10.7 44.3 24 60 22.7 49.3 33.3 54.7 37.3 37.3 38.7 34.7 45.3 33.6 61.3H30.4L29.3 45.3 26.7 38.7 9.3 37.3 14.7 33.3 4 22.7 19.7 24 16 10.7 27.7 17.3Z", field: .7, fieldDy: -1, enamel: "#b52d1b",
       em: '<path d="M32 58V26M32 37L16 28M32 37L48 28M32 31L23.5 16M32 31L40.5 16M32 31V10" fill="none" stroke-width="1.5" stroke-linecap="round"/>' },
-    yoru: { metal: "dark", shape: star(24, 29.2, 27.4, 32, 32, 0), field: .8, enamel: "#0f1a4a", guil: true,
-      enamelExtra: '<g fill="#f6e3a6"><circle cx="20" cy="22" r=".7"/><circle cx="25" cy="44" r=".6"/><circle cx="45" cy="45" r=".8"/><circle cx="19" cy="34" r=".5"/><circle cx="43" cy="17" r=".5"/></g>',
-      em: '<path d="M37 15A17 17 0 1 0 49 39 13.5 13.5 0 1 1 37 15Z"/><path d="' + star(4, 5.5, 1.6, 44, 23, 0) + '"/>' },
-    kin: { metal: "gold", shape: star(8, 30, 22, 32, 32, Math.PI / 8), field: .74, enamel: null, guil: true,
-      em: '<path d="' + star(8, 15, 11, 32, 32, 0) + '"/><circle cx="32" cy="32" r="6.5"/>' }
-  };
-  // Adornos que crecen con cada medalla: aro, rayos, cintas, laureles, gemas y corona (todo de metal)
-  var ORN = {
-    matcha:   { scale: .86, ring: { w: 2.6 } },
-    ai:       { scale: .84, ring: { w: 2.8, beads: 24 } },
-    yamabuki: { scale: .8,  ring: { w: 2.6, beads: 24 }, rays: 16 },
-    fuji:     { scale: .78, ring: { w: 2.8, beads: 28 }, rays: 20, ribbon: ["#b9a2ea", "#55389a"] },
-    umi:      { scale: .76, ring: { w: 3, beads: 28, double: true }, rays: 24, ribbon: ["#3fc6bf", "#0d5250"], gems: { c: ["#e6fffd", "#2fb8b2", "#063f3d"], n: 1 } },
-    momiji:   { scale: .74, ring: { w: 3, beads: 30 }, rays: 24, ribbon: ["#e8653a", "#6e1a0c"], laurel: "gold", gems: { c: ["#fff1c8", "#ee9a1c", "#6a3e00"], n: 1 } },
-    yoru:     { scale: .72, ring: { w: 3.2, beads: 32, double: true }, rays: 32, rayMetal: "silver", ribbon: ["#34478f", "#0c1433"], laurel: "silver", gems: { c: ["#dbe6ff", "#3e6ad8", "#0f225e"], n: 3 } },
-    kin:      { scale: .7,  ring: { w: 3.4, beads: 36, double: true }, rays: 32, ribbon: ["#d63a3a", "#5a0a10"], laurel: "gold", gems: { c: ["#ffd6d6", "#cc2233", "#4e050d"], n: 3 }, crown: true }
+    yoru: { metal: "blued", shape: YORU_D, field: .78, fieldDx: -3, enamel: "#0c1640", guil: true,
+      enamelExtra: '<g fill="#f6e3a6"><circle cx="17" cy="24" r=".7"/><circle cx="21" cy="42" r=".6"/><circle cx="31" cy="49" r=".8"/><circle cx="14" cy="34" r=".5"/><circle cx="27" cy="14" r=".5"/></g>',
+      gold: '<path d="' + star(4, 9, 2.4, 49, 19, 0) + '"/><circle cx="56.5" cy="32" r="1.6"/>' },
+    kin: { metal: "gold", shape: KIN_D, fieldPath: KIN_FIELD, enamel: null, em: KIN_EM }
   };
   window.KANAME_MEDAL = function (id) {
-    var m = MEDALS[id] || MEDALS.sumi, o = ORN[id] || {}, mc = METAL[m.metal];
+    var m = MEDALS[id] || MEDALS.sumi, mc = METAL[m.metal];
     var shapeT = function (pre) {
       pre = pre ? pre + " " : "";
-      if (!m.petals) return '<path d="' + m.shape + '"' + (pre ? ' transform="' + pre + '"' : "") + '/>';
+      if (!m.petals) return '<path fill-rule="evenodd" d="' + m.shape + '"' + (pre ? ' transform="' + pre + '"' : "") + '/>';
       var s = ""; for (var k = 0; k < 5; k++) s += '<path d="' + BIG_PETAL + '" transform="' + pre + 'rotate(' + (72 * k) + ' 32 32) translate(32 32) scale(1.12) translate(-32 -32)"/>'; return s;
     };
     var shape = shapeT("");
-    var fieldT = 'translate(32 ' + (32 + (m.fieldDy || 0)) + ') scale(' + m.field + ') translate(-32 -32)';
-    var defs = '<defs>' + grad("m", mc) + grad("g", METAL.gold) + grad("sv", METAL.silver) +
+    var field = m.fieldPath ? '<path fill-rule="evenodd" d="' + m.fieldPath + '"/>'
+      : shapeT('translate(' + (32 + (m.fieldDx || 0)) + ' ' + (32 + (m.fieldDy || 0)) + ') scale(' + m.field + ') translate(-32 -32)');
+    var defs = '<defs>' + grad("m", mc) + grad("g", METAL.gold) +
       grad("md", [mc[2], mc[3], mc[4], mc[3], mc[2], mc[5]]) +
-      bevel("rim", 1.3, 3.2, { grain: ".015 .8", shadow: 1.2 }) + bevel("rel", .55, 2.2, { shadow: .5 }) + bevel("orn", .7, 2.4, { shadow: .7 }) +
-      '<clipPath id="fc">' + shapeT(fieldT) + '</clipPath>' +
-      '<radialGradient id="gl" cx=".3" cy=".25" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset=".35" stop-color="#fff" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity=".25"/></radialGradient>';
-    var back = "", front = "";
-    // Rayos (estrella de orden) de metal
-    if (o.rays) {
-      var rs = "";
-      for (var i = 0; i < o.rays; i++) {
-        var a = Math.PI * 2 * i / o.rays - Math.PI / 2, w = Math.PI / o.rays * 0.85, L = i % 2 ? 28.8 : 31.6;
-        var p1 = pol(17, a - w), p2 = pol(L, a), p3 = pol(17, a + w), pm = pol(L - 1.2, a);
-        rs += "M" + f(p1[0]) + " " + f(p1[1]) + "L" + f(p2[0]) + " " + f(p2[1]) + "L" + f(p3[0]) + " " + f(p3[1]) + "Z";
-      }
-      back += '<path d="' + rs + '" fill="url(#' + (o.rayMetal === "silver" ? "sv" : "g") + ')" filter="url(#orn)"/>';
-    }
-    // Cinta de tela (grogrén con rayas)
-    if (o.ribbon) {
-      defs += '<linearGradient id="rb" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="' + o.ribbon[1] + '"/><stop offset=".3" stop-color="' + o.ribbon[0] + '"/><stop offset=".55" stop-color="' + o.ribbon[0] + '"/><stop offset="1" stop-color="' + o.ribbon[1] + '"/></linearGradient>' +
-        '<pattern id="gr" width="1.2" height="1.2" patternUnits="userSpaceOnUse"><rect width="1.2" height=".6" fill="#000" fill-opacity=".12"/></pattern>';
-      var tails = '<path d="M25 43L16 63 21.5 59.6 24.8 64.5 33.5 46Z"/><path d="M39 43L48 63 42.5 59.6 39.2 64.5 30.5 46Z"/>';
-      back += '<g fill="url(#rb)">' + tails + '</g><g fill="url(#gr)">' + tails + '</g><g fill="none" stroke="#fff" stroke-opacity=".35" stroke-width=".7"><path d="M23.6 46.5L18.2 59M40.4 46.5L45.8 59"/></g>';
-    }
-    // Laurel de metal
-    if (o.laurel) {
-      var lv = "";
-      [-1, 1].forEach(function (side) {
-        lv += '<path d="M' + f(32 + side * 5) + ' 59Q' + f(32 + side * 31) + ' 53 ' + f(32 + side * 26) + ' 15" fill="none" stroke-width="1.4"/>';
-        for (var j = 0; j < 7; j++) {
-          var aa = Math.PI / 2 + 0.5 + j * 0.28;
-          var tx = side * Math.sin(aa), ty = Math.cos(aa), t = Math.atan2(-ty, -tx) * 180 / Math.PI; // dirección de la rama, hacia arriba
-          [[27.4, -38], [30.6, 38]].forEach(function (lf) {
-            var x = 32 - side * lf[0] * Math.cos(aa), y = 32 + lf[0] * Math.sin(aa);
-            var rot = t + 90 + side * lf[1] * -1;
-            lv += '<path d="M' + f(x) + ' ' + f(y - 4.3) + 'Q' + f(x + 2.7) + ' ' + f(y - .6) + ' ' + f(x) + ' ' + f(y + 4.3) + 'Q' + f(x - 2.7) + ' ' + f(y - .6) + ' ' + f(x) + ' ' + f(y - 4.3) + 'Z" transform="rotate(' + f(rot) + ' ' + f(x) + ' ' + f(y) + ')"/>';
-          });
-        }
-      });
-      back += '<g fill="url(#' + (o.laurel === "silver" ? "sv" : "g") + ')" stroke="url(#' + (o.laurel === "silver" ? "sv" : "g") + ')" filter="url(#orn)">' + lv + '</g>';
-    }
-    // Aro con perlado
-    if (o.ring) {
-      var R = 26.8, rg = '<circle cx="32" cy="32" r="' + R + '" fill="none" stroke="#000" stroke-width="' + o.ring.w + '"/>';
-      if (o.ring.double) rg += '<circle cx="32" cy="32" r="' + (R - o.ring.w - 1.4) + '" fill="none" stroke="#000" stroke-width="1"/>';
-      back += '<circle cx="32" cy="32" r="' + (R - 1) + '" fill="url(#md)" filter="url(#rim)"/><g filter="url(#orn)" fill="url(#g)"><g style="mix-blend-mode:normal">' + rg.replace(/stroke="#000"/g, 'stroke="url(#g)"') + '</g>';
-      if (o.ring.beads) for (var b2 = 0; b2 < o.ring.beads; b2++) { var bp = pol(R, Math.PI * 2 * b2 / o.ring.beads + Math.PI / o.ring.beads); back += '<circle cx="' + f(bp[0]) + '" cy="' + f(bp[1]) + '" r="1.05"/>'; }
-      back += '</g>';
-    }
-    // Cuerpo: metal con relieve, campo esmaltado (o metal guilloché en Kin) y motivo en relieve
-    var main = '<g fill="url(#m)" filter="url(#rim)">' + shape + '</g>';
+      bevel("rim", 1.3, 3.2, m.marble ? { marble: true, shadow: 1.2, spec: .9, exp: 30 } : { grain: ".015 .8", shadow: 1.2 }) +
+      bevel("rel", .55, 2.2, { shadow: .5 }) +
+      '<clipPath id="fc">' + field + '</clipPath>' +
+      '<radialGradient id="gl" cx=".3" cy=".25" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset=".35" stop-color="#fff" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity=".25"/></radialGradient>' +
+      '<radialGradient id="dm" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#e8f4ff"/><stop offset=".8" stop-color="#9fb4c8"/><stop offset="1" stop-color="#5d6f80"/></radialGradient>';
+    // Cuerpo de la silueta (en Shiro, mármol blanco con vetas y canto de platino)
+    var body = m.marble
+      ? '<g fill="#efece6" filter="url(#rim)">' + shape + '</g><g fill="none" stroke="url(#m)" stroke-width="1.4" filter="url(#rel)">' + shape + '</g>'
+      : '<g fill="url(#m)" filter="url(#rim)">' + shape + '</g>';
     var guil = "";
     if (m.guil) {
-      for (var gk = 0; gk < 72; gk++) { var ga = Math.PI * 2 * gk / 72, gp = pol(34, ga); guil += "M32 32L" + f(gp[0]) + " " + f(gp[1]); }
-      guil = '<path d="' + guil + '" stroke="#000" stroke-opacity="' + (m.enamel ? ".22" : ".3") + '" stroke-width=".45"/>' +
-        '<g fill="none" stroke="#fff" stroke-opacity=".12" stroke-width=".4"><circle cx="32" cy="32" r="6"/><circle cx="32" cy="32" r="12"/><circle cx="32" cy="32" r="18"/><circle cx="32" cy="32" r="24"/></g>';
+      for (var gk = 0; gk < 72; gk++) { var ga = Math.PI * 2 * gk / 72, gp = [32 + 40 * Math.cos(ga), 32 + 40 * Math.sin(ga)]; guil += "M32 32L" + f(gp[0]) + " " + f(gp[1]); }
+      guil = '<path d="' + guil + '" stroke="#000" stroke-opacity=".2" stroke-width=".45"/>';
     }
-    if (m.enamel) {
-      main += '<g clip-path="url(#fc)"><rect width="64" height="64" fill="' + m.enamel + '"/>' + guil + (m.enamelExtra || "") + '<rect width="64" height="64" fill="url(#gl)"/></g>';
+    if (m.noField) {
+    } else if (m.enamel) {
+      body += '<g clip-path="url(#fc)"><rect width="64" height="64" fill="' + m.enamel + '"/>' + guil + (m.enamelExtra || "") + '<rect width="64" height="64" fill="url(#gl)"/></g>';
     } else {
-      main += '<g clip-path="url(#fc)"><rect width="64" height="64" fill="url(#md)"/>' + guil + '</g>';
+      body += '<g clip-path="url(#fc)"><rect width="64" height="64" fill="url(#md)"/>' + guil + '</g>';
     }
-    main += '<g fill="none" stroke="#000" stroke-opacity=".45" stroke-width="1.1">' + shapeT(fieldT) + '</g>';
-    main += '<g fill="url(#m)" stroke="url(#m)" filter="url(#rel)">' + m.em + '</g>';
-    var sc = o.scale || 1;
-    if (sc !== 1) main = '<g transform="translate(32 32) scale(' + sc + ') translate(-32 -32)">' + main + '</g>';
-    // Gemas talladas y corona
-    if (o.gems) {
-      defs += '<linearGradient id="gm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + o.gems.c[0] + '"/><stop offset=".45" stop-color="' + o.gems.c[1] + '"/><stop offset="1" stop-color="' + o.gems.c[2] + '"/></linearGradient>';
-      var gem = function (x, y, s) {
-        var d = 'M' + x + ' ' + (y - 3.8 * s) + 'L' + (x + 3.2 * s) + ' ' + y + 'L' + x + ' ' + (y + 3.8 * s) + 'L' + (x - 3.2 * s) + ' ' + y + 'Z';
-        return '<path d="' + d + '" fill="url(#g)" filter="url(#orn)" transform="translate(' + x + ' ' + y + ') scale(1.35) translate(' + (-x) + ' ' + (-y) + ')"/>' +
-          '<path d="' + d + '" fill="url(#gm)"/><path d="M' + x + ' ' + (y - 3.8 * s) + 'L' + x + ' ' + (y + 3.8 * s) + 'M' + (x - 3.2 * s) + ' ' + y + 'H' + (x + 3.2 * s) + '" stroke="#fff" stroke-opacity=".35" stroke-width=".4"/>' +
-          '<circle cx="' + (x - 1 * s) + '" cy="' + (y - 1.4 * s) + '" r="' + (.7 * s) + '" fill="#fff" fill-opacity=".9"/>';
-      };
-      front += gem(32, o.crown ? 10 : 5.6, 1);
-      if (o.gems.n > 1) front += gem(5.6, 32, .8) + gem(58.4, 32, .8);
-    }
-    if (o.crown) front += '<path d="M23 8L24.6 1.2 28.4 4.8 32 0 35.6 4.8 39.4 1.2 41 8Z" fill="url(#g)" filter="url(#orn)"/><circle cx="32" cy="1.4" r="1" fill="#ffe3e3"/><circle cx="24.6" cy="1.6" r=".7" fill="#fff"/><circle cx="39.4" cy="1.6" r=".7" fill="#fff"/>';
-    return svg(defs + '</defs>' + back + main + front, 64, 64);
+    if (!m.noField) body += '<g fill="none" stroke="#000" stroke-opacity=".45" stroke-width="1.1">' + field + '</g>';
+    if (m.em) body += '<g fill="url(#m)" stroke="url(#m)" filter="url(#rel)">' + m.em + '</g>';
+    if (m.gold) body += '<g fill="url(#g)" stroke="url(#g)" filter="url(#rel)">' + m.gold + '</g>';
+    if (m.gems) m.gems.forEach(function (g) {
+      body += '<circle cx="' + g[0] + '" cy="' + g[1] + '" r="' + (g[2] + .7) + '" fill="url(#m)" filter="url(#rel)"/><circle cx="' + g[0] + '" cy="' + g[1] + '" r="' + g[2] + '" fill="url(#dm)"/>' +
+        '<path d="' + star(4, g[2] * 1.9, g[2] * .25, g[0] - g[2] * .3, g[1] - g[2] * .3, 0) + '" fill="#fff" opacity=".9"/>';
+    });
+    return svg(defs + '</defs>' + body, 64, 64);
   };
 
   window.KANAME_PALETTES = [
@@ -1019,10 +1022,8 @@
       <div class="rem-time" id="remTimeRow"><span>Hora del aviso</span><select class="time" id="remTime"></select></div>
     </div>
 
-    <div id="instSection">
-      <h3>App</h3>
-      <div class="row" style="margin-top:0"><button class="pill-btn ghost" id="instOpen">📲 Añadir a la pantalla de inicio</button></div>
-    </div>
+    <h3>Ayuda</h3>
+    <div class="row" style="margin-top:0"><button class="pill-btn ghost" id="instOpen">📲 Añadir a la pantalla de inicio</button><button class="pill-btn ghost" id="tourAgain">Ver el tutorial otra vez</button></div>
 
     <h3>Copia de seguridad</h3>
     <div class="row">
@@ -2307,7 +2308,8 @@
     return true;
   }
   $("instOpen").onclick = function () { $("sheet").classList.remove("open"); openInstall(); };
-  $("instSection").hidden = isStandalone();
+  $("instOpen").hidden = isStandalone();
+  $("tourAgain").onclick = function () { $("sheet").classList.remove("open"); setTimeout(function () { startTour(); }, 250); };
 
   /* ================= Inicio ================= */
   if (!GRADES.length) { stage.textContent = "No se pudieron cargar los datos (data/kanji.js)."; return; }
