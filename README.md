@@ -39,7 +39,7 @@ Tu progreso se guarda solo en el móvil y se comparte entre niveles: lo que ya s
 - **今日 Kanji de hoy.** Cada día, al abrir la app, KanaMe prepara tus kanji nuevos (5, 10 o 20, lo eliges la primera vez y puedes cambiarlo en Progreso) elegidos al azar del nivel más sencillo que aún tengas sin estudiar. La lista se genera una sola vez al día y sin conexión.
 - **🔥 Racha.** Supera el reto diario (todos los kanji de hoy marcados con ✓; los de ✕ se repiten hasta que te los sepas) para sumar un día a tu racha.
 - **🔔 Recordatorio diario.** La primera vez que abres la app te ofrece un aviso diario a la hora que elijas. Si ese día ya has hecho tus kanji, no te molesta. La hora se cambia o se desactiva en *Progreso*.
-- **Medallas y paletas.** Cada vez que doblas la racha ganas una medalla con su paleta (colores tradicionales japoneses, fondo con un kanji en relieve, motivo propio y efectos: pétalos de cerezo, olas, luciérnagas, hojas de arce, estrellas…): 白 Shiro (1 día), 桜 Sakura (2), 抹茶 Matcha (4), 藍 Ai (8), 山吹 Yamabuki (16), 藤 Fuji (32), 海 Umi (64), 紅葉 Momiji (70), 夜 Yoru (80)… y 金 Kin a los 90 días. Las paletas ganadas no se pierden aunque se rompa la racha.
+- **Medallas y paletas.** Cada medalla tiene su silueta y su material (mármol, oro rosa, bronce, laca, plata…) y desbloquea una paleta con su propio fondo y efectos: 白 Shiro (1 día), 桜 Sakura (2), 抹茶 Matcha (4), 藍 Ai (8), 山吹 Yamabuki (16), 江戸 Edo (20, con letra de pincel), 藤波 Fujinami (30), 富士 Fuji (40), 雪 Yuki (50), 海 Umi (60), 紅葉 Momiji (70), 夜 Yoru (80) y 金 Kin (90). Las ganadas no se pierden aunque se rompa la racha.
 
 ## Por qué se aprende tan rápido
 
@@ -64,6 +64,10 @@ Cada nivel incluye todos los anteriores.
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | Kyōiku 1º | 1º–2º | 1º–3º | 1º–4º | 1º–5º | Kyōiku completo | **Jōyō completo** |
 | 80 | 240 | 440 | 642 | 835 | 1026 | **2136** |
+
+## Medallas y paletas
+
+<p align="center"><img src="docs/paletas.png" alt="Las 14 medallas y paletas de KanaMe con los días de racha que piden" width="100%"></p>
 
 ## Instalar en el móvil
 
