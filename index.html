@@ -52,6 +52,8 @@
     drop: function (c) { return '<path d="M12 1C12 1 4 11 4 16a8 8 0 0 0 16 0C20 11 12 1 12 1Z" fill="' + c + '"/>'; },
     wis: function (c) { return '<path d="M12 3C7 3 4 7 5 11 6.4 16 10 20 12 22 14 20 17.6 16 19 11 20 7 17 3 12 3Z" fill="' + c + '"/>'; },
     flake: function (c) { var s = '<g stroke="' + c + '" stroke-width="1.7" stroke-linecap="round" fill="none">'; for (var k = 0; k < 6; k++) s += '<g transform="rotate(' + (k * 60) + ' 12 12)"><path d="M12 12V2M12 6L9.5 3.5M12 6L14.5 3.5"/></g>'; return s + '</g>'; },
+    fish: function (c) { return '<path d="M12 2C15 2 16.5 5 16.5 9 16.5 12 15 15 13.5 17L13 18C14 19 15.5 20.5 16.5 23 15 22.4 13.5 21.4 12 20 10.5 21.4 9 22.4 7.5 23 8.5 20.5 10 19 11 18L10.5 17C9 15 7.5 12 7.5 9 7.5 5 9 2 12 2Z" fill="' + c + '"/><circle cx="12" cy="7" r="2" fill="#e8622a" fill-opacity=".8"/>'; },
+    ginkgo: function (c) { return '<path d="M12 22C12 18 11.5 15 12 13 8 13 3 10 1.5 5 5 2 9 1.5 12 4 15 1.5 19 2 22.5 5 21 10 16 13 12 13 12.5 15 12 18 12 22Z" fill="' + c + '"/>'; },
     seal: function (c) { return '<circle cx="12" cy="12" r="9" fill="none" stroke="' + c + '" stroke-width="2.4"/><circle cx="12" cy="12" r="3" fill="' + c + '"/>'; }
   };
   window.KANAME_SHAPE = function (name, color) { return svg(SHAPES[name](color), 24, 24); };
@@ -171,6 +173,206 @@
       '<path d="M320 280C330 250 350 230 380 222C396 218 410 226 410 240V280Z" fill="#1b4a80"/><path d="M330 262C338 246 352 236 370 232" fill="none" stroke="#efe6d0" stroke-width="3" stroke-linecap="round"/>' +
       '<path d="M282 212L300 186 318 212Z" fill="#20476f"/><path d="M296 192L300 186 304 192 302 195 300 192 298 195Z" fill="#efe6d0"/>', 410, 280);
   }
+  // ---- Escenas v4 ----
+  function seeded(seed) { var x = seed || 1; return function () { x = (x * 16807) % 2147483647; return (x - 1) / 2147483646; }; }
+  var WC = '<filter id="wc" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="3" seed="5" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="7" result="d"/><feGaussianBlur in="d" stdDeviation="1.1"/></filter>' +
+    '<filter id="sk" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="1" seed="2" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.6"/></filter>';
+  // Koi a la acuarela (vista desde arriba)
+  var KOI_BODY = "M60 6C72 6 80 18 81 34 82 50 76 70 68 86L66 92C72 98 80 106 86 120 76 116 67 110 60 102 53 110 44 116 34 120 40 106 48 98 54 92L52 86C44 70 38 50 39 34 40 18 48 6 60 6Z";
+  function koiWC(spots, seed) {
+    var r = seeded(seed), s = '<defs>' + WC + '</defs><g filter="url(#wc)">' +
+      '<path d="M41 38C32 38 22 44 16 54 26 52 34 50 41 48ZM79 38C88 38 98 44 104 54 94 52 86 50 79 48Z" fill="#d9dfe4" fill-opacity=".8"/>' +
+      '<path d="' + KOI_BODY + '" fill="#ffffff" stroke="#9aa8b4" stroke-width="2"/>';
+    spots.forEach(function (p) { s += '<ellipse cx="' + p[0] + '" cy="' + p[1] + '" rx="' + p[2] + '" ry="' + p[3] + '" transform="rotate(' + (r() * 60 - 30).toFixed(1) + ' ' + p[0] + ' ' + p[1] + ')" fill="' + p[4] + '" fill-opacity="' + (p[4] === "#1d1d1f" ? .82 : .9) + '"/>'; });
+    return s + '<circle cx="53" cy="17" r="1.6" fill="#2a2a2a"/><circle cx="67" cy="17" r="1.6" fill="#2a2a2a"/></g>';
+  }
+  function koiSprite(n) {
+    var sets = [
+      [[60, 22, 13, 9, "#ec6a2c"], [56, 52, 10, 13, "#ec6a2c"], [66, 74, 7, 6, "#1d1d1f"], [50, 36, 5, 4, "#1d1d1f"]],
+      [[62, 30, 14, 12, "#f08a3c"], [58, 64, 9, 8, "#ec6a2c"]],
+      [[58, 26, 9, 7, "#1d1d1f"], [64, 46, 12, 9, "#ec6a2c"], [54, 70, 8, 7, "#1d1d1f"], [70, 60, 5, 4, "#ec6a2c"]]
+    ];
+    return svg(koiWC(sets[n % 3], n + 3), 120, 124);
+  }
+  function koiWater() {
+    var r = seeded(9), s = '<defs>' + WC + '</defs><g filter="url(#wc)" fill="none">';
+    for (var i = 0; i < 9; i++) { var x = r() * 400, y = r() * 860, rr = 14 + r() * 26; s += '<ellipse cx="' + x.toFixed(0) + '" cy="' + y.toFixed(0) + '" rx="' + rr.toFixed(0) + '" ry="' + (rr * .35).toFixed(0) + '" stroke="#9fc3d8" stroke-opacity=".45" stroke-width="1.4"/><ellipse cx="' + x.toFixed(0) + '" cy="' + y.toFixed(0) + '" rx="' + (rr * 1.7).toFixed(0) + '" ry="' + (rr * .6).toFixed(0) + '" stroke="#9fc3d8" stroke-opacity=".25" stroke-width="1"/>'; }
+    for (var j = 0; j < 6; j++) { var lx = r() * 400, ly = r() * 860, lr = 16 + r() * 18; s += '<path d="M' + lx.toFixed(0) + ' ' + ly.toFixed(0) + 'm-' + lr.toFixed(0) + ' 0a' + lr.toFixed(0) + ' ' + (lr * .8).toFixed(0) + ' 0 1 0 ' + (lr * 2).toFixed(0) + ' 0l-' + lr.toFixed(0) + ' 0Z" fill="#9cc5a0" fill-opacity=".35"/>'; }
+    return svg(s + '</g>', 400, 860);
+  }
+  // Loto: agua azul, hojas de loto y flores rosas
+  function lotusFlower(x, y, sc) {
+    var p = function (d, c) { return '<path d="' + d + '" fill="' + c + '"/>'; };
+    return '<g transform="translate(' + x + ' ' + y + ') scale(' + sc + ') translate(-32 -40)">' +
+      p("M32 42C20 42 10 36 6 26 16 28 26 32 32 42ZM32 42C44 42 54 36 58 26 48 28 38 32 32 42Z", "#e98fb1") +
+      p("M32 40C22 36 16 26 16 14 24 20 29 28 32 40ZM32 40C42 36 48 26 48 14 40 20 35 28 32 40Z", "#f3a8c4") +
+      p("M32 8C37 16 38 28 32 40 26 28 27 16 32 8Z", "#fbd0e0") +
+      '<path d="M32 12V36M24 20C27 26 29 32 31 38M40 20C37 26 35 32 33 38" stroke="#d3618f" stroke-opacity=".35" stroke-width=".8" fill="none"/></g>';
+  }
+  function lotusPad(x, y, rx, rot) { return '<g transform="translate(' + x + ' ' + y + ') rotate(' + rot + ')"><path d="M0 0L' + rx + ' -3A' + rx + ' ' + (rx * .42) + ' 0 1 1 ' + rx + ' 3Z" fill="#3f8f7e" fill-opacity=".85"/><path d="M0 0L' + (rx * .9) + ' 0M0 0L' + (-rx * .7) + ' ' + (rx * .25) + 'M0 0L' + (-rx * .7) + ' ' + (-rx * .25) + 'M0 0L' + (rx * .3) + ' ' + (rx * .38) + 'M0 0L' + (rx * .3) + ' ' + (-rx * .38) + '" stroke="#7cc4ae" stroke-opacity=".6" stroke-width="1"/></g>'; }
+  function lotusScene() {
+    var s = '<defs>' + WC + '<linearGradient id="lw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b5a86" stop-opacity="0"/><stop offset=".3" stop-color="#2b5a86" stop-opacity=".55"/><stop offset="1" stop-color="#132a4a"/></linearGradient></defs>' +
+      '<rect y="300" width="400" height="560" fill="url(#lw)"/><g fill="none" stroke="#bfe0f2" stroke-opacity=".35" stroke-width="1.2"><path d="M20 520H120M180 560H320M60 640H220M260 700H380M30 770H160"/></g><g filter="url(#wc)">';
+    [[70, 600, 46, -8], [300, 560, 40, 14], [190, 690, 54, 4], [40, 770, 38, 22], [330, 760, 50, -12], [250, 820, 36, 30], [120, 830, 44, -20]].forEach(function (a) { s += lotusPad(a[0], a[1], a[2], a[3]); });
+    s += lotusFlower(96, 585, 1.25) + lotusFlower(318, 545, 1.05) + lotusFlower(206, 676, 1.45) + lotusFlower(352, 742, .9) + '</g>';
+    return svg(s, 400, 860);
+  }
+  // Kaguya: luna, bambú y la princesa, a lápiz y acuarela pastel sobre washi
+  function kaguyaScene() {
+    var r = seeded(21), s = '<defs>' + WC + '<radialGradient id="mo"><stop offset="0" stop-color="#fffaf0"/><stop offset=".55" stop-color="#fbf0dc"/><stop offset=".8" stop-color="#f7d9e2" stop-opacity=".6"/><stop offset="1" stop-color="#f7d9e2" stop-opacity="0"/></radialGradient></defs>' +
+      '<circle cx="300" cy="120" r="96" fill="url(#mo)"/><circle cx="300" cy="120" r="56" fill="none" stroke="#c9b9a0" stroke-opacity=".5" stroke-width="1.2" filter="url(#sk)"/>';
+    // bambú
+    s += '<g filter="url(#wc)">';
+    [[22, 9, 0], [58, 7, 1], [92, 6, 2], [8, 5, 3]].forEach(function (b) {
+      s += '<path d="M' + b[0] + ' 0V860" stroke="#b9dcb0" stroke-opacity=".75" stroke-width="' + b[1] + '"/>';
+      for (var y = 60 + b[2] * 37; y < 860; y += 110) s += '<path d="M' + (b[0] - b[1] * .7) + ' ' + y + 'H' + (b[0] + b[1] * .7) + '" stroke="#8fbf86" stroke-opacity=".8" stroke-width="2"/>';
+      for (var k = 0; k < 4; k++) { var ly = 80 + r() * 700, dir = r() > .5 ? 1 : -1; s += '<path d="M' + b[0] + ' ' + ly.toFixed(0) + 'q' + (dir * 22) + ' -6 ' + (dir * 44) + ' 6q' + (-dir * 22) + ' 2 ' + (-dir * 44) + ' -6Z" fill="#a8d29e" fill-opacity=".7"/>'; }
+    });
+    s += '</g>';
+    // la princesa, de espaldas mirando la luna
+    s += '<g transform="translate(262 590) scale(.82)" opacity=".85"><g filter="url(#wc)">' +
+      '<path d="M40 70C20 90 8 120 2 150 14 140 26 120 40 104ZM74 70C94 90 106 120 112 150 100 140 88 120 74 104Z" fill="#f4c3d0" fill-opacity=".7"/>' +
+      '<path d="M40 40C26 70 18 130 6 210H118C104 140 92 80 74 40Z" fill="#f4c3d0" fill-opacity=".85"/>' +
+      '<path d="M44 46C36 90 32 150 30 210H96C92 150 86 96 72 46Z" fill="#c9e3bf" fill-opacity=".75"/>' +
+      '<path d="M50 50C46 100 46 160 50 210H78C78 160 74 100 66 50Z" fill="#f7dbe2" fill-opacity=".9"/>' +
+      '<path d="M46 22C42 60 40 110 44 170 52 140 55 100 58 60 61 100 64 140 72 170 76 110 74 60 70 22Z" fill="#2a2420" fill-opacity=".7"/>' +
+      '<ellipse cx="58" cy="16" rx="13" ry="15" fill="#2a2420" fill-opacity=".88"/></g>' +
+      '<g filter="url(#sk)" fill="none" stroke="#3a302a" stroke-opacity=".55" stroke-width="1.1"><path d="M40 40C26 70 18 130 6 210M74 40C92 80 104 140 118 210M44 46C36 90 32 150 30 210M72 46C86 96 92 150 96 210M6 210H118"/></g></g>';
+    // pétalos y destellos
+    for (var p = 0; p < 14; p++) s += '<circle cx="' + (140 + r() * 250).toFixed(0) + '" cy="' + (220 + r() * 300).toFixed(0) + '" r="' + (1 + r() * 2).toFixed(1) + '" fill="' + (r() > .5 ? "#f4b8c8" : "#f6e3a6") + '" fill-opacity=".8"/>';
+    return svg(s, 400, 860);
+  }
+  // Umi: la gran ola de Hokusai, tal cual, sobre papel
+  function greatWave() {
+    var claws = "";
+    function claw(x, y, a, sz) { var c = Math.cos(a), s2 = Math.sin(a); claws += '<path transform="translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') rotate(' + (a * 180 / Math.PI).toFixed(1) + ') scale(' + sz + ')" d="M0 0C4 -6 10 -8 16 -6 12 -5 10 -2 10 1 14 -3 19 -3 22 0 17 0 14 3 13 6 10 3 5 2 0 4Z"/>'; }
+    // espuma en forma de garras a lo largo de la cresta
+    for (var i = 0; i <= 16; i++) { var t = i / 16, x = 110 + t * 210, y = 250 - Math.sin(t * Math.PI) * 150 + t * 40; claw(x, y, -1.2 + t * 1.9, .9 + Math.sin(t * Math.PI) * .5); }
+    for (var j = 0; j < 7; j++) claw(306 + j * 6, 218 + j * 14, 1.2 + j * .15, .8);
+    var spray = ""; var r = seeded(4);
+    for (var k = 0; k < 70; k++) spray += '<circle cx="' + (120 + r() * 230).toFixed(0) + '" cy="' + (60 + r() * 200).toFixed(0) + '" r="' + (1.2 + r() * 2.4).toFixed(1) + '"/>';
+    var body = "M-20 860V560C10 470 50 380 110 300 170 220 240 160 300 150 350 142 380 168 378 200 376 226 350 236 334 222 322 210 328 192 342 192 318 176 282 184 258 214 226 256 220 330 246 400 270 466 330 520 420 540V860Z";
+    var stripes = "";
+    for (var s2 = 0; s2 < 9; s2++) stripes += '<path d="M' + (-10 + s2 * 14) + ' 860C' + (20 + s2 * 18) + ' ' + (700 - s2 * 30) + ' ' + (60 + s2 * 22) + ' ' + (520 - s2 * 26) + ' ' + (130 + s2 * 16) + ' ' + (380 - s2 * 18) + '" />';
+    return svg('<defs>' + WC + '</defs>' +
+      '<path d="M0 0H400V300C330 250 260 240 200 260S70 330 0 330Z" fill="#d9c9a2" fill-opacity=".55"/>' +
+      '<rect x="22" y="70" width="44" height="150" fill="#e8dcc0" stroke="#7a6a4a" stroke-width="1.2"/><rect x="26" y="74" width="36" height="142" fill="none" stroke="#7a6a4a" stroke-opacity=".5"/>' +
+      '<g transform="translate(-30 300) scale(1.08 .66)">' +
+      '<path d="M120 640L170 560 182 572 196 556 246 640Z" fill="#2b5486"/><path d="M170 560L176 566 182 572 189 566 196 556 186 572 180 578 174 572Z" fill="#f2ead8"/>' +
+      '<path d="' + body + '" fill="#1f4677"/>' +
+      '<g fill="none" stroke="#5f8cc0" stroke-width="3" stroke-opacity=".75">' + stripes + '</g>' +
+      '<path d="M112 300C172 222 240 164 300 154 348 146 374 170 372 198 370 222 350 230 338 220" fill="none" stroke="#f2ead8" stroke-width="15" stroke-linecap="round"/>' +
+      '<path d="M150 270C200 214 250 186 300 180M70 420C100 360 140 320 190 290" fill="none" stroke="#f2ead8" stroke-opacity=".55" stroke-width="4" stroke-linecap="round"/>' +
+      '<g fill="#f2ead8">' + claws + '</g><g fill="#f2ead8" fill-opacity=".9">' + spray + '</g>' +
+      '<path d="M262 600L292 556 299 562 306 552 314 560 344 600Z" fill="#2b5486"/><path d="M292 556L299 562 306 552 314 560 309 566 303 562 297 567Z" fill="#f2ead8"/>' +
+      '<path d="M300 860V700C320 640 360 600 400 590V860Z" fill="#1f4677"/><path d="M310 690C330 650 360 625 400 616" fill="none" stroke="#f2ead8" stroke-width="7" stroke-linecap="round"/>' +
+      '<g fill="#e3d4ad" stroke="#5a4a2a" stroke-width="1"><path d="M150 690C200 676 270 676 320 700L314 708C266 690 206 690 156 700Z" transform="rotate(-18 230 690)"/><path d="M40 770C90 756 160 756 210 780L204 788C156 770 96 770 46 780Z" transform="rotate(8 120 770)"/></g>' +
+      '<g fill="#3a3326"><circle cx="200" cy="676" r="2.6"/><circle cx="214" cy="672" r="2.6"/><circle cx="228" cy="670" r="2.6"/><circle cx="242" cy="670" r="2.6"/><circle cx="90" cy="760" r="2.6"/><circle cx="104" cy="760" r="2.6"/><circle cx="118" cy="761" r="2.6"/></g></g>', 400, 860);
+  }
+  // Aki: árboles otoñales, hojas de arce y de ginkgo en el suelo
+  var GINKGO_D = "M12 22C12 18 11.5 15 12 13 8 13 3 10 1.5 5 5 2 9 1.5 12 4 15 1.5 19 2 22.5 5 21 10 16 13 12 13 12.5 15 12 18 12 22Z";
+  function akiScene() {
+    var r = seeded(33), s = '<defs>' + WC + '<radialGradient id="ak"><stop offset="0" stop-color="#ffcf7a" stop-opacity=".55"/><stop offset="1" stop-color="#ffcf7a" stop-opacity="0"/></radialGradient></defs>' +
+      '<circle cx="290" cy="300" r="180" fill="url(#ak)"/>';
+    var cols = ["#e8562a", "#f28a2e", "#c8302a", "#f6b73c", "#e46a2e", "#ffd25a"];
+    [[60, 520, 1, 0], [200, 470, 1.25, 1], [340, 540, .95, 2], [120, 600, .8, 3], [280, 610, .75, 4]].forEach(function (t, ti) {
+      var x = t[0], y = t[1], k = t[2], gold = ti === 1;
+      s += '<path d="M' + (x - 6 * k) + ' 860C' + (x - 4 * k) + ' ' + (y + 120) + ' ' + (x - 10 * k) + ' ' + (y + 40) + ' ' + (x - 2 * k) + ' ' + y + 'L' + (x + 4 * k) + ' ' + y + 'C' + (x + 10 * k) + ' ' + (y + 40) + ' ' + (x + 6 * k) + ' ' + (y + 120) + ' ' + (x + 8 * k) + ' 860Z" fill="#2a160c" fill-opacity=".85"/>' +
+        '<path d="M' + x + ' ' + (y + 20) + 'L' + (x - 40 * k) + ' ' + (y - 40 * k) + 'M' + x + ' ' + (y + 10) + 'L' + (x + 46 * k) + ' ' + (y - 50 * k) + 'M' + x + ' ' + y + 'L' + (x + 4 * k) + ' ' + (y - 80 * k) + '" stroke="#2a160c" stroke-opacity=".8" stroke-width="' + (4 * k) + '" stroke-linecap="round"/>';
+      s += '<g filter="url(#wc)">';
+      for (var i = 0; i < 26; i++) {
+        var a = r() * Math.PI * 2, d = r() * 70 * k, cx = x + Math.cos(a) * d * 1.3, cy = y - 70 * k + Math.sin(a) * d * .8, rr = (14 + r() * 18) * k;
+        s += '<circle cx="' + cx.toFixed(0) + '" cy="' + cy.toFixed(0) + '" r="' + rr.toFixed(0) + '" fill="' + (gold ? (r() > .4 ? "#ffd25a" : "#f6b73c") : cols[Math.floor(r() * 5)]) + '" fill-opacity="' + (.45 + r() * .35).toFixed(2) + '"/>';
+      }
+      s += '</g>';
+    });
+    // alfombra de hojas
+    s += '<rect y="790" width="400" height="70" fill="#4a2512" fill-opacity=".7"/>';
+    for (var l = 0; l < 110; l++) {
+      var lx = r() * 410 - 5, ly = 770 + r() * 90, rot = r() * 360, sc = .6 + r() * .7, g = r() > .6;
+      var c = g ? (r() > .5 ? "#ffd25a" : "#f6b73c") : cols[Math.floor(r() * 5)];
+      s += '<path transform="translate(' + lx.toFixed(0) + ' ' + ly.toFixed(0) + ') rotate(' + rot.toFixed(0) + ') scale(' + sc.toFixed(2) + ') translate(-12 -12)" d="' + (g ? GINKGO_D : "M12 1L13.6 6.5 18 4 16.6 9 22.5 8.5 18.5 12.5 20.5 14 14 14.5 13 17 12.6 23H11.4L11 17 10 14.5 3.5 14 5.5 12.5 1.5 8.5 7.4 9 6 4 10.4 6.5Z") + '" fill="' + c + '" fill-opacity=".9"/>';
+    }
+    return svg(s, 400, 860);
+  }
+  // Fujinami: bosque de glicinias de noche (cascadas de flores colgando de los árboles)
+  function wisteriaForest() {
+    var r = seeded(12), s = '<defs><filter id="bl"><feGaussianBlur stdDeviation="2.2"/></filter><filter id="gl" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
+      '<linearGradient id="rc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3e8ff"/><stop offset=".45" stop-color="#c8a8f2"/><stop offset="1" stop-color="#7a4fc2"/></linearGradient></defs>';
+    function trunks(n, col, w0, blur) {
+      var t = '<g fill="' + col + '"' + (blur ? ' filter="url(#bl)"' : '') + '>';
+      for (var i = 0; i < n; i++) { var x = (i + .3 + r() * .4) * 400 / n, w = w0 * (.7 + r() * .6); t += '<path d="M' + (x - w) + ' 860C' + (x - w * .6) + ' 600 ' + (x - w * 1.4) + ' 300 ' + (x - w * .4) + ' 0H' + (x + w * .6) + 'C' + (x + w * 1.2) + ' 300 ' + (x + w * .5) + ' 600 ' + (x + w) + ' 860Z"/>'; }
+      return t + '</g>';
+    }
+    var WCOL = ["#f6eeff", "#e6d3ff", "#d2b6f7", "#bb98ee", "#a37ce0", "#8a62cf"];
+    function racemes(n, maxLen, scale, op, blur) {
+      var t = '<g opacity="' + op + '"' + (blur ? ' filter="url(#bl)"' : ' filter="url(#gl)"') + '>';
+      for (var i = 0; i < n; i++) {
+        var x = r() * 420 - 10, y0 = -10 + r() * 70, len = maxLen * (.4 + r() * .6), steps = Math.round(len / (5 * scale));
+        for (var k = 0; k < steps; k++) {
+          var f = k / steps, w = (8 - f * 6.5) * scale, yy = y0 + k * 5 * scale, cx0 = x + Math.sin(k * .5 + i) * 3 * scale;
+          for (var q = 0; q < 3; q++) {
+            var ex = cx0 + (r() - .5) * w * 1.8, ey = yy + (r() - .5) * 4 * scale, er = (1.6 + r() * 2.2) * scale * (1 - f * .45);
+            var ci = Math.min(5, Math.floor(f * 5 + r() * 1.6));
+            t += '<ellipse cx="' + ex.toFixed(1) + '" cy="' + ey.toFixed(1) + '" rx="' + er.toFixed(1) + '" ry="' + (er * .75).toFixed(1) + '" fill="' + WCOL[ci] + '"/>';
+          }
+        }
+      }
+      return t + '</g>';
+    }
+    s += '<ellipse cx="200" cy="10" rx="300" ry="90" fill="#9a74d6" fill-opacity=".35" filter="url(#bl)"/>';
+    s += trunks(5, "#2c2046", 18, true) + racemes(46, 280, .8, .5, true) + '<ellipse cx="200" cy="0" rx="260" ry="50" fill="#c9a8f2" fill-opacity=".4" filter="url(#bl)"/>' + trunks(3, "#140e24", 26, false) + racemes(40, 360, 1.1, .95, false);
+    s += '<ellipse cx="200" cy="860" rx="320" ry="90" fill="#b48ae8" fill-opacity=".22" filter="url(#bl)"/>';
+    for (var p = 0; p < 90; p++) s += '<ellipse cx="' + (r() * 400).toFixed(0) + '" cy="' + (800 + r() * 60).toFixed(0) + '" rx="2.4" ry="1.4" fill="#d9c2ff" fill-opacity="' + (.4 + r() * .5).toFixed(2) + '"/>';
+    return svg(s, 400, 860);
+  }
+  // Yoru: noche japonesa en pixel art (dibujada en un canvas pequeño y ampliada sin suavizar)
+  function pixelNight() {
+    var W = 120, H = 260, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    var g = cv.getContext("2d"), r = seeded(77);
+    var B = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
+    var sky = [[0, "#070820"], [.25, "#0d1035"], [.5, "#191a4a"], [.68, "#2a2560"], [.78, "#3d2f6e"]];
+    function hex(c) { return [parseInt(c.substr(1, 2), 16), parseInt(c.substr(3, 2), 16), parseInt(c.substr(5, 2), 16)]; }
+    for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) {
+      var t = y / H, i = 0; while (i < sky.length - 2 && t > sky[i + 1][0]) i++;
+      var a = sky[i], b = sky[i + 1], f = Math.min(1, Math.max(0, (t - a[0]) / (b[0] - a[0])));
+      g.fillStyle = f * 16 > B[y % 4][x % 4] ? b[1] : a[1]; g.fillRect(x, y, 1, 1);
+    }
+    // vía láctea
+    for (var m = 0; m < 260; m++) { var u = r(), mx = u * W, my = 20 + u * 120 + (r() - .5) * 26; g.fillStyle = r() > .5 ? "#3a3a78" : "#2b2c66"; g.fillRect(mx | 0, my | 0, 1, 1); }
+    // estrellas
+    var sc = ["#ffffff", "#e8e4ff", "#fff3c4", "#c9c4ff", "#a9b4ff"];
+    for (var s = 0; s < 230; s++) { var sx = r() * W | 0, sy = r() * 175 | 0; g.fillStyle = sc[r() * 5 | 0]; g.fillRect(sx, sy, 1, 1); }
+    for (var s2 = 0; s2 < 9; s2++) { var px = 4 + r() * (W - 8) | 0, py = 4 + r() * 150 | 0; g.fillStyle = "#fff6d6"; g.fillRect(px, py, 1, 1); g.fillStyle = "#c9c4ff"; g.fillRect(px - 1, py, 1, 1); g.fillRect(px + 1, py, 1, 1); g.fillRect(px, py - 1, 1, 1); g.fillRect(px, py + 1, 1, 1); }
+    // luna
+    var cx = 92, cy = 34, R = 9;
+    for (var yy = -R - 4; yy <= R + 4; yy++) for (var xx = -R - 4; xx <= R + 4; xx++) {
+      var d = Math.sqrt(xx * xx + yy * yy);
+      if (d <= R) { g.fillStyle = (xx + yy > 4 && (xx * 7 + yy * 3) % 5 === 0) ? "#e3d9b0" : "#f6efcf"; g.fillRect(cx + xx, cy + yy, 1, 1); }
+      else if (d <= R + 3 && (xx + yy) % 2 === 0) { g.fillStyle = "#3b3a7a"; g.fillRect(cx + xx, cy + yy, 1, 1); }
+    }
+    [[-3, -2, 2], [3, 3, 2], [-2, 4, 1], [4, -4, 1]].forEach(function (c) { g.fillStyle = "#e0d6a8"; g.fillRect(cx + c[0], cy + c[1], c[2], c[2]); });
+    // montañas lejanas y colinas
+    function ridge(base, amp, col, seed2) { var rr = seeded(seed2); var h = base; for (var x = 0; x < W; x++) { h += (rr() - .5) * amp; h = Math.max(base - 14, Math.min(base + 6, h)); g.fillStyle = col; g.fillRect(x, h | 0, 1, H - h); } }
+    ridge(178, 3, "#2a2152", 5); ridge(192, 2.2, "#1a1838", 8); ridge(206, 1.6, "#121229", 11);
+    // árboles
+    for (var tr = 0; tr < 26; tr++) { var tx = r() * W | 0, th = 4 + r() * 5 | 0, ty = 204 - (r() * 3 | 0); g.fillStyle = "#0d0e22"; for (var k = 0; k < th; k++) g.fillRect(tx - (k >> 1), ty - th + k, k + 1, 1); }
+    // torii
+    var ox = 16, oy = 190; g.fillStyle = "#8a2a3a"; g.fillRect(ox, oy, 11, 1); g.fillRect(ox - 1, oy - 1, 13, 1); g.fillRect(ox + 1, oy + 2, 9, 1); g.fillRect(ox + 2, oy + 1, 1, 9); g.fillRect(ox + 8, oy + 1, 1, 9);
+    // casas con ventanas encendidas
+    [[50, 214], [60, 216], [84, 213], [100, 217]].forEach(function (h) { g.fillStyle = "#0a0b1c"; g.fillRect(h[0] - 3, h[1] - 2, 7, 1); g.fillRect(h[0] - 2, h[1] - 3, 5, 1); g.fillRect(h[0] - 1, h[1] - 4, 3, 1); g.fillRect(h[0] - 3, h[1] - 1, 7, 4); g.fillStyle = "#ffd86b"; g.fillRect(h[0] - 1, h[1], 2, 1); });
+    // postes y cables
+    g.fillStyle = "#07071a"; [[74, 186], [112, 182]].forEach(function (p) { g.fillRect(p[0], p[1], 1, 38); g.fillRect(p[0] - 2, p[1] + 2, 5, 1); });
+    for (var cx2 = 0; cx2 < W; cx2++) { var y1 = 190 + Math.round(Math.pow((cx2 - 74) / 38, 2) * 3), y2 = 194 + Math.round(Math.pow((cx2 - 92) / 30, 2) * 2); g.fillStyle = "#07071a"; if (cx2 < 112) g.fillRect(cx2, y1 - 2, 1, 1); g.fillRect(cx2, y2, 1, 1); }
+    // arrozales con reflejos
+    for (var ry = 222; ry < H; ry++) for (var rx = 0; rx < W; rx++) {
+      var row = ((ry - 222) >> 2) % 2;
+      g.fillStyle = row ? "#0f1a24" : ((rx + ry) % 2 ? "#13233a" : "#182b44"); g.fillRect(rx, ry, 1, 1);
+      if (!row && r() < .03) { g.fillStyle = r() > .5 ? "#c9c4ff" : "#fff3c4"; g.fillRect(rx, ry, 1, 1); }
+    }
+    for (var gr = 0; gr < 120; gr++) { g.fillStyle = r() > .5 ? "#1f3a2a" : "#2a4a32"; g.fillRect(r() * W | 0, 222 + (r() * 38 | 0), 1, 2); }
+    return 'url("' + cv.toDataURL() + '")';
+  }
 
 
   // ===== Medallas (una por paleta): piezas de orfebrería con silueta propia, sin aros ni marcos.
@@ -196,7 +398,9 @@
     aqua:     ["#f2fffd", "#cfe9e6", "#94b9b5", "#5a7f7b", "#bfdcd8", "#34524f"],
     amber:    ["#fff2cf", "#f6c862", "#d18f1e", "#91580a", "#efb54a", "#5c3604"],
     lacquer:  ["#8a8f99", "#3a3d45", "#18191d", "#08090b", "#4a4e57", "#000000"],
-    ice:      ["#ffffff", "#f1f8fd", "#c3dcec", "#8fb2cb", "#e3f0f9", "#5f86a3"]
+    ice:      ["#ffffff", "#f1f8fd", "#c3dcec", "#8fb2cb", "#e3f0f9", "#5f86a3"],
+    pearl:    ["#ffffff", "#fbf8f3", "#e2dcd3", "#b3aca3", "#f3eee7", "#857d74"],
+    jade:     ["#f6fff4", "#d6efd0", "#a2cf9e", "#6a9f6c", "#c6e6c2", "#447049"]
   };
   function grad(id, c) {
     return '<linearGradient id="' + id + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + c[0] + '"/><stop offset=".22" stop-color="' + c[1] + '"/><stop offset=".45" stop-color="' + c[2] + '"/>' +
@@ -318,6 +522,12 @@
   var YUKI_FIELD = (function () { var h = ""; for (var j = 0; j < 6; j++) { var p = arcPt(32, 32, 6.6, j * 60 - 90); h += (j ? "L" : "M") + f(p[0]) + " " + f(p[1]); } return h + "Z"; })();
   var WAVE_D = "M2 60C4 46 12 32 24 24 32 18 44 14 52 17 58 19 60 25 57 29 54 32 49 31 48 27 46 24 41 24 37 28 31 34 30 46 36 54 40 58 48 60 62 60Z" +
     "M24.5 24.2L21 17.5 28 21ZM30.5 20.4L29 13.5 34.5 18.2ZM37.2 17.4L37.4 10.6 41.4 16.2ZM44.2 15.6L46.6 9.4 48.6 15.6ZM50.6 16.2L55 11.2 55.2 17.6ZM56.6 22L62 20.6 59 25.2Z";
+  // ---- Medallas v4 ----
+  var KOI_D = "M32 4C38 4 42 10 42.5 18 43 26 40 36 36 44L35 47C38 50 43 54 46 61 41 59 36 56 32 52 28 56 23 59 18 61 21 54 26 50 29 47L28 44C24 36 21 26 21.5 18 22 10 26 4 32 4ZM22.5 20C17 20 12 24 10 30 15 28 19 27 23 26ZM41.5 20C47 20 52 24 54 30 49 28 45 27 41 26Z";
+  var KOI_FIELD = "M32 7.5C36.5 7.5 39.6 12.5 39.8 18.5 40.2 25.5 37.6 34 34.2 41.5H29.8C26.4 34 23.8 25.5 24.2 18.5 24.4 12.5 27.5 7.5 32 7.5Z";
+  var HASU_D = "M32 42C20 42 10 36 6 26 16 28 26 32 32 42ZM32 42C44 42 54 36 58 26 48 28 38 32 32 42ZM32 40C22 36 16 26 16 14 24 20 29 28 32 40ZM32 40C42 36 48 26 48 14 40 20 35 28 32 40ZM32 6C38 15 39 28 32 41 25 28 26 15 32 6ZM5 50C5 44.5 17 41 32 41S59 44.5 59 50 47 59 32 59 5 55.5 5 50Z";
+  var TAKE_D = "M32 3C36 10 44 24 48 38 51 48 48 58 40 61H24C16 58 13 48 16 38 20 24 28 10 32 3Z";
+  var TAKE_FIELD = "M32 9C35 15 41 26 44.5 38 47 47 44.5 54.5 38.5 57H25.5C19.5 54.5 17 47 19.5 38 23 26 29 15 32 9Z";
   var MEDALS = {
     sumi: { metal: "gun", shape: "M32 3C32 3 10 28 10 40.5a22 22 0 0 0 44 0C54 28 32 3 32 3Z", field: .76, fieldDy: 3, enamel: "#141417",
       em: '<circle cx="32" cy="41" r="4"/><g fill="none" stroke-width="1.5"><circle cx="32" cy="41" r="8.5"/><circle cx="32" cy="41" r="13"/></g>' },
@@ -331,6 +541,15 @@
     ai: { metal: "silver", shape: AI_D, fieldPath: AI_FIELD, enamel: "#1d3b8c", enamelExtra: AI_ENAMEL, em: AI_EM },
     yamabuki: { metal: "amber", petals: true, petal: YAMABUKI_PETAL, field: .72, enamel: "#f2a91f",
       em: (function () { var t = '<circle cx="32" cy="32" r="4.4"/><g fill="none" stroke-width=".9" stroke-linecap="round">'; for (var k = 0; k < 10; k++) { var p = arcPt(32, 32, 10.5, k * 36 - 90); t += '<path d="M32 32L' + f(p[0]) + ' ' + f(p[1]) + '"/>'; } t += '</g>'; for (var j = 0; j < 10; j++) { var q = arcPt(32, 32, 11.3, j * 36 - 90); t += '<circle cx="' + f(q[0]) + '" cy="' + f(q[1]) + '" r="1.1"/>'; } return t; })() },
+    koi: { metal: "pearl", shape: KOI_D, fieldPath: KOI_FIELD, enamel: "#fbfaf6",
+      enamelExtra: '<ellipse cx="32" cy="15" rx="6" ry="4.5" fill="#e8622a"/><ellipse cx="29.5" cy="27" rx="4.6" ry="6" fill="#e8622a"/><ellipse cx="35" cy="34" rx="3" ry="3.6" fill="#1b1b1d"/><ellipse cx="28" cy="21" rx="1.8" ry="1.4" fill="#1b1b1d"/>',
+      em: '<circle cx="28.6" cy="10.6" r="1"/><circle cx="35.4" cy="10.6" r="1"/><path d="M27 40.5C29.5 38.5 34.5 38.5 37 40.5M32 52V58M29 50.5 22 58.5M35 50.5 42 58.5" fill="none" stroke-width=".8"/>' },
+    hasu: { metal: "silver", shape: HASU_D, field: .8, fieldDy: 2, enamel: "#f0a3c0",
+      enamelExtra: '<rect y="43" width="64" height="21" fill="#1f4470"/><path d="M8 50H24M36 53H56M14 56H34" stroke="#9cc7ec" stroke-opacity=".6" stroke-width=".8"/>',
+      em: '<path d="M32 10V38M25 20C28 27 30 33 31.5 39M39 20C36 27 34 33 32.5 39" fill="none" stroke-width=".8"/>' },
+    kaguya: { metal: "rose", shape: TAKE_D, fieldPath: TAKE_FIELD, enamel: "#bfe0b4",
+      enamelExtra: '<path d="M32 9C35 15 41 26 44.5 38H19.5C23 26 29 15 32 9Z" fill="#f4c0cf" fill-opacity=".55"/>',
+      em: '<path d="M19 40C26 35.5 38 35.5 45 40M18 50C26 45.5 38 45.5 46 50M22.5 29C28 25.5 36 25.5 41.5 29M26.5 19C30 16.5 34 16.5 37.5 19" fill="none" stroke-width="1.4" stroke-linecap="round"/><path d="M32 40V36.5M25 49.5L27 45.8M39 49.5L37 45.8" fill="none" stroke-width=".9"/>' },
     edo: { metal: "lacquer", shape: EDO_D, fieldPath: EDO_FIELD, enamel: "#a8261c",
       em: '<path d="M32 14V33M26.5 15.3 24.5 33M37.5 15.3 39.5 33M21.5 18.6 19 33M42.5 18.6 45 33" fill="none" stroke-width=".9"/><g fill="none" stroke-width=".7" stroke-opacity=".8"><path d="M16 40v4M22 40v4M28 40v4M36 40v4M42 40v4M48 40v4M13 48v4M20 48v4M27 48v4M37 48v4M44 48v4M51 48v4M11 56v4M19 56v4M27 56v4M37 56v4M45 56v4M53 56v4"/></g>',
       gold: '<path d="M32 25C25.5 21 20.5 13.5 19.5 3.5 23.5 11 28 15 32 16.2 36 15 40.5 11 44.5 3.5 43.5 13.5 38.5 21 32 25Z"/><circle cx="32" cy="27.5" r="3.6"/>' },
@@ -427,25 +646,23 @@
       amb: [{ kind: "sift", shape: "tea", colors: ["#8fbf4f", "#a9cf6a", "#6f9e3a", "#c3dd8e"], n: 9, size: [9, 14], dur: [10, 16], o: 0.85 },
             { kind: "sift", shape: "dot", colors: ["#9cc45a", "#b7d77c", "#86b443"], n: 22, size: [3, 6], dur: [7, 12], o: 0.7 }],
       burst: { shapes: ["tea", "tea", "dot"], colors: ["#8fbf4f", "#b7d77c", "#6f9e3a", "#d8ebaa"] } },
-    // 藍色・紺青・瓶覗: índigo profundo con olas 青海波 que se mueven despacio
-    { id: "ai", jp: "藍", name: "Ai", days: 8, accent: "#8fb6ff",
-      bg: "#0c1736", surface: "#142250", raised: "#1c2c60", hairline: "#2d4180",
-      text: "#eef3ff", muted: "#a9b7dd", faint: "#6c7ba6",
-      grad: "linear-gradient(180deg, #08102a 0%, #0f1d48 55%, #142a66 100%)",
-      tile: seigaiha("rgba(143,182,255,.2)", "#13285f"), tileSize: "56px 28px", tileDrift: true,
-      tileMask: "linear-gradient(to top, #000 0%, rgba(0,0,0,.6) 30%, transparent 62%)", mark: "藍", glow: "rgba(143,182,255,.16)",
-      relief: reliefTile(AI_D, { base: "rgba(143,182,255,.07)", hi: "rgba(255,255,255,.07)", lo: "rgba(0,0,0,.55)" }),
-      amb: [{ kind: "rise", shape: "dot", colors: ["#bcd4ff", "#ffffff"], n: 7, size: [4, 8], dur: [16, 26], o: 0.5 }],
-      burst: { shapes: ["drop", "star", "dot"], colors: ["#8fb6ff", "#cfe0ff", "#ffffff", "#4f7fe0"] } },
-    // 山吹色・黄金・琥珀: atardecer ámbar, flores de yamabuki en relieve y luciérnagas
-    { id: "yamabuki", jp: "山吹", name: "Yamabuki", days: 16, accent: "#ffc23d",
-      bg: "#170e04", surface: "#2a1c09", raised: "#37260e", hairline: "#55391a",
-      text: "#fff5de", muted: "#d0b88f", faint: "#8f7a57",
-      grad: "radial-gradient(120% 75% at 88% 108%, #7a4a08 0%, #3a2207 40%, #160c03 100%)", mark: "山",
-      relief: reliefTile('<g>' + [0, 72, 144, 216, 288].map(function (r) { return '<path d="' + YAMABUKI_PETAL + '" transform="rotate(' + r + ' 32 32)"/>'; }).join("") + '</g>', { base: "rgba(255,194,61,.07)", hi: "rgba(255,255,255,.07)", lo: "rgba(0,0,0,.55)" }),
-      sun: "rgba(255,190,70,.45)", rays: "rgba(255,200,90,.07)", glow: "rgba(255,194,61,.18)",
-      amb: [{ kind: "rise", shape: "dot", colors: ["#ffd25e", "#ffe7a0", "#ffb52e"], n: 15, size: [7, 15], dur: [14, 24], o: 0.85 }],
-      burst: { shapes: ["dot", "star", "star"], colors: ["#ffc23d", "#ffe08a", "#fff4cc", "#ff9f1c"] } },
+    // 鯉: blanco con manchas naranjas y negras, carpas koi a la acuarela nadando
+    { id: "koi", jp: "鯉", name: "Koi", days: 8, accent: "#e0622a", light: true, surfA: "d4",
+      bg: "#fbfbf9", surface: "#ffffff", raised: "#f1f0ec", hairline: "#e3dfd8",
+      text: "#1f1f22", muted: "#64646b", faint: "#9a9aa2", status: "#d9592a",
+      again: "#c0485a", hard: "#a06a24", good: "#3f8a5e", easy: "#3474a6",
+      grad: "radial-gradient(130% 90% at 50% 30%, #ffffff 0%, #f6f8f8 55%, #e9f0f2 100%)",
+      koiPond: true, glow: "rgba(224,98,42,.14)",
+      burst: { shapes: ["fish", "dot", "fish"], colors: ["#ffffff", "#ec6a2c", "#1d1d1f", "#f08a3c"] } },
+    // 蓮: agua azul oscuro, hojas de loto y flores rosas
+    { id: "hasu", jp: "蓮", name: "Hasu", days: 16, accent: "#d0507f", light: true, surfA: "d0",
+      bg: "#fcf3f6", surface: "#fffafc", raised: "#f6e6ee", hairline: "#ebcbd9",
+      text: "#152a48", muted: "#4f5f7a", faint: "#8a95aa", status: "#1f4470",
+      again: "#c0485a", hard: "#a06a24", good: "#3f8a5e", easy: "#3474a6",
+      grad: "linear-gradient(180deg, #fff7fa 0%, #fbeef3 30%, #e6eef6 46%, #9fbad4 66%, #3b6491 84%, #1b3a5f 100%)",
+      lotus: true, glow: "rgba(208,80,127,.16)",
+      amb: [{ kind: "fall", shape: "petal", colors: ["#f3a8c4", "#fbd0e0", "#e98fb1"], n: 7, size: [10, 15], dur: [16, 24], o: 0.75 }],
+      burst: { shapes: ["petal", "petal", "dot"], colors: ["#f3a8c4", "#fbd0e0", "#e98fb1", "#ffffff", "#7cc4ae"] } },
     // 江戸: papel washi envejecido, tinta sumi y sello bermellón; letra de pincel en los kanji; garzas y koi a tinta
     { id: "edo", jp: "江戸", name: "Edo", days: 20, accent: "#b5332a", light: true,
       bg: "#eadcbd", surface: "#f5ecd6", raised: "#e6d6b2", hairline: "#cbb48a",
@@ -454,17 +671,26 @@
       grad: "radial-gradient(130% 90% at 50% 40%, #f1e5c9 0%, #e8d8b6 60%, #d4bd92 100%)",
       tile: washi(), tileSize: "220px 220px", edo: true, font: "Yuji Syuku", glow: "rgba(90,60,30,.12)",
       burst: { shapes: ["drop", "drop", "seal"], colors: ["#1d1712", "#3a2e24", "#b5332a"] } },
+    // かぐや姫: cuento tradicional, papel washi, bambú, luna y la princesa en tonos pastel
+    { id: "kaguya", jp: "かぐや", name: "Kaguya", days: 30, accent: "#c25a78", light: true, surfA: "d4",
+      bg: "#f2e9d7", surface: "#faf5ea", raised: "#ece2cc", hairline: "#d8c7a6",
+      text: "#2a2320", muted: "#665a4c", faint: "#9a8c78", status: "#8aa679",
+      again: "#b8485a", hard: "#9a6a2a", good: "#5d8a55", easy: "#4f78a0",
+      grad: "radial-gradient(130% 90% at 70% 15%, #fbf5e9 0%, #f1e7d3 55%, #e3d3b2 100%)",
+      tile: washi(), tileSize: "220px 220px", kaguyaScene: true, font: "Yuji Syuku", glow: "rgba(194,90,120,.14)",
+      amb: [{ kind: "fall", shape: "tea", colors: ["#a8d29e", "#c9e3bf", "#f4c3d0"], n: 8, size: [8, 12], dur: [16, 26], o: 0.7 }],
+      burst: { shapes: ["tea", "petal", "dot"], colors: ["#a8d29e", "#f4c3d0", "#f6e3a6", "#ffffff"] } },
     // 藤紫: violeta luminoso, glicinia meciéndose, bruma y luz
-    { id: "fuji", jp: "藤波", name: "Fujinami", days: 30, accent: "#cfa9ff",
+    { id: "fuji", jp: "藤波", name: "Fujinami", days: 40, accent: "#cfa9ff", surfA: "cc",
       bg: "#170f2c", surface: "#251a44", raised: "#302456", hairline: "#4a3a7a",
       text: "#f6f0ff", muted: "#c3b4e3", faint: "#8676ab",
-      grad: "linear-gradient(180deg, #4a2d78 0%, #2a1b4c 38%, #160e2a 100%)",
-      wisteria: wisteria(), mark: "藤", relief: reliefTile(FUJI_D, { base: "rgba(207,169,255,.07)", hi: "rgba(255,255,255,.07)", lo: "rgba(0,0,0,.55)" }),
+      grad: "linear-gradient(180deg, #1c1236 0%, #160f2c 50%, #0e0a1e 100%)",
+      wForest: true,
       rays: "rgba(220,190,255,.06)", mist: "rgba(200,170,255,.10)", glow: "rgba(207,169,255,.2)",
       amb: [{ kind: "fall", shape: "wis", colors: ["#e0cdfa", "#bfa3ef", "#a98ae0", "#f2e9ff"], n: 13, size: [7, 12], dur: [14, 22], o: 0.7 }],
       burst: { shapes: ["wis", "wis", "star", "dot"], colors: ["#e0cdfa", "#bfa3ef", "#f2e9ff", "#9c7ae0"] } },
     // 富士: cielo blanco arriba y tierra parda abajo; el monte nevado, nubes kumo y sol rojo
-    { id: "fujisan", jp: "富士", name: "Fuji", days: 40, accent: "#9a4f2a", light: true,
+    { id: "fujisan", jp: "富士", name: "Fuji", days: 50, accent: "#9a4f2a", light: true,
       bg: "#f3ede4", surface: "#fffcf8", raised: "#efe5d8", hairline: "#dac8b2",
       text: "#2b1e14", muted: "#6d5644", faint: "#9c8672", status: "#7a4a2c",
       again: "#b4473b", hard: "#94661a", good: "#3d7d53", easy: "#3474a6",
@@ -473,7 +699,7 @@
       amb: [{ kind: "sift", shape: "dot", colors: ["#ffffff", "#f3f6f9"], n: 14, size: [3, 6], dur: [9, 15], o: 0.9 }],
       burst: { shapes: ["dot", "star", "petal"], colors: ["#ffffff", "#e9d8c4", "#c8442b", "#9a4f2a"] } },
     // 雪: blancos con azul hielo, escarcha que crece desde las esquinas y copos cayendo
-    { id: "yuki", jp: "雪", name: "Yuki", days: 50, accent: "#3d8fc4", light: true,
+    { id: "yuki", jp: "雪", name: "Yuki", days: 60, accent: "#3d8fc4", light: true,
       bg: "#f2f8fc", surface: "#ffffff", raised: "#e8f2f9", hairline: "#c8dceb",
       text: "#14263a", muted: "#4d6880", faint: "#88a2b8", status: "#3d7fae",
       again: "#c0485a", hard: "#a06a24", good: "#3f8a5e", easy: "#3474a6",
@@ -482,32 +708,31 @@
       relief: reliefTile(YUKI_D, { base: "rgba(255,255,255,.5)", hi: "rgba(255,255,255,.95)", lo: "rgba(60,110,150,.14)" }),
       amb: [{ kind: "fall", shape: "flake", colors: ["#ffffff", "#cfe8f7", "#a9d2ee"], n: 16, size: [8, 16], dur: [14, 24], o: 0.9 }],
       burst: { shapes: ["flake", "flake", "dot"], colors: ["#ffffff", "#cfe8f7", "#9cc9e6"] } },
-    // 海 (la gran ola): azul de Prusia y espuma color crema, como en las estampas ukiyo-e
-    { id: "umi", jp: "海", name: "Umi", days: 60, accent: "#e9dcc0",
-      bg: "#0b2340", surface: "#12305a", raised: "#1a3b69", hairline: "#2c5285",
-      text: "#f6f1e6", muted: "#c3c9cf", faint: "#7d8ea3",
-      grad: "linear-gradient(180deg, #1a3c66 0%, #10305a 45%, #0a2240 100%)", bigWave: true, mark: "海", glow: "rgba(233,220,192,.16)",
-      amb: [{ kind: "rise", shape: "dot", colors: ["#efe6d0", "#ffffff"], n: 10, size: [4, 9], dur: [12, 20], o: 0.55 }],
-      burst: { shapes: ["dot", "bubble", "drop"], colors: ["#efe6d0", "#ffffff", "#7fb0e0", "#2f6aa8"] } },
-    // 紅葉色・朱・紅・黄金: bosque en otoño, sol bajo, montañas y hojas de arce
-    { id: "momiji", jp: "紅葉", name: "Momiji", days: 70, accent: "#ff7a3d",
-      bg: "#1e0806", surface: "#36120b", raised: "#441a10", hairline: "#6a2a18",
-      text: "#fff1e8", muted: "#e0ad97", faint: "#9a6a59",
-      grad: "radial-gradient(120% 70% at 12% -5%, #8a2a12 0%, #4a120a 40%, #1c0705 100%)", mountains: true, mark: "紅",
-      relief: reliefTile(MOMIJI_D, { base: "rgba(255,122,61,.07)", hi: "rgba(255,255,255,.07)", lo: "rgba(0,0,0,.55)" }),
-      rays: "rgba(255,150,80,.06)", glow: "rgba(255,122,61,.22)",
-      amb: [{ kind: "fall", shape: "leaf", colors: ["#ff7a1a", "#e2442f", "#c8282f", "#f2b52a", "#ff9a3c"], n: 14, size: [13, 22], dur: [12, 20], o: 0.85 }],
-      burst: { shapes: ["leaf", "leaf", "dot"], colors: ["#ff7a1a", "#e2442f", "#f2b52a", "#ff9a3c", "#c8282f"] } },
-    // 濃藍・群青・金: noche estrellada con vía láctea, luna y estrellas fugaces
-    { id: "yoru", jp: "夜", name: "Yoru", days: 80, accent: "#f3d98f",
-      bg: "#03061a", surface: "#0e1640", raised: "#16204f", hairline: "#2a3a78",
-      text: "#f4f1e6", muted: "#bcb8c9", faint: "#757694",
-      grad: "linear-gradient(180deg, #010312 0%, #08113a 55%, #1a2461 100%)", stars: true, moon: true, nebula: true, mark: "夜",
-      relief: reliefTile(YORU_D, { base: "rgba(143,170,255,.05)", hi: "rgba(255,255,255,.06)", lo: "rgba(0,0,0,.6)" }),
-      glow: "rgba(243,217,143,.18)",
-      burst: { shapes: ["star", "star", "dot"], colors: ["#fff6d6", "#f3d98f", "#ffffff", "#bfd4ff", "#e3c8ff"] } },
+    // 海: «La gran ola de Kanagawa» de Hokusai sobre papel, en azul de Prusia y espuma crema
+    { id: "umi", jp: "海", name: "Umi", days: 70, accent: "#1f4e86", light: true, surfA: "cc",
+      bg: "#ece2c8", surface: "#f7f1e2", raised: "#e8dcc0", hairline: "#cdbd98",
+      text: "#1b2a3e", muted: "#4f5a68", faint: "#8a8f94", status: "#1f4677",
+      again: "#b4473b", hard: "#94661a", good: "#3d7d53", easy: "#1f4e86",
+      grad: "linear-gradient(180deg, #d8c79f 0%, #e8dcbf 30%, #efe5cc 100%)",
+      tile: washi(), tileSize: "220px 220px", greatWave: true, glow: "rgba(31,78,134,.14)",
+      amb: [{ kind: "rise", shape: "dot", colors: ["#f2ead8", "#ffffff"], n: 8, size: [4, 8], dur: [12, 20], o: 0.6 }],
+      burst: { shapes: ["dot", "bubble", "drop"], colors: ["#f2ead8", "#1f4677", "#5f8cc0", "#ffffff"] } },
+    // 秋: árboles de otoño al atardecer, alfombra de hojas de arce y ginkgo
+    { id: "momiji", jp: "秋", name: "Aki", days: 80, accent: "#f2a03d", surfA: "c8",
+      bg: "#1e110a", surface: "#2c1a10", raised: "#3a2416", hairline: "#5a3a22",
+      text: "#fff2e2", muted: "#e2bf98", faint: "#9c7a5c",
+      grad: "linear-gradient(180deg, #2a1410 0%, #5a2a14 40%, #8a4a1c 62%, #3a1e0e 100%)", akiScene: true, glow: "rgba(242,160,61,.22)",
+      amb: [{ kind: "fall", shape: "leaf", colors: ["#ff7a1a", "#e2442f", "#c8282f", "#ff9a3c"], n: 9, size: [13, 20], dur: [12, 20], o: 0.85 },
+            { kind: "fall", shape: "ginkgo", colors: ["#ffd25a", "#f6b73c"], n: 7, size: [12, 18], dur: [13, 21], o: 0.9 }],
+      burst: { shapes: ["leaf", "ginkgo", "leaf"], colors: ["#ff7a1a", "#e2442f", "#ffd25a", "#f6b73c", "#c8282f"] } },
+    // 夜: noche japonesa en pixel art: estrellas, luna, torii, casas y arrozales
+    { id: "yoru", jp: "夜", name: "Yoru", days: 90, accent: "#ffd86b", surfA: "cc",
+      bg: "#070820", surface: "#101433", raised: "#191d45", hairline: "#2c3168",
+      text: "#f4f1e6", muted: "#bcb8d9", faint: "#757699",
+      pixelNight: true, glow: "rgba(255,216,107,.16)",
+      burst: { shapes: ["star", "star", "dot"], colors: ["#fff6d6", "#ffd86b", "#ffffff", "#c9c4ff", "#a9b4ff"] } },
     // 金色・黒: laca negra y pan de oro, red 麻の葉, marco dorado, polvo de oro y destellos
-    { id: "kin", jp: "金", name: "Kin", days: 90, accent: "#f5c84c",
+    { id: "kin", jp: "金", name: "Kin", days: 100, accent: "#f5c84c",
       bg: "#070503", surface: "#16110a", raised: "#221a0e", hairline: "#5a4518",
       text: "#fff7df", muted: "#d6c393", faint: "#8f7c52",
       grad: "radial-gradient(120% 80% at 50% -5%, #3d2c08 0%, #120d05 50%, #050402 100%)",
@@ -590,6 +815,18 @@
       ["tl", "tr", "bl", "br"].forEach(function (k, i) { d.appendChild(node("frost " + k, "background-image:" + frost(7 + i * 13))); });
     }
     if (pal.bigWave) d.appendChild(node("bigwave", "background-image:" + bigWave()));
+    if (pal.koiPond) { d.appendChild(node("scene", "background-image:" + koiWater())); for (var kq = 0; kq < 3; kq++) d.appendChild(node("koi k" + kq, "background-image:" + koiSprite(kq))); }
+    if (pal.lotus) d.appendChild(node("scene", "background-image:" + lotusScene()));
+    if (pal.kaguyaScene) d.appendChild(node("scene", "background-image:" + kaguyaScene()));
+    if (pal.greatWave) d.appendChild(node("scene", "background-image:" + greatWave()));
+    if (pal.akiScene) d.appendChild(node("scene", "background-image:" + akiScene()));
+    if (pal.wForest) { d.appendChild(node("scene", "background-image:" + wisteriaForest())); d.appendChild(node("topshade")); }
+    if (pal.pixelNight) {
+      d.appendChild(node("scene pixel", "background-image:" + pixelNight()));
+      for (var tw = 0; tw < 22; tw++) d.appendChild(node("px-star", "left:" + rnd(2, 97) + "%;top:" + rnd(2, 62) + "%;animation-duration:" + rnd(1.6, 4) + "s;animation-delay:" + (-rnd(0, 4)) + "s"));
+      for (var ff = 0; ff < 12; ff++) d.appendChild(node("px-fly", "left:" + rnd(4, 94) + "%;top:" + rnd(74, 96) + "%;animation-duration:" + rnd(3, 6) + "s;animation-delay:" + (-rnd(0, 6)) + "s"));
+      d.appendChild(node("shoot"));
+    }
     if (pal.tileDrift && d.querySelector(".tile:not(.relief)")) d.querySelector(".tile:not(.relief)").classList.add("drift");
     (pal.amb || []).forEach(function (a) {
       for (var j = 0; j < a.n; j++) {
@@ -645,7 +882,7 @@
     r.setProperty("--accent-soft", pal.accent + "2e");
     r.setProperty("--bg", pal.bg || "#121212");
     r.setProperty("--surface-solid", surface);
-    r.setProperty("--surface", deco ? surface + (pal.light ? "e8" : "e3") : surface); // un poco translúcida para que se intuya el fondo
+    r.setProperty("--surface", deco ? surface + (pal.surfA || (pal.light ? "e8" : "e3")) : surface); // un poco translúcida para que se intuya el fondo
     r.setProperty("--surface-raised", pal.raised || "#262626");
     r.setProperty("--hairline", pal.hairline || "#333");
     r.setProperty("--text", pal.text || "#ebebeb");
@@ -658,6 +895,7 @@
     r.setProperty("color-scheme", pal.light ? "light" : "dark");
     document.documentElement.classList.toggle("light", !!pal.light);
     document.documentElement.setAttribute("data-pal", pal.id);
+    document.documentElement.classList.toggle("brush", !!pal.font);
     var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute("content", pal.bg || "#121212");
     var cs = document.querySelector('meta[name="color-scheme"]'); if (cs) cs.setAttribute("content", pal.light ? "light" : "dark");
     if (pal.font && !document.getElementById("kanameFont")) {
@@ -1143,11 +1381,11 @@
   #decor .mount.land { height: 26vh; }
   #decor .star.star4 { border-radius: 0; background-color: transparent; background-size: contain; background-repeat: no-repeat; filter: drop-shadow(0 0 4px rgba(255, 240, 200, .8)); }
   /* ===== Edo: papel antiguo, tinta y letra de pincel ===== */
-  html[data-pal="edo"] .kanji-big, html[data-pal="edo"] .kanji-small, html[data-pal="edo"] .kana, html[data-pal="edo"] .gcell b, html[data-pal="edo"] .kj,
-  html[data-pal="edo"] .word .w, html[data-pal="edo"] .reading .val, html[data-pal="edo"] .today .jp {
+  html.brush .kanji-big, html.brush .kanji-small, html.brush .kana, html.brush .gcell b, html.brush .kj,
+  html.brush .word .w, html.brush .reading .val, html.brush .today .jp {
     font-family: "Yuji Syuku", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif; font-weight: 400; }
-  html[data-pal="edo"] .kanji-big, html[data-pal="edo"] .kana { color: #16110c; text-shadow: 0 0 1px rgba(22, 17, 12, .35); }
-  html[data-pal="edo"] .face, html[data-pal="edo"] .card { box-shadow: inset 0 0 0 4px var(--surface), inset 0 0 0 5px rgba(120, 90, 50, .35), 0 6px 24px rgba(90, 60, 30, .18); }
+  html.brush .kanji-big, html.brush .kana { color: #16110c; text-shadow: 0 0 1px rgba(22, 17, 12, .35); }
+  html.brush .face, html.brush .card { box-shadow: inset 0 0 0 4px var(--surface), inset 0 0 0 5px rgba(120, 90, 50, .35), 0 6px 24px rgba(90, 60, 30, .18); }
   html[data-pal="edo"] #decor .tile { opacity: 1; }
   #decor .edo-seal { right: 6vw; bottom: calc(12px + env(safe-area-inset-bottom)); width: 36px; padding: 6px 0; text-align: center; font: 400 21px/1.08 "Yuji Syuku", "Hiragino Mincho ProN", "Yu Mincho", serif;
     color: #f4e7cf; background: #b5332a; border-radius: 5px; opacity: .42; transform: rotate(-4deg); box-shadow: 0 0 0 2px #b5332a, inset 0 0 0 2px rgba(244, 231, 207, .35); }
@@ -1175,6 +1413,22 @@
   /* ===== Umi: la gran ola ===== */
   #decor .bigwave { left: -18vw; right: -6vw; bottom: 0; height: 58vh; background-size: 100% 100%; opacity: .9; }
   @media (prefers-reduced-motion: reduce) { #decor .kumo { animation: none !important; } }
+  /* ===== Escenas v4 ===== */
+  #decor .scene { inset: 0; background-size: cover; background-position: center bottom; background-repeat: no-repeat; }
+  #decor .scene.pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
+  #decor .koi { width: 150px; height: 155px; background-size: contain; background-repeat: no-repeat; animation: kswim ease-in-out infinite alternate; opacity: .95; }
+  #decor .koi.k0 { left: 6%; top: 58%; --a: 25deg; animation-duration: 16s; }
+  #decor .koi.k1 { right: 2%; top: 30%; --a: -150deg; width: 96px; height: 100px; animation-duration: 20s; animation-direction: alternate-reverse; }
+  #decor .koi.k2 { left: 38%; top: 80%; --a: 70deg; width: 88px; height: 92px; animation-duration: 18s; }
+  @keyframes kswim { 0% { transform: rotate(var(--a)) translateY(0); } 50% { transform: rotate(calc(var(--a) + 8deg)) translateY(-26px); } 100% { transform: rotate(calc(var(--a) - 6deg)) translateY(-52px); } }
+  #decor .px-star { width: 3px; height: 3px; background: #fff6d6; box-shadow: 3px 0 0 #c9c4ff, -3px 0 0 #c9c4ff, 0 3px 0 #c9c4ff, 0 -3px 0 #c9c4ff; animation: kpx steps(2) infinite; }
+  @keyframes kpx { 0%, 100% { opacity: .2; } 50% { opacity: 1; } }
+  #decor .px-fly { width: 4px; height: 4px; background: #e8ff8a; box-shadow: 0 0 8px 2px rgba(220, 255, 120, .6); animation: kfly ease-in-out infinite alternate; }
+  @keyframes kfly { 0% { transform: translate(0, 0); opacity: .2; } 50% { opacity: 1; } 100% { transform: translate(14px, -18px); opacity: .3; } }
+  @media (prefers-reduced-motion: reduce) { #decor .koi, #decor .px-star, #decor .px-fly { animation: none !important; } }
+  #decor .topshade { top: 0; left: 0; right: 0; height: calc(150px + env(safe-area-inset-top)); background: linear-gradient(#0e0a1ef2, #0e0a1e99 55%, transparent); }
+  .inst-tag { display: inline-block; font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 4px 10px; margin-bottom: 10px; }
+  .inst-tag[hidden] { display: none; }
 </style>
 </head>
 <body>
@@ -1221,7 +1475,7 @@
     <h3>Racha y medallas</h3>
     <div class="streak-hero" id="streakHero"></div>
     <div class="palettes" id="palettes"></div>
-    <p class="note">Supera el reto de «Kanji de hoy» (todos los kanji del día con ✓) para sumar un día a tu racha. Si un día no lo superas, la racha vuelve a 0: las medallas que ya tienes se quedan, pero las nuevas se ganan con días seguidos contados desde 0 (con 1, 2, 4, 8 y 16 días, y después una cada 10 días: 20, 30, 40… hasta 90). Cada medalla trae su paleta, con su fondo y sus efectos. Toca una medalla para usar su paleta.</p>
+    <p class="note">Supera el reto de «Kanji de hoy» (todos los kanji del día con ✓) para sumar un día a tu racha. Si un día no lo superas, la racha vuelve a 0: las medallas que ya tienes se quedan, pero las nuevas se ganan con días seguidos contados desde 0 (con 1, 2, 4, 8 y 16 días, y después una cada 10 días: 20, 30, 40… hasta 100). Cada medalla trae su paleta, con su fondo y sus efectos. Toca una medalla para usar su paleta.</p>
 
     <div id="remSection" hidden>
       <h3>Recordatorio diario</h3>
@@ -1273,6 +1527,7 @@
 <div class="sheet-backdrop" id="installSheet">
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="instTitle">
     <div class="inst-hero">
+      <div class="inst-tag" id="instTag" hidden>Último paso del tutorial</div>
       <div class="ic">📲</div>
       <h2 id="instTitle">Añádela a tu pantalla de inicio</h2>
       <p>Se abrirá a pantalla completa como una app más, funcionará sin conexión y podrá avisarte cada día.</p>
@@ -1317,7 +1572,7 @@
     <ul class="intro-list">
       <li><span class="ic">📅</span><span><b>Para seguir la racha</b>, supera cada día el reto de «Kanji de hoy»: marca ✓ todos los kanji del día (los que marques con ✕ se repiten hasta que te los sepas). Cada día seguido suma uno.</span></li>
       <li><span class="ic">↺</span><span><b>Si un día no lo superas</b>, la racha vuelve a 0. Las medallas y paletas que ya tienes se quedan, pero para las nuevas tendrás que volver a sumar días seguidos desde 0.</span></li>
-      <li><span class="ic">🎨</span><span><b>Ganas medallas</b> con una paleta nueva (colores, fondo y efectos) a los 2, 4, 8 y 16 días seguidos, y después cada 10 días: 20, 30, 40… hasta la última, a los 90</span></li>
+      <li><span class="ic">🎨</span><span><b>Ganas medallas</b> con una paleta nueva (colores, fondo y efectos) a los 2, 4, 8 y 16 días seguidos, y después cada 10 días: 20, 30, 40… hasta la última, a los 100</span></li>
       <li><span class="ic">⚙︎</span><span><b>Para cambiar de paleta</b>, toca el contador 🔥 de arriba a la derecha y elige una en «Racha».</span></li>
     </ul>
     <div class="row">
@@ -2356,12 +2611,14 @@
     steps.push({ el: "levels", t: "Niveles", h: "Aquí eliges qué estudiar: de <b>1º a 6º de primaria</b> (cada uno incluye los anteriores) y <b>常</b>, los 2136 kanji Jōyō. El número es lo que tienes pendiente. Al superar el reto de hoy te llevamos solos al primer nivel sin terminar.",
       chips: true });
     steps.push({ el: "streakBtn", t: "Racha y colores", h: "Tu racha de días seguidos. Tócala para ver las <b>paletas de colores</b> que vas desbloqueando y elegir la que quieras." });
-    steps.push({ el: "openSettings", t: "Tu progreso", h: "Estadísticas, <b>recordatorio diario</b> y copia de seguridad para pasar tu progreso a otro móvil." + (isStandalone() ? "" : " Ahí también tienes la guía para <b>añadir KanaMe a la pantalla de inicio</b>.") + " ¡Listo, a estudiar!" });
+    steps.push({ el: "openSettings", t: "Tu progreso", h: "Estadísticas, <b>recordatorio diario</b> y copia de seguridad para pasar tu progreso a otro móvil." + " ¡Listo, a estudiar!" });
     return steps;
   }
-  function startTour(done) {
+  // replay = true al pulsar «Ver el tutorial otra vez»: entonces el último paso (añadir a la pantalla de inicio) sale siempre
+  function startTour(done, replay) {
     if (tour) return;
     var steps = tourSteps(), i = 0;
+    var withInst = replay || (!isStandalone() && !!detectDevice());
     var root = el("div", "tour"), hole = el("div", "tour-hole"), bub = el("div", "tour-bubble");
     root.setAttribute("role", "dialog"); root.setAttribute("aria-modal", "true"); root.setAttribute("aria-label", "Cómo funciona KanaMe");
     root.appendChild(hole); root.appendChild(bub); document.body.appendChild(root);
@@ -2371,7 +2628,7 @@
       window.removeEventListener("resize", place);
       root.remove(); tour = null; unflip();
       track("tutorial-" + (i >= steps.length - 1 ? "completado" : "saltado"));
-      if (done) done();
+      if (withInst) openInstall(done, true); else if (done) done();
     }
     function place() {
       var s = steps[i], t = $(s.el); if (!t) return;
@@ -2398,10 +2655,11 @@
       }
       var nav = el("div", "tour-nav"), dots = el("div", "tour-dots");
       steps.forEach(function (_, j) { dots.appendChild(el("i", j === i ? "on" : "")); });
+      if (withInst) dots.appendChild(el("i"));
       nav.appendChild(dots);
       var last = i === steps.length - 1;
       if (!last) { var sk = el("button", "tour-skip", "Saltar"); sk.onclick = finish; nav.appendChild(sk); }
-      var nx = el("button", "pill-btn tour-next", last ? "¡Empezar!" : "Siguiente");
+      var nx = el("button", "pill-btn tour-next", last && !withInst ? "¡Empezar!" : "Siguiente");
       nx.onclick = function () { if (last) finish(); else { i++; show(); } };
       nav.appendChild(nx);
       bub.appendChild(nav);
@@ -2488,8 +2746,9 @@
     renderInstallNow();
   }
   var installAfter = null;
-  function openInstall(after) {
+  function openInstall(after, fromTour) {
     installAfter = after || null;
+    $("instTag").hidden = !fromTour;
     renderInstall();
     $("installSheet").classList.add("open");
     $("installSheet").querySelector(".sheet").scrollTop = 0;
@@ -2519,7 +2778,7 @@
   }
   $("instOpen").onclick = function () { $("sheet").classList.remove("open"); openInstall(); };
   $("instOpen").hidden = isStandalone();
-  $("tourAgain").onclick = function () { $("sheet").classList.remove("open"); setTimeout(function () { startTour(); }, 250); };
+  $("tourAgain").onclick = function () { $("sheet").classList.remove("open"); setTimeout(function () { startTour(null, true); }, 250); };
 
   /* ================= Inicio ================= */
   if (!GRADES.length) { stage.textContent = "No se pudieron cargar los datos (data/kanji.js)."; return; }
@@ -2532,7 +2791,7 @@
     var afterTour = function () { if (!maybeShowStreakIntro()) maybeAskReminder(); };
     var startTour2 = function () { if (!maybeStartTour(afterTour)) afterTour(); };
     var firstRun = function () { if (!maybeAskSize(startTour2)) startTour2(); };
-    if (!maybeAskInstall(firstRun)) firstRun();
+    firstRun();
   });
 })();
 </script>
