@@ -373,6 +373,96 @@
     for (var gr = 0; gr < 120; gr++) { g.fillStyle = r() > .5 ? "#1f3a2a" : "#2a4a32"; g.fillRect(r() * W | 0, 222 + (r() * 38 | 0), 1, 2); }
     return 'url("' + cv.toDataURL() + '")';
   }
+  // ---- Escenas v5: Sakura (tarta de fresas), Matcha (chasen, tetera y cuenco) y Yuki (nieve retro en pixel art) ----
+  function strawberry(x, y, sc, rot) {
+    return '<g transform="translate(' + x + ' ' + y + ') rotate(' + (rot || 0) + ') scale(' + sc + ')"><path d="M0 -2C-9 -4 -12 6 -8 13 -5 19 0 24 0 24 0 24 5 19 8 13 12 6 9 -4 0 -2Z" fill="#e8435a"/>' +
+      '<path d="M-7 -2C-4 -6 -1 -4 0 -3 1 -4 4 -6 7 -2 4 -1 2 0 0 1-2 0-4-1-7-2Z" fill="#6aa84f"/><g fill="#ffd9a0"><circle cx="-4" cy="5" r=".9"/><circle cx="3" cy="4" r=".9"/><circle cx="-1" cy="10" r=".9"/><circle cx="5" cy="11" r=".9"/><circle cx="-5" cy="13" r=".9"/><circle cx="1" cy="16" r=".9"/></g></g>';
+  }
+  function cakeSlice(x, y, sc) {
+    return '<g transform="translate(' + x + ' ' + y + ') scale(' + sc + ')">' +
+      '<path d="M0 30L70 10 96 26 96 70 26 92 0 74Z" fill="#fffaf3"/>' +
+      '<path d="M0 46L26 56 96 36V46L26 66 0 56Z" fill="#f6d79a"/><path d="M0 64L26 74 96 54V64L26 84 0 74Z" fill="#f6d79a"/>' +
+      '<path d="M26 56V92M0 30L26 40 96 26" fill="none" stroke="#ead8c4" stroke-width="1.2"/>' +
+      '<path d="M0 30L26 40V92L0 74Z" fill="#fff4ea"/>' +
+      '<path d="M2 53A4 4 0 0 1 10 56M12 57A4 4 0 0 1 20 60" fill="#e8435a"/>' +
+      '<path d="M4 50C2 48 6 46 8 48M14 54C12 52 16 50 18 52" stroke="#e8435a" stroke-width="3" fill="none" stroke-linecap="round"/>' +
+      '<path d="M30 14C26 10 34 4 40 8 44 2 54 6 52 12 58 12 58 20 50 22H32C26 22 26 16 30 14Z" fill="#ffffff" stroke="#ead8c4"/>' +
+      strawberry(42, 2, 1.1, -8) + '</g>';
+  }
+  function sakuraBranch() {
+    var s = '<path d="M-10 40C40 30 80 50 120 46S190 30 230 44" fill="none" stroke="#7a4a3a" stroke-width="5" stroke-linecap="round"/><path d="M70 46C80 66 96 74 110 80M150 40C160 24 176 18 190 16" fill="none" stroke="#7a4a3a" stroke-width="3" stroke-linecap="round"/>';
+    [[30, 36, 1], [64, 40, .8], [96, 52, 1.1], [112, 82, .8], [138, 42, .9], [176, 22, 1], [196, 18, .7], [214, 46, .9], [12, 30, .7]].forEach(function (b) {
+      s += '<g transform="translate(' + b[0] + ' ' + b[1] + ') scale(' + (b[2] * .7) + ') translate(-12 -12)">' + blossom("#f8c3d3", "#e0607e") + '</g>';
+    });
+    return s;
+  }
+  function sakuraScene() {
+    return svg('<defs>' + WC + '</defs><g filter="url(#wc)" opacity=".92">' +
+      '<g transform="translate(176 118) scale(.95)">' + sakuraBranch() + '</g>' +
+      cakeSlice(18, 640, 1.05) + cakeSlice(268, 380, .82) +
+      strawberry(150, 760, 1.2, 14) + strawberry(186, 772, 1, -18) + strawberry(352, 520, 1, 24) + strawberry(40, 300, .9, -12) +
+      '<g transform="translate(300 700) rotate(-20)"><path d="M0 0H60M48 -6L62 0 48 6" fill="none" stroke="#c9b9a8" stroke-width="3" stroke-linecap="round"/></g>' +
+      '</g>', 400, 860);
+  }
+  function chasen(x, y, sc) {
+    var t = "";
+    for (var i = 0; i <= 16; i++) { var a = -1 + i / 8; t += 'M' + (a * 4).toFixed(1) + ' 34C' + (a * 18).toFixed(1) + ' 52 ' + (a * 22).toFixed(1) + ' 70 ' + (a * 8).toFixed(1) + ' 84'; }
+    return '<g transform="translate(' + x + ' ' + y + ') scale(' + sc + ')"><rect x="-6" y="-30" width="12" height="62" rx="5" fill="#d8bf86"/><path d="M-6 -6H6M-6 20H6" stroke="#a88a52" stroke-width="1.6"/>' +
+      '<rect x="-7" y="28" width="14" height="6" rx="2" fill="#2e2a22"/><path d="' + t + '" fill="none" stroke="#e2cd98" stroke-width="1.6"/><path d="M-20 70C-14 86 14 86 20 70" fill="none" stroke="#c9ad72" stroke-width="1.4"/></g>';
+  }
+  function kyusu(x, y, sc) {
+    return '<g transform="translate(' + x + ' ' + y + ') scale(' + sc + ')"><ellipse cx="0" cy="14" rx="40" ry="32" fill="#8c5b3d"/><ellipse cx="-10" cy="4" rx="16" ry="10" fill="#a8735a" fill-opacity=".7"/>' +
+      '<path d="M36 6C52 0 60 -10 66 -14 64 -6 58 6 40 20Z" fill="#7a4a30"/><path d="M-38 6L-74 -10 -70 -2 -40 16Z" fill="#5a3a26"/>' +
+      '<ellipse cx="0" cy="-16" rx="24" ry="6" fill="#7a4a30"/><circle cx="0" cy="-22" r="5" fill="#5a3a26"/><path d="M-30 34C-10 44 10 44 30 34" fill="none" stroke="#6a4028" stroke-width="2"/></g>';
+  }
+  function chawan(x, y, sc) {
+    return '<g transform="translate(' + x + ' ' + y + ') scale(' + sc + ')"><path d="M-48 0C-46 30 -26 48 0 48S46 30 48 0Z" fill="#3e3a33"/><path d="M-46 14C-30 24 30 24 46 14" fill="none" stroke="#6b6355" stroke-width="2.5"/>' +
+      '<ellipse cx="0" cy="0" rx="48" ry="12" fill="#2a2620"/><ellipse cx="0" cy="1" rx="42" ry="9" fill="#9cc45a"/><ellipse cx="-6" cy="0" rx="22" ry="4" fill="#c3dd8e"/><path d="M-14 48H14V54H-14Z" fill="#3e3a33"/></g>';
+  }
+  function matchaScene() {
+    return svg('<defs>' + WC + '</defs><g filter="url(#wc)" opacity=".9">' +
+      kyusu(300, 360, 1.05) + chawan(110, 660, 1.1) + chasen(250, 618, .95) +
+      '<g transform="translate(330 640) rotate(-30)"><path d="M0 0H70" stroke="#c9ad72" stroke-width="4" stroke-linecap="round"/><path d="M62 -2C68 -6 74 -2 70 2" fill="#c9ad72"/></g>' +
+      '<g fill="#a9cf6a" fill-opacity=".8"><ellipse cx="60" cy="300" rx="6" ry="12" transform="rotate(30 60 300)"/><ellipse cx="80" cy="320" rx="5" ry="10" transform="rotate(-20 80 320)"/><ellipse cx="350" cy="520" rx="6" ry="12" transform="rotate(50 350 520)"/></g>' +
+      '</g>', 400, 860);
+  }
+  // Yuki: paisaje nevado en pixel art (estilo de las consolas portátiles de los 2000), con pinos, cabaña y nieve
+  function pixelSnow() {
+    var W = 120, H = 260, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    var g = cv.getContext("2d"), r = seeded(41);
+    var B = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
+    var sky = [[0, "#c9d8ea"], [.3, "#d9e5f1"], [.55, "#e8f0f8"], [.7, "#f2f7fc"]];
+    function px(x, y, c) { g.fillStyle = c; g.fillRect(x, y, 1, 1); }
+    for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) {
+      var t = y / H, i = 0; while (i < sky.length - 2 && t > sky[i + 1][0]) i++;
+      var a = sky[i], b = sky[i + 1], f = Math.min(1, Math.max(0, (t - a[0]) / (b[0] - a[0])));
+      px(x, y, f * 16 > B[y % 4][x % 4] ? b[1] : a[1]);
+    }
+    function ridge(base, amp, col, shade, sd) { var rr = seeded(sd), h = base; for (var x = 0; x < W; x++) { h += (rr() - .5) * amp; h = Math.max(base - 16, Math.min(base + 6, h)); g.fillStyle = col; g.fillRect(x, h | 0, 1, H - h); g.fillStyle = shade; g.fillRect(x, (h | 0) + 1 + (x % 3 === 0 ? 1 : 0), 1, 1); } }
+    ridge(120, 3.2, "#b9cde3", "#ffffff", 3); ridge(140, 2.4, "#a9c0db", "#eef5fb", 6);
+    function pine(cx, base, h, dark) {
+      var c1 = dark ? "#1f4a3e" : "#2d5e4c", c2 = dark ? "#16362d" : "#214a3b";
+      for (var k = 0; k < h; k++) { var w = Math.floor((k % 6) * .9 + k / 3.2); for (var dx = -w; dx <= w; dx++) px(cx + dx, base - h + k, dx > 0 ? c2 : c1); if (k % 6 === 0) for (var sx = -w; sx <= w; sx++) px(cx + sx, base - h + k, "#ffffff"); if (k % 6 === 1) { px(cx - w, base - h + k, "#e6eff8"); px(cx + w, base - h + k, "#cfdeee"); } }
+      px(cx, base - h - 1, "#ffffff"); g.fillStyle = "#5a3e2a"; g.fillRect(cx, base, 1, 2);
+    }
+    for (var p = 0; p < 9; p++) pine(6 + p * 13 + (r() * 4 | 0), 150 + (r() * 4 | 0), 14 + (r() * 6 | 0), true);
+    // suelo nevado con sombras azules
+    for (var yy = 160; yy < H; yy++) for (var xx = 0; xx < W; xx++) px(xx, yy, ((xx + yy) % 2 === 0 && (yy - 160) % 23 < 2) ? "#d6e4f2" : ((xx * 7 + yy * 3) % 41 === 0 ? "#e4edf7" : "#f7fbff"));
+    for (var dr = 0; dr < 6; dr++) { var dx0 = r() * W | 0, dy0 = 170 + r() * 80 | 0; for (var k2 = -6; k2 <= 6; k2++) px(dx0 + k2, dy0 + (Math.abs(k2) > 4 ? 1 : 0), "#c9dbee"); }
+    // cabaña con tejado nevado y ventana encendida
+    var hx = 70, hy = 176;
+    g.fillStyle = "#7a4e32"; g.fillRect(hx, hy, 22, 12); g.fillStyle = "#5e3a24"; for (var l = 0; l < 12; l += 3) g.fillRect(hx, hy + l, 22, 1);
+    for (var k3 = 0; k3 < 7; k3++) { g.fillStyle = "#ffffff"; g.fillRect(hx - 3 + k3, hy - 7 + k3, 28 - k3 * 2, 1); }
+    g.fillStyle = "#cfdeee"; g.fillRect(hx - 2, hy - 1, 26, 1); g.fillStyle = "#ffd86b"; g.fillRect(hx + 4, hy + 4, 4, 3); g.fillStyle = "#3a2618"; g.fillRect(hx + 14, hy + 4, 4, 8);
+    g.fillStyle = "#8a8f99"; g.fillRect(hx + 17, hy - 10, 2, 5); g.fillStyle = "#ffffff"; g.fillRect(hx + 17, hy - 11, 2, 1);
+    // valla y pinos delante
+    for (var fx = 4; fx < 60; fx += 6) { g.fillStyle = "#8a5a3a"; g.fillRect(fx, 200, 1, 5); px(fx, 199, "#ffffff"); }
+    g.fillStyle = "#8a5a3a"; g.fillRect(4, 202, 54, 1);
+    pine(20, 236, 26, false); pine(104, 228, 22, false); pine(8, 250, 18, false);
+    // huellas
+    for (var fp = 0; fp < 9; fp++) { px(82 + fp * 2, 196 + fp * 6, "#c9dbee"); px(84 + fp * 2, 199 + fp * 6, "#c9dbee"); }
+    return 'url("' + cv.toDataURL() + '")';
+  }
 
 
   // ===== Medallas (una por paleta): piezas de orfebrería con silueta propia, sin aros ni marcos.
@@ -628,7 +718,7 @@
       again: "#b4473b", hard: "#94661a", good: "#3d7d53", easy: "#3474a6",
       mark: "白", burst: { shapes: ["seal", "dot"], colors: ["#c0503a", "#d9735d"] } },
     // 桜色・薄桜・撫子・今様色: rosa y blanco, flores en relieve, pétalos cayendo
-    { id: "sakura", jp: "桜", name: "Sakura", days: 2, accent: "#d4577a", light: true,
+    { id: "sakura", jp: "桜", name: "Sakura", days: 2, accent: "#d4577a", light: true, sakuraScene: true, surfA: "d8",
       bg: "#fbeaef", surface: "#fffafb", raised: "#f9e1e8", hairline: "#efc6d2",
       text: "#3d2129", muted: "#8a5d69", faint: "#b48d98", status: "#c4466b",
       again: "#c0485a", hard: "#a06a24", good: "#4a8a5c", easy: "#4a7fb0",
@@ -637,7 +727,7 @@
       amb: [{ kind: "fall", shape: "petal", colors: ["#f6b3c6", "#f19db5", "#fbd0dc", "#ffffff"], n: 11, size: [10, 16], dur: [12, 20], o: 0.85 }],
       burst: { shapes: ["petal", "petal", "petal", "blossom"], colors: ["#f6b3c6", "#f19db5", "#fbd0dc", "#ffffff", "#ec8aa6"] } },
     // 抹茶色・白緑・若菜: verde matcha pastel con blanco; hojas de té y polvo de matcha arriba, té líquido abajo
-    { id: "matcha", jp: "抹茶", name: "Matcha", days: 4, accent: "#6a9a35", light: true,
+    { id: "matcha", jp: "抹茶", name: "Matcha", days: 4, accent: "#6a9a35", light: true, matchaScene: true, surfA: "d8",
       bg: "#eef4e3", surface: "#fbfdf6", raised: "#e6efd3", hairline: "#cfdfb2",
       text: "#22301a", muted: "#5d734f", faint: "#8ea27f", status: "#5f8f30",
       again: "#c0485a", hard: "#a06a24", good: "#3f8a4e", easy: "#4a7fb0",
@@ -699,14 +789,12 @@
       amb: [{ kind: "sift", shape: "dot", colors: ["#ffffff", "#f3f6f9"], n: 14, size: [3, 6], dur: [9, 15], o: 0.9 }],
       burst: { shapes: ["dot", "star", "petal"], colors: ["#ffffff", "#e9d8c4", "#c8442b", "#9a4f2a"] } },
     // 雪: blancos con azul hielo, escarcha que crece desde las esquinas y copos cayendo
-    { id: "yuki", jp: "雪", name: "Yuki", days: 60, accent: "#3d8fc4", light: true,
+    { id: "yuki", jp: "雪", name: "Yuki", days: 60, accent: "#3d8fc4", light: true, pixelSnow: true, surfA: "d4",
       bg: "#f2f8fc", surface: "#ffffff", raised: "#e8f2f9", hairline: "#c8dceb",
       text: "#14263a", muted: "#4d6880", faint: "#88a2b8", status: "#3d7fae",
       again: "#c0485a", hard: "#a06a24", good: "#3f8a5e", easy: "#3474a6",
       grad: "radial-gradient(120% 80% at 50% 0%, #ffffff 0%, #eef5fb 50%, #d9e8f4 100%)",
-      frost: true, mark: "雪", glints: true, glintColors: ["#ffffff", "#d7efff", "#ffffff"], glow: "rgba(61,143,196,.16)",
-      relief: reliefTile(YUKI_D, { base: "rgba(255,255,255,.5)", hi: "rgba(255,255,255,.95)", lo: "rgba(60,110,150,.14)" }),
-      amb: [{ kind: "fall", shape: "flake", colors: ["#ffffff", "#cfe8f7", "#a9d2ee"], n: 16, size: [8, 16], dur: [14, 24], o: 0.9 }],
+       glow: "rgba(61,143,196,.16)",
       burst: { shapes: ["flake", "flake", "dot"], colors: ["#ffffff", "#cfe8f7", "#9cc9e6"] } },
     // 海: «La gran ola de Kanagawa» de Hokusai sobre papel, en azul de Prusia y espuma crema
     { id: "umi", jp: "海", name: "Umi", days: 70, accent: "#1f4e86", light: true, surfA: "cc",
@@ -816,6 +904,12 @@
     }
     if (pal.bigWave) d.appendChild(node("bigwave", "background-image:" + bigWave()));
     if (pal.koiPond) { d.appendChild(node("scene", "background-image:" + koiWater())); for (var kq = 0; kq < 3; kq++) d.appendChild(node("koi k" + kq, "background-image:" + koiSprite(kq))); }
+    if (pal.sakuraScene) d.appendChild(node("scene", "background-image:" + sakuraScene()));
+    if (pal.matchaScene) d.appendChild(node("scene", "background-image:" + matchaScene()));
+    if (pal.pixelSnow) {
+      d.appendChild(node("scene pixel", "background-image:" + pixelSnow()));
+      for (var sn = 0; sn < 40; sn++) { var sz2 = Math.random() < .3 ? 6 : 3, du = rnd(7, 14); d.appendChild(node("px-snow", "left:" + rnd(0, 100) + "%;width:" + sz2 + "px;height:" + sz2 + "px;animation-duration:" + du + "s;animation-delay:" + (-rnd(0, du)) + "s;--dx:" + rnd(-10, 10) + "vw")); }
+    }
     if (pal.lotus) d.appendChild(node("scene", "background-image:" + lotusScene()));
     if (pal.kaguyaScene) d.appendChild(node("scene", "background-image:" + kaguyaScene()));
     if (pal.greatWave) d.appendChild(node("scene", "background-image:" + greatWave()));
@@ -1429,6 +1523,8 @@
   #decor .topshade { top: 0; left: 0; right: 0; height: calc(150px + env(safe-area-inset-top)); background: linear-gradient(#0e0a1ef2, #0e0a1e99 55%, transparent); }
   .inst-tag { display: inline-block; font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 4px 10px; margin-bottom: 10px; }
   .inst-tag[hidden] { display: none; }
+  #decor .px-snow { top: 0; background: #ffffff; box-shadow: 0 0 0 1px rgba(150, 180, 210, .35); animation: kfall linear infinite; image-rendering: pixelated; }
+  @media (prefers-reduced-motion: reduce) { #decor .px-snow { display: none; } }
 </style>
 </head>
 <body>
