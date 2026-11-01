@@ -217,57 +217,154 @@
     s += lotusFlower(96, 585, 1.25) + lotusFlower(318, 545, 1.05) + lotusFlower(206, 676, 1.45) + lotusFlower(352, 742, .9) + '</g>';
     return svg(s, 400, 860);
   }
-  // Kaguya: luna, bambú y la princesa, a lápiz y acuarela pastel sobre washi
+  // Kaguya: el cuento del cortador de bambú. Luna llena con su conejo, bosque de bambú a la acuarela,
+  // el tallo que brilla donde apareció la princesa y Kaguya-hime subiendo a la luna sobre una nube,
+  // con su kimono de capas (jūnihitoe) y el manto de plumas celestial ondeando.
   function kaguyaScene() {
-    var r = seeded(21), s = '<defs>' + WC + '<radialGradient id="mo"><stop offset="0" stop-color="#fffaf0"/><stop offset=".55" stop-color="#fbf0dc"/><stop offset=".8" stop-color="#f7d9e2" stop-opacity=".6"/><stop offset="1" stop-color="#f7d9e2" stop-opacity="0"/></radialGradient></defs>' +
-      '<circle cx="300" cy="120" r="96" fill="url(#mo)"/><circle cx="300" cy="120" r="56" fill="none" stroke="#c9b9a0" stroke-opacity=".5" stroke-width="1.2" filter="url(#sk)"/>';
-    // bambú
-    s += '<g filter="url(#wc)">';
-    [[22, 9, 0], [58, 7, 1], [92, 6, 2], [8, 5, 3]].forEach(function (b) {
-      s += '<path d="M' + b[0] + ' 0V860" stroke="#b9dcb0" stroke-opacity=".75" stroke-width="' + b[1] + '"/>';
-      for (var y = 60 + b[2] * 37; y < 860; y += 110) s += '<path d="M' + (b[0] - b[1] * .7) + ' ' + y + 'H' + (b[0] + b[1] * .7) + '" stroke="#8fbf86" stroke-opacity=".8" stroke-width="2"/>';
-      for (var k = 0; k < 4; k++) { var ly = 80 + r() * 700, dir = r() > .5 ? 1 : -1; s += '<path d="M' + b[0] + ' ' + ly.toFixed(0) + 'q' + (dir * 22) + ' -6 ' + (dir * 44) + ' 6q' + (-dir * 22) + ' 2 ' + (-dir * 44) + ' -6Z" fill="#a8d29e" fill-opacity=".7"/>'; }
-    });
-    s += '</g>';
-    // la princesa, de espaldas mirando la luna
-    s += '<g transform="translate(262 590) scale(.82)" opacity=".85"><g filter="url(#wc)">' +
-      '<path d="M40 70C20 90 8 120 2 150 14 140 26 120 40 104ZM74 70C94 90 106 120 112 150 100 140 88 120 74 104Z" fill="#f4c3d0" fill-opacity=".7"/>' +
-      '<path d="M40 40C26 70 18 130 6 210H118C104 140 92 80 74 40Z" fill="#f4c3d0" fill-opacity=".85"/>' +
-      '<path d="M44 46C36 90 32 150 30 210H96C92 150 86 96 72 46Z" fill="#c9e3bf" fill-opacity=".75"/>' +
-      '<path d="M50 50C46 100 46 160 50 210H78C78 160 74 100 66 50Z" fill="#f7dbe2" fill-opacity=".9"/>' +
-      '<path d="M46 22C42 60 40 110 44 170 52 140 55 100 58 60 61 100 64 140 72 170 76 110 74 60 70 22Z" fill="#2a2420" fill-opacity=".7"/>' +
-      '<ellipse cx="58" cy="16" rx="13" ry="15" fill="#2a2420" fill-opacity=".88"/></g>' +
-      '<g filter="url(#sk)" fill="none" stroke="#3a302a" stroke-opacity=".55" stroke-width="1.1"><path d="M40 40C26 70 18 130 6 210M74 40C92 80 104 140 118 210M44 46C36 90 32 150 30 210M72 46C86 96 92 150 96 210M6 210H118"/></g></g>';
-    // pétalos y destellos
-    for (var p = 0; p < 14; p++) s += '<circle cx="' + (140 + r() * 250).toFixed(0) + '" cy="' + (220 + r() * 300).toFixed(0) + '" r="' + (1 + r() * 2).toFixed(1) + '" fill="' + (r() > .5 ? "#f4b8c8" : "#f6e3a6") + '" fill-opacity=".8"/>';
+    var r = seeded(21);
+    var s = '<defs>' + WC +
+      '<radialGradient id="mo"><stop offset="0" stop-color="#fffdf6"/><stop offset=".5" stop-color="#fdf3df"/><stop offset=".72" stop-color="#f9e4c8" stop-opacity=".9"/><stop offset=".86" stop-color="#f6d3dc" stop-opacity=".45"/><stop offset="1" stop-color="#f6d3dc" stop-opacity="0"/></radialGradient>' +
+      '<radialGradient id="gl"><stop offset="0" stop-color="#fff6c8"/><stop offset=".35" stop-color="#ffe79a" stop-opacity=".75"/><stop offset="1" stop-color="#ffe79a" stop-opacity="0"/></radialGradient>' +
+      '<linearGradient id="bb" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7fb27a"/><stop offset=".35" stop-color="#b9dcb0"/><stop offset=".7" stop-color="#9cc993"/><stop offset="1" stop-color="#6e9f6a"/></linearGradient>' +
+      '<linearGradient id="bf" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#a9c9a2"/><stop offset=".5" stop-color="#d3e8cc"/><stop offset="1" stop-color="#a2c49b"/></linearGradient>' +
+      '<linearGradient id="hz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6e7ef" stop-opacity="0"/><stop offset="1" stop-color="#f3dbe4" stop-opacity=".7"/></linearGradient></defs>';
+    // luna llena con halo, manchas a la acuarela y el conejo que machaca mochi
+    s += '<circle cx="292" cy="150" r="150" fill="url(#mo)"/><circle cx="292" cy="150" r="66" fill="#fffaf0"/>' +
+      '<g filter="url(#wc)" fill="#eadcc4" fill-opacity=".55"><ellipse cx="270" cy="130" rx="18" ry="11"/><ellipse cx="312" cy="168" rx="14" ry="9"/><ellipse cx="300" cy="118" rx="8" ry="6"/></g>' +
+      '<g transform="translate(296 158) scale(.9)" fill="#d9c6a6" fill-opacity=".75"><ellipse cx="0" cy="8" rx="14" ry="11"/><circle cx="-12" cy="-4" r="7.5"/><path d="M-14 -10C-20 -26 -16 -32 -12 -30 -9 -24 -10 -16 -11 -10ZM-9 -10C-8 -26 -2 -30 1 -27 1 -20 -4 -14 -7 -9Z"/>' +
+      '<path d="M8 2L22 -14 25 -11 11 4Z"/><path d="M14 18H34L31 28H17Z"/><ellipse cx="24" cy="17" rx="10" ry="3"/></g>' +
+      '<circle cx="292" cy="150" r="66" fill="none" stroke="#d8c6a8" stroke-opacity=".6" stroke-width="1.2" filter="url(#sk)"/>';
+    // nubes doradas que suben hacia la luna (el camino del cortejo celestial)
+    function kumo(x, y, sc, op) { // bruma dorada escalonada (suyari-gasumi)
+      return '<g transform="translate(' + x + ' ' + y + ') scale(' + sc + ')" opacity="' + op + '" fill="#fff6e6" fill-opacity=".85" stroke="#e0c27e" stroke-opacity=".7" stroke-width="1.1" filter="url(#wc)"><path d="M18 0H96A9 9 0 0 1 96 18H18A9 9 0 0 1 18 0Z"/><path d="M0 14H66A8 8 0 0 1 66 30H0A8 8 0 0 1 0 14Z"/><path d="M40 26H120A8 8 0 0 1 120 42H40A8 8 0 0 1 40 26Z"/></g>'; }
+    s += kumo(176, 300, .9, .75) + kumo(222, 236, .7, .6) + kumo(120, 380, 1.1, .8) + kumo(300, 330, .6, .55);
+    // bosque de bambú: cañas al fondo (pálidas) y delante (más intensas), con nudos y ramitas de hojas
+    function cane(x, w, grad, op, sd, tilt) {
+      var rr = seeded(sd), o = '<g opacity="' + op + '" transform="rotate(' + tilt + ' ' + x + ' 860)">';
+      o += '<rect x="' + f(x - w / 2) + '" y="-20" width="' + f(w) + '" height="900" fill="url(#' + grad + ')"/>';
+      for (var y = 30 + rr() * 90; y < 860; y += 90 + rr() * 50) o += '<path d="M' + f(x - w / 2 - 1) + ' ' + f(y) + 'H' + f(x + w / 2 + 1) + '" stroke="#4f7f4c" stroke-opacity=".7" stroke-width="2.2"/><path d="M' + f(x - w / 2) + ' ' + f(y + 3) + 'H' + f(x + w / 2) + '" stroke="#e6f3e0" stroke-opacity=".7" stroke-width="1"/>';
+      for (var k = 0; k < 4; k++) {
+        var ly = 60 + rr() * 640, dir = rr() > .5 ? 1 : -1, bx = x + dir * w / 2;
+        var tx = bx + dir * 30, ty = ly - 16;
+        o += '<path d="M' + f(bx) + ' ' + f(ly) + 'q' + (dir * 14) + ' -12 ' + (dir * 30) + ' -16" fill="none" stroke="#6e9f6a" stroke-width="1.3"/>';
+        for (var l = 0; l < 5; l++) { var la = (dir > 0 ? 0 : 180) + dir * (8 + l * 22 + rr() * 10); o += '<path d="M0 0C6 -3.2 22 -3.6 40 0 22 3.4 6 3 0 0Z" fill="' + (l % 2 ? "#7fb27a" : "#9fcf94") + '" transform="translate(' + f(tx) + ' ' + f(ty) + ') rotate(' + f(la) + ')"/><path d="M2 0H36" stroke="#5f8f5c" stroke-opacity=".45" stroke-width=".6" transform="translate(' + f(tx) + ' ' + f(ty) + ') rotate(' + f(la) + ')"/>'; }
+      }
+      return o + '</g>';
+    }
+    s += '<g filter="url(#wc)">' + cane(70, 9, "bf", .55, 3, 1) + cane(384, 10, "bf", .5, 5, -1) + cane(118, 6, "bf", .45, 7, -.5) + cane(340, 7, "bf", .45, 9, .6) + '</g>';
+    s += '<g filter="url(#wc)">' + cane(18, 15, "bb", .85, 11, 0) + cane(48, 11, "bb", .8, 13, 1.2) + cane(368, 13, "bb", .8, 15, -1) + '</g>';
+    // bruma rosada abajo
+    s += '<rect y="560" width="400" height="300" fill="url(#hz)"/>';
+    // el tallo cortado que brilla, donde el anciano encontró a la princesa
+    s += '<circle cx="96" cy="770" r="70" fill="url(#gl)"/><g filter="url(#wc)"><rect x="86" y="742" width="20" height="130" fill="url(#bb)"/><path d="M86 742L106 734V742Z" fill="#cfe6c6"/><ellipse cx="96" cy="740" rx="10" ry="3.6" fill="#fff4c0"/></g>' +
+      '<path d="M90 812H102" stroke="#4f7f4c" stroke-width="2"/><g fill="#fff6c8">' + [[80, 720], [112, 712], [96, 700], [70, 744], [124, 738]].map(function (p) { return '<path d="' + star(4, 5, 1.2, p[0], p[1], 0) + '"/>'; }).join("") + '</g>';
+    // Kaguya-hime de pie sobre una nube, mirando a la luna, con el manto de plumas al viento
+    s += kumo(196, 784, 1.5, .95);
+    var veil = ribbon(curvePts(function (t) { return [40 + t * 150 - Math.sin(t * 5) * 18, 30 - t * 210 + Math.sin(t * 7) * 10]; }, 40), function (t) { return 9 * (1 - t * .7); });
+    var veil2 = ribbon(curvePts(function (t) { return [86 - t * 120 + Math.sin(t * 6) * 10, 50 - t * 120 - Math.sin(t * 5) * 14]; }, 40), function (t) { return 7 * (1 - t * .7); });
+    s += '<g transform="translate(250 612) scale(.92)"><g filter="url(#wc)">' +
+      '<path d="' + veil + '" fill="#ffffff" fill-opacity=".85" stroke="#9fb9da" stroke-width="1"/><path d="' + veil2 + '" fill="#fbe3ea" fill-opacity=".9" stroke="#e2a6b8" stroke-width="1"/>' +
+      // cola del kimono extendida sobre la nube, con los bordes de las capas
+      '<path d="M30 70C22 120 6 170 -30 212 20 222 100 222 132 210 116 160 98 116 88 70Z" fill="#9c3550"/>' +
+      '<path d="M-30 212C20 222 100 222 132 210L130 204C98 214 24 214 -26 206Z" fill="#f2b8c8"/><path d="M-26 206C24 214 98 214 130 204L128 198C96 207 28 207 -22 200Z" fill="#c7e0bd"/><path d="M-22 200C28 207 96 207 128 198L126 193C94 201 32 201 -18 195Z" fill="#d9c6ef"/>' +
+      '<path d="M34 72C28 118 16 160 -8 194 30 200 92 200 122 190 108 150 94 112 84 72Z" fill="#c45a78"/>' +
+      '<g fill="#f6e3a6" fill-opacity=".85">' + [[30, 120], [56, 150], [84, 128], [20, 170], [70, 182], [100, 168], [48, 100], [92, 98]].map(function (p) { return '<g transform="translate(' + p[0] + ' ' + p[1] + ')">' + [0, 72, 144, 216, 288].map(function (a) { return '<ellipse cx="0" cy="-2.6" rx="1.4" ry="2.4" transform="rotate(' + a + ')"/>'; }).join("") + '</g>'; }).join("") + '</g>' +
+      // mangas largas colgando, con las capas asomando
+      '<path d="M36 60C20 74 8 100 6 136 18 142 32 138 40 120 44 100 44 80 40 64Z" fill="#a8405e"/><path d="M6 136C18 142 32 138 40 120L42 126C34 144 18 148 4 142Z" fill="#f2b8c8"/>' +
+      '<path d="M80 60C96 74 108 100 110 136 98 142 84 138 76 120 72 100 72 80 76 64Z" fill="#a8405e"/><path d="M110 136C98 142 84 138 76 120L74 126C82 144 98 148 112 142Z" fill="#f2b8c8"/>' +
+      // pelo largo y liso por la espalda
+      '<path d="M49 18C44 46 46 80 44 112 42 140 46 168 40 192 50 186 56 190 60 196 64 190 70 186 78 192 72 168 76 140 74 112 72 80 74 46 67 18Z" fill="#1f1a18"/><path d="M56 40C55 80 57 130 54 180M62 40C63 90 62 140 66 182" fill="none" stroke="#4a3e38" stroke-width=".8"/>' +
+      '<ellipse cx="58" cy="14" rx="11.5" ry="13" fill="#1f1a18"/><path d="M64 6C71 7 74 14 72 21 70 25 66 25 64 23Z" fill="#fbeee6"/>' +
+      '<path d="M50 4C54 -4 64 -5 69 1" fill="none" stroke="#c9a24a" stroke-width="1.6"/><circle cx="60" cy="-3" r="2.2" fill="#c9a24a"/><path d="M60 -1V8" stroke="#c9a24a" stroke-width=".8"/></g>' +
+      '<g filter="url(#sk)" fill="none" stroke="#3a302a" stroke-opacity=".45" stroke-width="1"><path d="M30 70C22 120 6 170 -30 212M88 70C98 116 116 160 132 210M36 60C20 74 8 100 6 136M80 60C96 74 108 100 110 136"/></g></g>';
+    // destellos y pétalos flotando
+    for (var p = 0; p < 22; p++) s += '<circle cx="' + (130 + r() * 260).toFixed(0) + '" cy="' + (200 + r() * 520).toFixed(0) + '" r="' + (1 + r() * 2.2).toFixed(1) + '" fill="' + (r() > .5 ? "#f4b8c8" : "#f6e3a6") + '" fill-opacity=".85"/>';
     return svg(s, 400, 860);
   }
-  // Umi: la gran ola de Hokusai, tal cual, sobre papel
+  // Umi: «La gran ola de Kanagawa» de Hokusai (1831), recompuesta en vertical:
+  // la ola gigante con su espuma en garras, el Fuji nevado en el seno, la ola pequeña delante,
+  // las tres barcas oshiokuri con sus remeros, la espuma cayendo como nieve y la cartela del título.
   function greatWave() {
-    var claws = "";
-    function claw(x, y, a, sz) { var c = Math.cos(a), s2 = Math.sin(a); claws += '<path transform="translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') rotate(' + (a * 180 / Math.PI).toFixed(1) + ') scale(' + sz + ')" d="M0 0C4 -6 10 -8 16 -6 12 -5 10 -2 10 1 14 -3 19 -3 22 0 17 0 14 3 13 6 10 3 5 2 0 4Z"/>'; }
-    // espuma en forma de garras a lo largo de la cresta
-    for (var i = 0; i <= 16; i++) { var t = i / 16, x = 110 + t * 210, y = 250 - Math.sin(t * Math.PI) * 150 + t * 40; claw(x, y, -1.2 + t * 1.9, .9 + Math.sin(t * Math.PI) * .5); }
-    for (var j = 0; j < 7; j++) claw(306 + j * 6, 218 + j * 14, 1.2 + j * .15, .8);
-    var spray = ""; var r = seeded(4);
-    for (var k = 0; k < 70; k++) spray += '<circle cx="' + (120 + r() * 230).toFixed(0) + '" cy="' + (60 + r() * 200).toFixed(0) + '" r="' + (1.2 + r() * 2.4).toFixed(1) + '"/>';
-    var body = "M-20 860V560C10 470 50 380 110 300 170 220 240 160 300 150 350 142 380 168 378 200 376 226 350 236 334 222 322 210 328 192 342 192 318 176 282 184 258 214 226 256 220 330 246 400 270 466 330 520 420 540V860Z";
-    var stripes = "";
-    for (var s2 = 0; s2 < 9; s2++) stripes += '<path d="M' + (-10 + s2 * 14) + ' 860C' + (20 + s2 * 18) + ' ' + (700 - s2 * 30) + ' ' + (60 + s2 * 22) + ' ' + (520 - s2 * 26) + ' ' + (130 + s2 * 16) + ' ' + (380 - s2 * 18) + '" />';
-    return svg('<defs>' + WC + '</defs>' +
-      '<path d="M0 0H400V300C330 250 260 240 200 260S70 330 0 330Z" fill="#d9c9a2" fill-opacity=".55"/>' +
-      '<rect x="22" y="70" width="44" height="150" fill="#e8dcc0" stroke="#7a6a4a" stroke-width="1.2"/><rect x="26" y="74" width="36" height="142" fill="none" stroke="#7a6a4a" stroke-opacity=".5"/>' +
-      '<g transform="translate(-30 300) scale(1.08 .66)">' +
-      '<path d="M120 640L170 560 182 572 196 556 246 640Z" fill="#2b5486"/><path d="M170 560L176 566 182 572 189 566 196 556 186 572 180 578 174 572Z" fill="#f2ead8"/>' +
-      '<path d="' + body + '" fill="#1f4677"/>' +
-      '<g fill="none" stroke="#5f8cc0" stroke-width="3" stroke-opacity=".75">' + stripes + '</g>' +
-      '<path d="M112 300C172 222 240 164 300 154 348 146 374 170 372 198 370 222 350 230 338 220" fill="none" stroke="#f2ead8" stroke-width="15" stroke-linecap="round"/>' +
-      '<path d="M150 270C200 214 250 186 300 180M70 420C100 360 140 320 190 290" fill="none" stroke="#f2ead8" stroke-opacity=".55" stroke-width="4" stroke-linecap="round"/>' +
-      '<g fill="#f2ead8">' + claws + '</g><g fill="#f2ead8" fill-opacity=".9">' + spray + '</g>' +
-      '<path d="M262 600L292 556 299 562 306 552 314 560 344 600Z" fill="#2b5486"/><path d="M292 556L299 562 306 552 314 560 309 566 303 562 297 567Z" fill="#f2ead8"/>' +
-      '<path d="M300 860V700C320 640 360 600 400 590V860Z" fill="#1f4677"/><path d="M310 690C330 650 360 625 400 616" fill="none" stroke="#f2ead8" stroke-width="7" stroke-linecap="round"/>' +
-      '<g fill="#e3d4ad" stroke="#5a4a2a" stroke-width="1"><path d="M150 690C200 676 270 676 320 700L314 708C266 690 206 690 156 700Z" transform="rotate(-18 230 690)"/><path d="M40 770C90 756 160 756 210 780L204 788C156 770 96 770 46 780Z" transform="rotate(8 120 770)"/></g>' +
-      '<g fill="#3a3326"><circle cx="200" cy="676" r="2.6"/><circle cx="214" cy="672" r="2.6"/><circle cx="228" cy="670" r="2.6"/><circle cx="242" cy="670" r="2.6"/><circle cx="90" cy="760" r="2.6"/><circle cx="104" cy="760" r="2.6"/><circle cx="118" cy="761" r="2.6"/></g></g>', 400, 860);
+    var r = seeded(7), P = "#1b3a66", PD = "#112a4d", PL = "#3f6ea3", PX = "#8fb3d8", FO = "#f3ecda", INKL = "#0e2240";
+    function bz(p, t) { var u = 1 - t; return [u * u * u * p[0] + 3 * u * u * t * p[2] + 3 * u * t * t * p[4] + t * t * t * p[6], u * u * u * p[1] + 3 * u * u * t * p[3] + 3 * u * t * t * p[5] + t * t * t * p[7]]; }
+    function ang(p, t) { var a = bz(p, Math.max(0, t - .01)), b = bz(p, Math.min(1, t + .01)); return Math.atan2(b[1] - a[1], b[0] - a[0]); }
+    // Garra de espuma: un dedo que se curva hacia abajo y se abre en tres puntas en gancho (fractal sencillo)
+    function finger(x, y, a, L, w, bend, depth) {
+      var pts = [[x, y]], n = 10, px = x, py = y;
+      for (var i = 1; i <= n; i++) { var d = a + bend * i / n; px += Math.cos(d) * L / n; py += Math.sin(d) * L / n; pts.push([px, py]); }
+      var o = '<path d="' + ribbon(pts, function (t) { return w * (1 - t * .6) * (t < .2 ? .55 + t * 2.25 : 1); }) + '"/>';
+      var ea = a + bend;
+      if (depth > 0) { for (var k = -1; k <= 1; k++) o += finger(px, py, ea + k * .6, L * .55, w * .5, bend * 1.05, depth - 1); }
+      else o += '<circle cx="' + f(px) + '" cy="' + f(py) + '" r="' + f(w * .4) + '"/>';
+      return o;
+    }
+    var s = '<defs>' +
+      '<linearGradient id="gsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5d554a" stop-opacity=".55"/><stop offset=".25" stop-color="#8a7f6c" stop-opacity=".25"/><stop offset=".55" stop-color="#d9c9a2" stop-opacity="0"/></linearGradient>' +
+      '<linearGradient id="gw" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + PL + '"/><stop offset=".45" stop-color="' + P + '"/><stop offset="1" stop-color="' + PD + '"/></linearGradient>' +
+      '<clipPath id="wcl"><path id="wb" d="M-20 870V560C10 470 60 390 130 340C190 298 260 280 320 292C365 302 392 336 380 372C372 392 350 398 338 386C328 374 336 360 348 362C320 346 270 346 238 372C200 404 182 470 190 540C198 610 240 670 300 700C340 718 380 722 420 716V870Z"/></clipPath></defs>';
+    // cielo: papel con nubes oscuras arriba
+    s += '<rect width="400" height="860" fill="url(#gsky)"/>' +
+      '<path d="M-10 250C60 236 120 246 180 236S300 222 410 236V180C330 170 260 186 200 176S60 196 -10 186Z" fill="#cdbb92" fill-opacity=".35"/>';
+    // cartela del título y firma (arriba a la izquierda, como en la estampa)
+    s += '<g transform="translate(22 66)"><rect width="40" height="150" fill="#e9dcbc" stroke="#6b5a3a" stroke-width="1.2"/><rect x="3" y="3" width="34" height="144" fill="none" stroke="#6b5a3a" stroke-opacity=".5"/>' +
+      '<g stroke="#3a3020" stroke-opacity=".7" stroke-width="1.8" stroke-linecap="round">';
+    for (var c = 0; c < 2; c++) for (var q = 0; q < 8; q++) { var cx = 13 + c * 14, cy = 12 + q * 16.5; var g2 = ''; for (var z = 0; z < 3; z++) { var zx = cx - 4 + r() * 8, zy = cy - 4 + r() * 8, za = r() * Math.PI; g2 += 'M' + f(zx - Math.cos(za) * 3.5) + ' ' + f(zy - Math.sin(za) * 3.5) + 'L' + f(zx + Math.cos(za) * 3.5) + ' ' + f(zy + Math.sin(za) * 3.5); } s += '<path d="' + g2 + '"/>'; }
+    s += '</g></g><g transform="translate(70 66)"><rect width="18" height="64" fill="#e9dcbc" stroke="#6b5a3a" stroke-width="1"/><path d="M9 8v48M5 16h8M5 30h8M5 44h8" stroke="#3a3020" stroke-opacity=".6" stroke-width="1.6"/></g>';
+    // el Fuji en el seno de la ola
+    s += '<g><path d="M226 704L284 638C290 631 300 631 306 638L364 704Z" fill="' + PL + '"/>' +
+      '<path d="M273 651L284 638C290 631 300 631 306 638L317 651 309 648 303 656 296 647 289 657 282 648Z" fill="#f6f1e4"/>' +
+      '<path d="M226 704L284 638" fill="none" stroke="' + INKL + '" stroke-width="1.2"/><path d="M306 638L364 704" fill="none" stroke="' + INKL + '" stroke-width="1.2"/>' +
+      '<path d="M250 690L278 668M262 696L290 664M318 664L340 690" stroke="' + PX + '" stroke-opacity=".6" stroke-width="1.2"/></g>';
+    // mar del fondo a la derecha
+    s += '<path d="M180 720C240 700 300 708 420 698V870H180Z" fill="' + P + '"/>';
+    // la gran ola
+    s += '<use href="#wb" fill="url(#gw)"/><g clip-path="url(#wcl)" fill="none" stroke-linecap="round">';
+    // vetas: copias de la silueta que convergen en el rizo, alternando azul claro y espuma
+    var CREST = "M-20 560C10 470 60 390 130 340C190 298 260 280 320 292C365 302 392 336 380 372C372 392 350 398 338 386";
+    var FACE = "M348 362C320 346 270 346 238 372C200 404 182 470 190 540C198 610 240 670 300 700";
+    for (var k = 1; k <= 12; k++) {
+      var sc = 1 - k * .055, col = k % 3 === 0 ? FO : PX, tr = 'translate(352 372) scale(' + f(sc) + ') translate(-352 -372)';
+      s += '<path d="' + CREST + '" transform="' + tr + '" stroke="' + col + '" stroke-opacity="' + (k % 3 === 0 ? .6 : .55) + '" stroke-width="' + f(2.8 - k * .13) + '"/>';
+    }
+    for (var k2 = 1; k2 <= 8; k2++) s += '<path d="' + FACE + '" transform="translate(' + (-k2 * 9) + ' ' + (k2 * 2) + ')" stroke="' + PX + '" stroke-opacity="' + f(.55 - k2 * .04) + '" stroke-width="1.6"/>';
+    // malla de líneas finas en el cuerpo
+    for (var m = 0; m < 26; m++) { var x0 = -20 + m * 14; s += '<path d="M' + x0 + ' 870C' + (x0 + 26) + ' 720 ' + (x0 + 70 + m * 3) + ' 540 ' + (130 + m * 8) + ' ' + (350 - m * 2) + '" stroke="' + PD + '" stroke-opacity=".35" stroke-width=".9"/>'; }
+    s += '</g>';
+    // cresta de espuma: banda blanca con borde azul
+    var C1 = [130, 340, 190, 298, 260, 280, 320, 292], C2 = [320, 292, 365, 302, 392, 336, 380, 372], C0 = [-20, 560, 10, 470, 60, 390, 130, 340];
+    s += '<path d="M40 430C70 390 100 360 130 340C190 298 260 280 320 292C365 302 392 336 380 372C372 392 350 398 338 386C328 374 336 360 348 362" fill="none" stroke="' + FO + '" stroke-width="15" stroke-linecap="round"/>' +
+      '<path d="M48 440C76 400 104 372 136 352C192 314 258 298 316 308C352 316 372 340 366 362" fill="none" stroke="' + PX + '" stroke-width="5" stroke-opacity=".9"/>';
+    // garras de espuma a lo largo de la cresta y colgando del labio
+    var claws = '';
+    for (var i = 0; i < 8; i++) { var t = .3 + i * .1, p = bz(C1, t), a = ang(C1, t) - 1.25; claws += finger(p[0], p[1] - 5, a, 36 + r() * 10, 9, 1.5, 2); }
+    for (var j = 0; j < 6; j++) { var t2 = .05 + j / 6, p2 = bz(C2, t2), a2 = ang(C2, t2) - 1.2; claws += finger(p2[0] + 4, p2[1], a2, 42 + r() * 10, 9.5, 1.4, 2); }
+    for (var b = 0; b < 7; b++) { var t3 = .35 + b * .1, p3 = bz(C0, t3), a3 = ang(C0, t3) - 1.3; claws += finger(p3[0] + 3, p3[1] - 3, a3, 22 + r() * 6, 8, 1.5, 2); }
+    s += '<g fill="' + FO + '" stroke="' + INKL + '" stroke-width=".5">' + claws + '</g>';
+    // espuma que cae como nieve sobre el Fuji
+    var spray = '';
+    for (var d = 0; d < 90; d++) { var sx = 250 + r() * 160, sy = 360 + r() * 290, rr = .8 + r() * 2.4; if (sx < 300 && sy < 420) continue; spray += '<circle cx="' + f(sx) + '" cy="' + f(sy) + '" r="' + f(rr) + '" fill-opacity="' + f(.5 + r() * .5) + '"/>'; }
+    s += '<g fill="' + FO + '">' + spray + '</g>';
+    // barcas oshiokuri con remeros
+    function boat(x, y, a, L) {
+      var o = '<g transform="translate(' + x + ' ' + y + ') rotate(' + a + ')"><path d="M0 0C' + (L * .3) + ' 6 ' + (L * .7) + ' 6 ' + L + ' -4L' + (L - 6) + ' 6C' + (L * .6) + ' 13 ' + (L * .3) + ' 13 6 8Z" fill="#e6d6ab" stroke="#5a4a2a" stroke-width="1"/>' +
+        '<path d="M8 6C' + (L * .35) + ' 10 ' + (L * .65) + ' 10 ' + (L - 8) + ' 3" fill="none" stroke="#5a4a2a" stroke-opacity=".6" stroke-width=".8"/>';
+      for (var n = 0; n < 8; n++) { var bx = 16 + n * (L - 30) / 7; o += '<path d="M' + f(bx - 3) + ' 2Q' + f(bx) + ' -6 ' + f(bx + 3) + ' 2Z" fill="#2c4a74"/><circle cx="' + f(bx) + '" cy="-4" r="2.2" fill="#1d1712"/><path d="M' + f(bx - 2) + ' -1h4" stroke="#f3ecda" stroke-width="1.2"/>'; }
+      return o + '</g>';
+    }
+    s += boat(176, 470, 52, 130) + boat(300, 726, -8, 120);
+    // la ola pequeña de delante, con la forma del Fuji
+    s += '<path d="M60 870C100 840 150 800 188 752C198 738 214 730 228 738C236 744 232 754 224 752C252 790 296 836 340 870Z" fill="' + P + '"/>' +
+      '<g fill="none" stroke="' + PX + '" stroke-opacity=".6" stroke-width="1.6"><path d="M110 868C140 836 170 804 200 768M150 868C172 842 192 816 208 790M300 868C276 840 252 812 230 786"/></g>' +
+      '<path d="M178 760C190 748 200 736 210 734 220 734 232 748 244 760" fill="none" stroke="' + FO + '" stroke-width="8" stroke-linecap="round"/>';
+    var small = '';
+    for (var g = 0; g < 7; g++) { var gx = 180 + g * 10, gy = 758 - Math.sin(g / 6 * Math.PI) * 22; small += finger(gx, gy - 2, -Math.PI / 2 + (g - 3) * .42 - .6, 14, 5.5, 1.3, 1); }
+    s += '<g fill="' + FO + '" stroke="' + INKL + '" stroke-width=".4">' + small + '</g>';
+    s += boat(-24, 800, -6, 150);
+    // olas del primer plano a la derecha
+    s += '<path d="M290 870C316 832 352 806 396 794 410 790 420 796 420 800V870Z" fill="' + PD + '"/><path d="M300 860C328 828 360 808 400 798" fill="none" stroke="' + FO + '" stroke-width="6" stroke-linecap="round"/>';
+    var fr = ''; for (var h = 0; h < 5; h++) { var hx = 316 + h * 20, hy = 838 - h * 9; fr += finger(hx, hy, -1.9 + h * .1, 14, 5, 1.4, 1); }
+    s += '<g fill="' + FO + '" stroke="' + INKL + '" stroke-width=".4">' + fr + '</g>';
+    return svg(s, 400, 860);
   }
   // Aki: árboles otoñales, hojas de arce y de ginkgo en el suelo
   var GINKGO_D = "M12 22C12 18 11.5 15 12 13 8 13 3 10 1.5 5 5 2 9 1.5 12 4 15 1.5 19 2 22.5 5 21 10 16 13 12 13 12.5 15 12 18 12 22Z";
@@ -771,11 +868,28 @@
     return k + '</g>';
   }
   function kitsune(x, y, sc, flip) {
-    return '<g transform="translate(' + x + ' ' + y + ') scale(' + (flip ? -sc : sc) + ' ' + sc + ')">' +
-      '<path d="M-14 0V-6Q-16 -30 -8 -40L-12 -56 -3 -46Q0 -47 3 -46L10 -56 7 -40Q16 -30 14 -6V0Z" fill="#f4efe6" stroke="#c9bba5" stroke-width="1"/>' +
-      '<path d="M8 -6Q26 -10 24 -34Q22 -44 28 -50Q34 -42 30 -28Q28 -8 10 0Z" fill="#f4efe6" stroke="#c9bba5" stroke-width="1"/>' +
-      '<path d="M-10 -26Q0 -18 10 -26L8 -20Q0 -14 -8 -20Z" fill="#d9452b"/><circle cx="-4" cy="-38" r="1.1" fill="#1d1712"/><circle cx="4" cy="-38" r="1.1" fill="#1d1712"/>' +
-      '<rect x="-18" y="0" width="36" height="8" fill="#9a8f80"/><rect x="-21" y="8" width="42" height="12" fill="#857a6b"/></g>';
+    // zorro de piedra de Inari sentado de perfil: cola tupida hacia arriba, babero rojo y la joya en la boca
+    var W = "#f6f1e7", L = "#d6c9b2", S = "#e6dccb";
+    return '<g transform="translate(' + x + ' ' + y + ') scale(' + (flip ? -sc : sc) + ' ' + sc + ')" stroke-linejoin="round" stroke-linecap="round">' +
+      // cola
+      '<path d="M-9 -9C-24 -12 -30 -30 -24 -46 -21 -54 -16 -60 -9 -68 -9 -60 -7 -54 -10 -46 -14 -36 -12 -24 -3 -18Z" fill="' + S + '" stroke="' + L + '" stroke-width="1"/>' +
+      '<path d="M-9 -68C-12 -62 -14 -58 -13 -52 -11 -57 -9 -62 -9 -68Z" fill="#fff"/><path d="M-20 -24C-23 -32 -22 -40 -18 -47M-15 -22C-17 -30 -16 -38 -13 -44" fill="none" stroke="' + L + '" stroke-width=".8"/>' +
+      // cuerpo sentado
+      '<path d="M-15 0C-20 -8 -18 -21 -7 -27 -2 -30 1 -36 3 -44L13 -46C15 -37 15 -28 13 -20L13 0Z" fill="' + W + '" stroke="' + L + '" stroke-width="1"/>' +
+      '<path d="M-13 -1C-13 -10 -7 -17 1 -15" fill="none" stroke="' + L + '" stroke-width="1"/>' +
+      '<path d="M7 -20V-1M7 -1H14" fill="none" stroke="' + L + '" stroke-width="1"/><path d="M-15 0H15" stroke="' + L + '" stroke-width="1"/>' +
+      // cabeza: hocico largo hacia delante y orejas altas
+      '<path d="M2 -51C3 -58 10 -61 15 -59L27 -53C29 -52 29 -49.5 26.5 -49.5L15 -47.5C10 -45 4 -46 2 -51Z" fill="' + W + '" stroke="' + L + '" stroke-width="1"/>' +
+      '<path d="M3.5 -56L2.5 -71 10.5 -60ZM8 -59.5L10 -72 14 -59.5Z" fill="' + W + '" stroke="' + L + '" stroke-width="1"/>' +
+      '<path d="M4.5 -59L4 -67 8 -60.5ZM9.5 -60L10.6 -68 12.6 -60Z" fill="#d9452b" fill-opacity=".75"/>' +
+      '<path d="M12.5 -55.2Q15 -55.8 17.5 -54" fill="none" stroke="#1d1712" stroke-width="1.1"/><path d="M12 -54Q15 -53.4 18 -53" fill="none" stroke="#d9452b" stroke-width=".7"/>' +
+      '<circle cx="27.4" cy="-51" r="1.2" fill="#1d1712"/>' +
+      // joya (hōju) en la boca
+      '<path d="M18 -48C18 -44 24 -44 24 -48 24 -50 22 -52 21 -53.5 20 -52 18 -50 18 -48Z" fill="#e8b84a" stroke="#8a611a" stroke-width=".6"/>' +
+      // babero rojo
+      '<path d="M2.5 -42C6 -40 11 -40.5 14 -43.5L12.5 -33C10 -31 6 -32 2.5 -42Z" fill="#d9452b"/><path d="M3.5 -41.2C7 -39.4 11 -39.8 13.6 -42.4" fill="none" stroke="#a8301c" stroke-width=".8"/>' +
+      // pedestal de piedra
+      '<rect x="-22" y="0" width="42" height="7" fill="#a39886"/><rect x="-25" y="7" width="48" height="14" fill="#8b806f"/><path d="M-22 1H20M-25 8H23" stroke="#c4baa8" stroke-width="1"/></g>';
   }
   function inariScene() {
     var s = '';
