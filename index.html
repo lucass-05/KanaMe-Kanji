@@ -4398,7 +4398,7 @@
       if (!p || typeof p.due !== "number") fresh.push(k);
       else if (p.due <= now) reviews.push(k);
     });
-    queue = shuffle(reviews).concat(shuffle(fresh));
+    queue = shuffle(reviews.concat(fresh));   // todo el grupo mezclado al azar: pendientes de repaso y nuevos juntos
   }
 
   // Añade al final de la cola las tarjetas que acaban de volver a estar disponibles (p. ej. "Again" tras 10 min)
