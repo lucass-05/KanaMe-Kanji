@@ -4168,7 +4168,8 @@
 
   /* ================= Kanji del día =================
      Una vez al día (la primera vez que se abre la app) se genera una lista de DAILY_SIZE kanji nuevos (5, 10 o 20),
-     elegidos al azar del nivel más sencillo que aún tenga kanji sin estudiar. Se guarda como texto
+     elegidos al azar del nivel más sencillo que aún tenga kanji disponibles (sin estudiar, o cuyo tiempo de espera
+     ya se ha cumplido, igual que en los niveles de abajo). Se guarda como texto
      que empieza por la fecha; mientras la fecha sea la de hoy, no se vuelve a calcular. */
   function pad(n) { return (n < 10 ? "0" : "") + n; }
   function dayStr(d) { d = d || new Date(); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
@@ -4181,26 +4182,34 @@
     var date = (lines[0] || "").trim();
     var list = Array.from((lines[1] || "").trim()).filter(function (k) { return CARDS[k]; });
     var ticked = Array.from((lines[2] || "").trim()).filter(function (k) { return list.indexOf(k) >= 0; });
-    return /^\d{4}-\d{2}-\d{2}$/.test(date) ? { date: date, list: list, ticked: ticked } : { date: "", list: [], ticked: [] };
+    return /^\d{4}-\d{2}-\d{2}$/.test(date) ? { date: date, list: list, ticked: ticked, v: +(lines[3] || 1) } : { date: "", list: [], ticked: [] };
   }
   function saveDaily() {
-    var text = daily.date + "\n" + daily.list.join("") + "\n" + daily.ticked.join("");
+    var text = daily.date + "\n" + daily.list.join("") + "\n" + daily.ticked.join("") + "\n" + DAILY_V;
     lsSet(DAILY_KEY, text); idbSet(DAILY_KEY, text);
   }
-  // Kanji aún sin estudiar, del nivel más sencillo que quede, sin repetir los de «excluir»
+  // Kanji disponibles (nuevos o con el tiempo de espera ya cumplido) del primer nivel que tenga alguno,
+  // al azar dentro del nivel; si no llegan, se completa con el siguiente. Sin repetir los de «excluir».
+  var DAILY_V = 2;   // 2 = reto elegido con esta regla (los de antes se rehacen una vez, conservando los ✓)
   function pickFresh(n, excluir) {
-    var pick = [];
+    var pick = [], now = Date.now();
     for (var g = 0; g < GRADES.length && pick.length < n; g++) {
       if (g + 1 < fromGroup) continue;
-      var fresh = GRADES[g].map(function (r) { return r[0]; }).filter(function (k) { return !progress[k] && excluir.indexOf(k) < 0; });
+      var fresh = GRADES[g].map(function (r) { return r[0]; }).filter(function (k) { var p = progress[k]; return (!p || typeof p.due !== "number" || p.due <= now) && excluir.indexOf(k) < 0; });
       pick = pick.concat(shuffle(fresh).slice(0, n - pick.length));
     }
     return pick;
   }
   function ensureDaily() {
     var today = dayStr();
+    if (daily.date === today && daily.v !== DAILY_V && daily.ticked.length < daily.list.length && streak.last !== today) {
+      // reto de hoy elegido con la regla antigua y aún sin superar: se rehace conservando los ya marcados con ✓
+      daily = { date: today, list: daily.ticked.concat(pickFresh(Math.max(0, DAILY_SIZE - daily.ticked.length), daily.ticked)), ticked: daily.ticked.slice(), v: DAILY_V };
+      saveDaily();
+      return true;
+    }
     if (daily.date === today) return fitDaily();   // ya generado hoy: solo se ajusta si ha cambiado el tamaño del reto
-    daily = { date: today, list: pickFresh(DAILY_SIZE, []), ticked: [] };
+    daily = { date: today, list: pickFresh(DAILY_SIZE, []), ticked: [], v: DAILY_V };
     saveDaily();
     return true;
   }
@@ -4454,7 +4463,7 @@
     b.appendChild(el("span", "jp", "今日"));
     var t = el("span", "txt");
     t.appendChild(el("span", "t", "Kanji de hoy"));
-    t.appendChild(el("span", "s", n === 0 ? "¡Ya has empezado todos los kanji!" : complete ? "Reto superado · repásalos cuando quieras" : "Marca ✓ los " + n + " para superar el reto de hoy"));
+    t.appendChild(el("span", "s", n === 0 ? "No te queda ningún kanji pendiente ahora mismo" : complete ? "Reto superado · repásalos cuando quieras" : "Marca ✓ los " + n + " para superar el reto de hoy"));
     b.appendChild(t);
     b.appendChild(el("span", "right", (complete ? "✓ " : "") + done + "/" + n));
     b.onclick = function () { selectLevel(0); };
