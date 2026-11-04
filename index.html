@@ -4091,7 +4091,22 @@
   var MAX_IVL = 365 * DAY, MASTERED = 21 * DAY;
   var LEGACY_IVL = { again: 0, hard: 1 * DAY, good: 3 * DAY, easy: 16 * DAY }; // progreso guardado antes de existir «ivl»
   function ivlOf(p) { return !p ? 0 : typeof p.ivl === "number" ? p.ivl : (LEGACY_IVL[p.last] || 0); }
-  function nextIvl(p, choice) { var r = RULES[choice]; return Math.min(MAX_IVL, Math.max(r.min, Math.round(ivlOf(p) * r.mult))); }
+  /* Multiplicador personal de cada kanji («ease», como en Anki): empieza en ×2,5 (Good) y Easy usa ese valor ×1,2.
+     Again lo baja 0,20 y Hard 0,15 (los kanji que cuestan vuelven más a menudo); Easy lo sube 0,15. Entre ×1,3 y ×3,5. */
+  var EASE0 = 2.5, EASE_MIN = 1.3, EASE_MAX = 3.5, EASE_STEP = { again: -.2, hard: -.15, good: 0, easy: .15 };
+  function easeOf(p) { return p && typeof p.ease === "number" ? p.ease : EASE0; }
+  function multOf(p, choice) { return choice === "hard" ? RULES.hard.mult : choice === "easy" ? easeOf(p) * 1.2 : choice === "good" ? easeOf(p) : 0; }
+  function nextIvl(p, choice) { var r = RULES[choice]; return Math.min(MAX_IVL, Math.max(r.min, Math.round(ivlOf(p) * multOf(p, choice)))); }
+  // Aplica una valoración a un kanji: plazo nuevo y ajuste de su multiplicador personal
+  function applyRating(p, choice, now) {
+    p.reps = (p.reps || 0) + 1;
+    p.ivl = choice === "again" ? 0 : nextIvl(p, choice);
+    p.due = now + (choice === "again" ? RULES.again.min : p.ivl);
+    p.ease = Math.round(Math.min(EASE_MAX, Math.max(EASE_MIN, easeOf(p) + EASE_STEP[choice])) * 100) / 100;
+    p.last = choice;
+    p.seen = now;
+    return p;
+  }
 
   /* ================= Almacenamiento =================
      El progreso se escribe en localStorage Y en IndexedDB.
@@ -4255,13 +4270,7 @@
      multiplicador de días y no vuelve hasta que se cumpla su espera. Al completarlo sube la racha.
      Después se pueden seguir viendo con «Siguiente», sin marcar nada. */
   function rateGood(k, now) {
-    var p = progress[k] || { reps: 0 };
-    p.reps = (p.reps || 0) + 1;
-    p.ivl = nextIvl(p, "good");
-    p.due = now + p.ivl;
-    p.last = "good";
-    p.seen = now;
-    progress[k] = p;
+    progress[k] = applyRating(progress[k] || { reps: 0 }, "good", now);
   }
   function dailyDone() { return daily.ticked.length; }
   function dailyComplete() { return daily.list.length > 0 && (daily.ticked.length >= daily.list.length || streak.last === daily.date); }
@@ -4680,13 +4689,7 @@
     if (!flipped || !current || busy) return;
     busy = true;
     var now = Date.now();
-    var p = progress[current] || { reps: 0 };
-    p.reps = (p.reps || 0) + 1;
-    p.ivl = choice === "again" ? 0 : nextIvl(p, choice);
-    p.due = now + (choice === "again" ? RULES.again.min : p.ivl);
-    p.last = choice;
-    p.seen = now;
-    progress[current] = p;
+    progress[current] = applyRating(progress[current] || { reps: 0 }, choice, now);
     save();
     if (!daily.list.length) checkDayComplete(); // sin kanji nuevos para el reto: cualquier repaso cuenta para la racha
     if (cramMode && choice === "again") queue.push(current);
@@ -4707,9 +4710,7 @@
       if (daily.ticked.indexOf(k) < 0) { daily.ticked.push(k); saveDaily(); rateGood(k, Date.now()); save(); }
     } else {
       // ✕ cuenta como «Again»: el kanji vuelve a empezar y el ✓ final le dará el plazo de un «Good» desde cero
-      var now = Date.now(), p = progress[k] || { reps: 0 };
-      p.reps = (p.reps || 0) + 1; p.ivl = 0; p.due = now + RULES.again.min; p.last = "again"; p.seen = now;
-      progress[k] = p; save();
+      progress[k] = applyRating(progress[k] || { reps: 0 }, "again", Date.now()); save();
       queue.push(k);
     }
     var finished = ok && daily.ticked.length >= daily.list.length;
@@ -4737,9 +4738,7 @@
     if (ok) cardBurst();
     if (!ok) {
       if (!skipped(k)) {
-        var now = Date.now(), p = progress[k] || { reps: 0 };
-        p.reps = (p.reps || 0) + 1; p.ivl = 0; p.due = now + RULES.again.min; p.last = "again"; p.seen = now;
-        progress[k] = p; save();
+        progress[k] = applyRating(progress[k] || { reps: 0 }, "again", Date.now()); save();
       }
       queue.push(k);
     }

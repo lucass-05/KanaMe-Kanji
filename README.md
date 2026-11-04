@@ -32,6 +32,8 @@ Sin cuentas · Sin anuncios · Funciona sin conexión
 |---|:---:|:---:|:---:|:---:|
 | **Vuelve en** | 10 min | 1 día | 3 días | 16 días |
 
+Cada vez que aciertas, la espera se multiplica (Good ×2,5, Easy ×3, Hard ×1,2) hasta un máximo de un año. Además, cada kanji tiene su propio multiplicador: baja un poco cuando lo fallas o te cuesta y sube un poco con Easy, así los difíciles vuelven más a menudo y los fáciles se alejan antes.
+
 Tu progreso se guarda solo en el móvil y se comparte entre niveles: lo que ya sabes no vuelve a salir hasta que toca.
 
 ## Kanji de hoy, racha y paletas
