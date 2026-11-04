@@ -4251,23 +4251,24 @@
     return "🌱 En unos " + e.time + " te sabrías " + cuantos + " que aprende un niño japonés en toda la primaria, a tu ritmo.";
   }
   /* Reto diario: los kanji del día salen siempre (estén o no pendientes en los niveles). Se marcan con ✕ o ✓;
-     los de ✕ se repiten hasta que todos tengan ✓. Al completarlo sube la racha y cada kanji del reto
-     queda como revisado y no vuelve a los niveles en al menos 5 días (si ya tenía un plazo mayor, se respeta).
+     los de ✕ se repiten hasta que todos tengan ✓. Marcar ✓ cuenta como «Good» en los niveles: el kanji usa su
+     multiplicador de días y no vuelve hasta que se cumpla su espera. Al completarlo sube la racha.
      Después se pueden seguir viendo con «Siguiente», sin marcar nada. */
-  var DAILY_MIN_GAP = 5 * DAY;
+  function rateGood(k, now) {
+    var p = progress[k] || { reps: 0 };
+    p.reps = (p.reps || 0) + 1;
+    p.ivl = nextIvl(p, "good");
+    p.due = now + p.ivl;
+    p.last = "good";
+    p.seen = now;
+    progress[k] = p;
+  }
   function dailyDone() { return daily.ticked.length; }
   function dailyComplete() { return daily.list.length > 0 && (daily.ticked.length >= daily.list.length || streak.last === daily.date); }
   function completeDaily() {
-    var now = Date.now(), min = now + DAILY_MIN_GAP;
-    daily.list.forEach(function (k) {
-      var p = progress[k] || { reps: 0 };
-      if (!(typeof p.due === "number" && p.due > min)) p.due = min;
-      p.ivl = Math.max(ivlOf(p), DAILY_MIN_GAP);
-      p.reps = (p.reps || 0) + 1;
-      p.last = p.last || "good";
-      p.seen = now;
-      progress[k] = p;
-    });
+    // los marcados con ✓ antes de que ✓ contara como «Good» (o al acortar el reto) se valoran ahora, una sola vez
+    var now = Date.now(), t0 = startOfToday();
+    daily.list.forEach(function (k) { var p = progress[k]; if (!p || !(p.seen >= t0)) rateGood(k, now); });
     save();
     checkDayComplete();
   }
@@ -4697,14 +4698,20 @@
     setTimeout(function () { busy = false; renderLevels(); showNext(); }, 460);
   }
 
-  // Reto diario: ✓ lo da por sabido hoy; ✕ lo devuelve al final de la cola
+  // Reto diario: ✓ («Me lo sé») cuenta como Good; ✕ («Repetir») cuenta como Again y lo devuelve al final de la cola
   function markDaily(ok) {
     if (!flipped || !current || busy || mode() !== "daily") return;
     busy = true;
     var k = current;
     if (ok) {
-      if (daily.ticked.indexOf(k) < 0) { daily.ticked.push(k); saveDaily(); }
-    } else queue.push(k);
+      if (daily.ticked.indexOf(k) < 0) { daily.ticked.push(k); saveDaily(); rateGood(k, Date.now()); save(); }
+    } else {
+      // ✕ cuenta como «Again»: el kanji vuelve a empezar y el ✓ final le dará el plazo de un «Good» desde cero
+      var now = Date.now(), p = progress[k] || { reps: 0 };
+      p.reps = (p.reps || 0) + 1; p.ivl = 0; p.due = now + RULES.again.min; p.last = "again"; p.seen = now;
+      progress[k] = p; save();
+      queue.push(k);
+    }
     var finished = ok && daily.ticked.length >= daily.list.length;
     if (ok && !finished) cardBurst();
     if (finished) completeDaily();
