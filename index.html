@@ -3343,7 +3343,7 @@
     r.setProperty("--status", pal.status || "#121212");
     r.setProperty("--glow", pal.glow || "transparent");
     var RATE = { again: "#d0685c", hard: "#c99a4a", good: "#6fae84", easy: "#7fb8e0" };
-    for (var k in RATE) { var c = pal[k] || RATE[k]; r.setProperty("--" + k, c); r.setProperty("--" + k + "-soft", c + (k === "easy" ? "24" : "1f")); }
+    for (var k in RATE) { var c = pal[k] || RATE[k]; r.setProperty("--" + k, c); r.setProperty("--" + k + "-soft", c + (k === "easy" ? "3d" : "38")); }
     r.setProperty("color-scheme", pal.light ? "light" : "dark");
     document.documentElement.classList.toggle("light", !!pal.light);
     document.documentElement.setAttribute("data-pal", pal.id);
@@ -3377,10 +3377,10 @@
     --accent: #c0503a;
     --accent-soft: #c0503a2e;
 
-    --again: #d0685c;  --again-soft: #d0685c1f;
-    --hard:  #c99a4a;  --hard-soft:  #c99a4a1f;
-    --good:  #6fae84;  --good-soft:  #6fae841f;
-    --easy:  #7fb8e0;  --easy-soft:  #7fb8e024;
+    --again: #d0685c;  --again-soft: #d0685c38;
+    --hard:  #c99a4a;  --hard-soft:  #c99a4a38;
+    --good:  #6fae84;  --good-soft:  #6fae8438;
+    --easy:  #7fb8e0;  --easy-soft:  #7fb8e03d;
 
     --radius-lg: 22px;
     --radius-md: 14px;
@@ -3587,6 +3587,11 @@
   .hard  { background: var(--hard-soft);  color: var(--hard); }
   .good  { background: var(--good-soft);  color: var(--good); }
   .easy  { background: var(--easy-soft);  color: var(--easy); }
+  /* base semitransparente bajo el color para que los botones se lean sobre los fondos dibujados, sin llegar a ser opacos */
+  .ratings .rate-btn.again { background: linear-gradient(var(--again-soft), var(--again-soft)), color-mix(in srgb, var(--surface-solid, var(--surface)) 62%, transparent); }
+  .ratings .rate-btn.hard  { background: linear-gradient(var(--hard-soft), var(--hard-soft)), color-mix(in srgb, var(--surface-solid, var(--surface)) 62%, transparent); }
+  .ratings .rate-btn.good  { background: linear-gradient(var(--good-soft), var(--good-soft)), color-mix(in srgb, var(--surface-solid, var(--surface)) 62%, transparent); }
+  .ratings .rate-btn.easy  { background: linear-gradient(var(--easy-soft), var(--easy-soft)), color-mix(in srgb, var(--surface-solid, var(--surface)) 62%, transparent); }
   .ratings.daily, .ratings.cram { grid-template-columns: 1fr 1fr; }
   .ratings.daily .rate-btn .mark, .ratings.cram .rate-btn .mark { font-size: 24px; font-weight: 700; line-height: 1; }
   .ratings.browse { display: flex; }
