@@ -3559,6 +3559,22 @@
   .face-back { transform: rotateY(180deg); justify-content: flex-start; overflow-y: auto; padding-top: 34px; }
   .kanji-small { font-size: 52px; line-height: 1; font-weight: 500; margin: auto 0 18px; }
   .face-back > :last-child { margin-bottom: auto; }
+  /* Modo JLPT: tarjetas de palabras */
+  html[data-mode="jlpt"] .levels { grid-template-columns: repeat(5, 1fr); }
+  .kanji-big.is-word { letter-spacing: .02em; text-align: center; padding: 0 10px; overflow-wrap: anywhere; }
+  .word-top { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2px; margin: auto 0 8px; font-size: 44px; line-height: 1.15; font-weight: 500; }
+  .word-top .wk { appearance: none; font: inherit; color: inherit; background: none; border: none; border-bottom: 3px solid var(--hairline); border-radius: 6px; padding: 0 3px 2px; cursor: pointer; }
+  .word-top .wk.sel { color: var(--accent); border-bottom-color: var(--accent); background: var(--accent-soft); }
+  .word-top .wc { padding: 0 1px 5px; }
+  .word-read { font-size: 19px; color: var(--text-muted); margin-bottom: 10px; letter-spacing: .04em; }
+  .wk-hint { font-size: 11.5px; color: var(--text-faint); margin: -6px 0 8px; }
+  .kbox { width: 100%; max-width: 340px; border: 1px solid var(--hairline); border-radius: var(--radius-md); padding: 12px 12px 10px; display: flex; flex-direction: column; align-items: center; background: var(--surface-raised); }
+  .kbox .kanji-small { font-size: 40px; margin: 0 0 10px; }
+  .kbox .readings { margin-bottom: 10px; }
+  .kbox .meaning { font-size: 17px; margin-bottom: 10px; }
+  .kbox .word { border: none; padding: 0; }
+  .mode-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .mode-opts .size-opt b { font-size: 21px; }
   .readings { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 340px; margin-bottom: 18px; }
   .reading { display: flex; gap: 10px; align-items: baseline; text-align: left; background: var(--surface-raised); border-radius: var(--radius-sm); padding: 9px 12px; }
   .reading .lbl { flex: 0 0 34px; font-size: 10px; font-weight: 700; color: var(--text-faint); letter-spacing: .08em; }
@@ -3631,6 +3647,9 @@
   @media (max-height: 900px) {
     .face-back { padding: 12px 16px 14px; }
     .kanji-small { font-size: 36px; margin-bottom: 8px; }
+    .word-top { font-size: 34px; margin-bottom: 4px; }
+    .word-read { font-size: 16px; margin-bottom: 6px; }
+    .kbox .kanji-small { font-size: 30px; margin-bottom: 6px; }
     .readings { gap: 5px; margin-bottom: 10px; }
     .reading { padding: 6px 10px; }
     .reading .val { font-size: 15px; }
@@ -3935,6 +3954,10 @@
     <div class="stats" id="stats"></div>
     <p class="note">Un kanji está <b>dominado</b> cuando lo sabes tan bien que no vuelve hasta dentro de 3 semanas o más. Cada vez que aciertas, tarda más en volver (con Easy, el triple).</p>
 
+    <h3>Modo de estudio</h3>
+    <div class="mode-opts" id="modeOpts"></div>
+    <p class="note" id="modeNote"></p>
+
     <h3>Reto diario</h3>
     <div class="size-opts" id="sizeOptsSettings"></div>
     <div class="size-est" id="sizeEstSettings"></div>
@@ -4057,13 +4080,35 @@
 <div class="toast" id="toast"></div>
 
 <script src="data/kanji.js"></script>
+<script src="data/jlpt.js"></script>
 <script>
 (function () {
   "use strict";
 
   /* ================= Datos ================= */
   var GRADES = window.KANJI_DATA || [];
-  var LEVELS = [
+  /* Modo de estudio (Ajustes): "joyo" = grupos de primaria + Jōyō (como siempre) · "jlpt" = niveles N5 a N1 con kanji y palabras.
+     Los dos modos comparten el progreso: cada tarjeta se guarda por su kanji (o su palabra), así que un kanji repasado
+     en un modo está igual de repasado en el otro. Al cambiar de modo la app se recarga. */
+  var MODE_KEY = "kaname.mode.v1";
+  var JLPT = window.JLPT_DATA || null;
+  var MODE = (function () { try { return localStorage.getItem(MODE_KEY) === "jlpt" && JLPT ? "jlpt" : "joyo"; } catch (e) { return "joyo"; } })();
+  document.documentElement.setAttribute("data-mode", MODE);
+  var KINFO = {};          // kanji -> ficha completa (de los dos modos), para el reverso y el recuadro de las palabras
+  GRADES.forEach(function (g) { g.forEach(function (r) { KINFO[r[0]] = { k: r[0], on: r[1], kun: r[2], sig: r[3], pal: r[4] }; }); });
+  if (JLPT) JLPT.extra.forEach(function (r) { if (!KINFO[r[0]]) KINFO[r[0]] = { k: r[0], on: r[1], kun: r[2], sig: r[3], pal: r[4] }; });
+  var KNOWN = {};          // todas las tarjetas que existen en algún modo (para copias de seguridad)
+  Object.keys(KINFO).forEach(function (k) { KNOWN[k] = 1; });
+  if (JLPT) JLPT.levels.forEach(function (L) { L.w.forEach(function (w) { KNOWN[w[0]] = 1; }); });
+  function isKanji(ch) { return /[\u3400-\u9fff\uf900-\ufaff]/.test(ch); }
+
+  var LEVELS = MODE === "jlpt" ? [
+    { short: "N5", name: "JLPT N5" },
+    { short: "N4", name: "JLPT N5–N4" },
+    { short: "N3", name: "JLPT N5–N3" },
+    { short: "N2", name: "JLPT N5–N2" },
+    { short: "N1", name: "JLPT completo (N5–N1)" }
+  ] : [
     { short: "1",  name: "Kyōiku · 1º" },
     { short: "2",  name: "Kyōiku · 1º–2º" },
     { short: "3",  name: "Kyōiku · 1º–3º" },
@@ -4072,18 +4117,36 @@
     { short: "6",  name: "Kyōiku completo" },
     { short: "常", name: "Jōyō completo" }
   ];
-  var GRADE_TAG = ["1º", "2º", "3º", "4º", "5º", "6º", "Jōyō"];
+  var GRADE_TAG = MODE === "jlpt" ? ["N5", "N4", "N3", "N2", "N1"] : ["1º", "2º", "3º", "4º", "5º", "6º", "Jōyō"];
 
-  var CARDS = {};          // kanji -> card
-  var DECKS = [];          // DECKS[l] = lista de kanji del nivel l+1 (acumulativo)
+  var CARDS = {};          // tarjeta (kanji o palabra) -> datos de la tarjeta
+  var GROUPS = [];         // GROUPS[g] = tarjetas que se añaden en el grupo g
+  var DECKS = [];          // DECKS[l] = lista de tarjetas del nivel l+1 (acumulativo)
   (function build() {
     var acc = [];
+    if (MODE === "jlpt") {
+      JLPT.levels.forEach(function (L, li) {
+        var g = [];
+        Array.from(L.k).forEach(function (k) {
+          var i = KINFO[k]; if (!i) return;
+          CARDS[k] = { k: k, on: i.on, kun: i.kun, sig: i.sig, pal: i.pal, grade: li }; g.push(k);
+        });
+        L.w.forEach(function (w) {
+          if (CARDS[w[0]]) return;
+          CARDS[w[0]] = { k: w[0], word: true, read: w[1], sig: w[2], ks: Array.from(w[0]).filter(function (ch, i, a) { return isKanji(ch) && KINFO[ch] && a.indexOf(ch) === i; }), grade: li };
+          g.push(w[0]);
+        });
+        GROUPS.push(g); acc = acc.concat(g); DECKS.push(acc.slice());
+      });
+      return;
+    }
     GRADES.forEach(function (g, gi) {
+      var keys = [];
       g.forEach(function (r) {
         CARDS[r[0]] = { k: r[0], on: r[1], kun: r[2], sig: r[3], pal: r[4], grade: gi };
-        acc.push(r[0]);
+        keys.push(r[0]); acc.push(r[0]);
       });
-      DECKS.push(acc.slice());
+      GROUPS.push(keys); DECKS.push(acc.slice());
     });
   })();
 
@@ -4117,9 +4180,9 @@
      El progreso se escribe en localStorage Y en IndexedDB.
      Si uno de los dos se pierde, se recupera del otro al abrir. */
   var KEY = "kaname.progress.v1";
-  var LEVEL_KEY = "kaname.level.v1";
+  var LEVEL_KEY = MODE === "jlpt" ? "kaname.level.jlpt.v1" : "kaname.level.v1";
   var LEGACY_KEY = "kyoikuSR_progress_v1"; // versiones anteriores de la app
-  var DAILY_KEY = "kaname.daily.v1";       // "AAAA-MM-DD\n" + los kanji del día + "\n" + los ya marcados con ✓ hoy
+  var DAILY_KEY = MODE === "jlpt" ? "kaname.daily.jlpt.v1" : "kaname.daily.v1";  // "AAAA-MM-DD\n" + las tarjetas del día + "\n" + las ya marcadas con ✓ hoy (en JLPT separadas por «|»)
   var STREAK_KEY = "kaname.streak.v1";     // { cur, best, last: "AAAA-MM-DD" }
   var PALETTE_KEY = "kaname.palette.v1";
   var SIZE_KEY = "kaname.dailySize.v1";     // kanji del reto diario: 5, 10 o 20 (lo elige el usuario)
@@ -4200,12 +4263,15 @@
     if (typeof text !== "string") return { date: "", list: [], ticked: [] };
     var lines = text.split("\n");
     var date = (lines[0] || "").trim();
-    var list = Array.from((lines[1] || "").trim()).filter(function (k) { return CARDS[k]; });
-    var ticked = Array.from((lines[2] || "").trim()).filter(function (k) { return list.indexOf(k) >= 0; });
+    var list = splitList(lines[1]).filter(function (k) { return CARDS[k]; });
+    var ticked = splitList(lines[2]).filter(function (k) { return list.indexOf(k) >= 0; });
     return /^\d{4}-\d{2}-\d{2}$/.test(date) ? { date: date, list: list, ticked: ticked, v: +(lines[3] || 1) } : { date: "", list: [], ticked: [] };
   }
+  // En JLPT hay palabras de varios caracteres: la lista se guarda separada por «|»
+  function splitList(t) { t = (t || "").trim(); return MODE === "jlpt" ? t.split("|").filter(Boolean) : Array.from(t); }
+  function joinList(a) { return a.join(MODE === "jlpt" ? "|" : ""); }
   function saveDaily() {
-    var text = daily.date + "\n" + daily.list.join("") + "\n" + daily.ticked.join("") + "\n" + DAILY_V;
+    var text = daily.date + "\n" + joinList(daily.list) + "\n" + joinList(daily.ticked) + "\n" + DAILY_V;
     lsSet(DAILY_KEY, text); idbSet(DAILY_KEY, text);
   }
   // Kanji disponibles (nuevos o con el tiempo de espera ya cumplido) del primer nivel que tenga alguno,
@@ -4213,9 +4279,9 @@
   var DAILY_V = 2;   // 2 = reto elegido con esta regla (los de antes se rehacen una vez, conservando los ✓)
   function pickFresh(n, excluir) {
     var pick = [], now = Date.now();
-    for (var g = 0; g < GRADES.length && pick.length < n; g++) {
+    for (var g = 0; g < GROUPS.length && pick.length < n; g++) {
       if (g + 1 < fromGroup) continue;
-      var fresh = GRADES[g].map(function (r) { return r[0]; }).filter(function (k) { var p = progress[k]; return (!p || typeof p.due !== "number" || p.due <= now) && excluir.indexOf(k) < 0; });
+      var fresh = GROUPS[g].filter(function (k) { var p = progress[k]; return (!p || typeof p.due !== "number" || p.due <= now) && excluir.indexOf(k) < 0; });
       pick = pick.concat(shuffle(fresh).slice(0, n - pick.length));
     }
     return pick;
@@ -4254,7 +4320,7 @@
   }
   // Cuánto se tardaría en empezar todos los kanji de primaria (Kyōiku, 1026) a «n» kanji nuevos al día
   function primaryEstimate(n) {
-    var all = DECKS[5] || [], left = all.filter(function (k) { return !progress[k] && !skipped(k); }).length;
+    var all = (MODE === "jlpt" ? [] : DECKS[5]) || [], left = all.filter(function (k) { return !progress[k] && !skipped(k); }).length;
     var days = Math.ceil(left / n), t;
     if (!left) t = "";
     else if (days < 14) t = days + (days === 1 ? " día" : " días");
@@ -4262,7 +4328,28 @@
     else { var m = Math.round(days / 30 * 2) / 2; t = String(m).replace(".", ",") + " meses"; }
     return { total: all.length, left: left, time: t };
   }
+  // JLPT: cuánto falta para tener empezadas todas las tarjetas hasta el primer nivel que aún no está completo
+  function jlptEstimate(n) {
+    for (var l = 0; l < DECKS.length; l++) {
+      var all = DECKS[l], left = all.filter(function (k) { return !progress[k] && !skipped(k); }).length;
+      if (!left) continue;
+      var days = Math.ceil(left / n), t;
+      if (days < 14) t = days + (days === 1 ? " día" : " días");
+      else if (days < 60) t = Math.round(days / 7) + " semanas";
+      else { var m = Math.round(days / 30 * 2) / 2; t = String(m).replace(".", ",") + " meses"; }
+      return { left: left, total: all.length, time: t, lv: GRADE_TAG[l] };
+    }
+    return null;
+  }
   function estimateText(n) {
+    if (MODE === "jlpt") {
+      var j = jlptEstimate(n);
+      if (!j) return "¡Ya has empezado todas las tarjetas del JLPT, del N5 al N1!";
+      var q = j.left === j.total ? "las " + j.total + " tarjetas" : "las " + j.left + " tarjetas que te faltan";
+      if (n >= 20) return "🚀 ¡En solo " + j.time + " habrías visto " + q + " hasta el " + j.lv + "!";
+      if (n >= 10) return "🔥 ¡En " + j.time + " habrías visto " + q + " hasta el " + j.lv + "!";
+      return "🌱 En unos " + j.time + " habrías visto " + q + " hasta el " + j.lv + ", a tu ritmo.";
+    }
     var e = primaryEstimate(n);
     if (!e.left) return fromGroup > 6 ? "Empiezas directamente por los Jōyō: ¡a por ellos!" : "¡Ya has empezado todos los kanji de primaria! Ahora, a por los Jōyō.";
     var cuantos = e.left === e.total ? "los " + e.total + " kanji" : "los " + e.left + " kanji que te quedan de los " + e.total;
@@ -4370,7 +4457,7 @@
   /* «Mostrar kanji a partir de»: para estudiantes avanzados. Los kanji de los grupos anteriores cuentan como
      repasados (sin tocar su progreso ni marcarlos como dominados), no salen en los niveles siguientes ni en el
      reto diario. Al desactivarlo (volver a 1º) todo vuelve a la normalidad. */
-  var FROM_KEY = "kaname.fromGroup.v1";
+  var FROM_KEY = MODE === "jlpt" ? "kaname.fromGroup.jlpt.v1" : "kaname.fromGroup.v1";
   var fromGroup = Math.max(1, Math.min(LEVELS.length, parseInt(lsGet(FROM_KEY), 10) || 1)); // 1 = desactivado
   function skipped(k) { return CARDS[k] && CARDS[k].grade + 1 < fromGroup; }
   function deck(l) {
@@ -4576,17 +4663,15 @@
     card.onclick = flip;
   }
 
-  function fillBack(c) {
-    var back = $("back"); back.innerHTML = "";
-    back.appendChild(el("div", "tag", GRADE_TAG[c.grade]));
-    back.appendChild(el("div", "kanji-small", c.k));
+  // Lecturas, significado y palabras de ejemplo de un kanji (el reverso de su tarjeta)
+  function kanjiInfo(box, c) {
     var rd = el("div", "readings");
     [["ON", c.on], ["KUN", c.kun]].forEach(function (x) {
       if (!x[1]) return;
       var row = el("div", "reading"); row.appendChild(el("span", "lbl", x[0])); row.appendChild(el("span", "val", x[1])); rd.appendChild(row);
     });
-    if (rd.children.length) back.appendChild(rd);
-    back.appendChild(el("div", "meaning", c.sig));
+    if (rd.children.length) box.appendChild(rd);
+    box.appendChild(el("div", "meaning", c.sig));
     var pals = Array.isArray(c.pal) ? c.pal : (c.pal ? [c.pal] : []);
     if (pals.length) {
       var w = el("div", "word");
@@ -4611,9 +4696,44 @@
         ul.appendChild(li);
       });
       w.appendChild(ul);
-      back.appendChild(w);
+      box.appendChild(w);
     }
+  }
+  function fillBack(c) {
+    var back = $("back"); back.innerHTML = "";
+    back.appendChild(el("div", "tag", GRADE_TAG[c.grade]));
+    if (c.word) { fillWordBack(back, c); back.scrollTop = 0; return; }
+    back.appendChild(el("div", "kanji-small", c.k));
+    kanjiInfo(back, c);
     back.scrollTop = 0;
+  }
+  /* Reverso de una palabra (modo JLPT): la palabra arriba, su lectura en hiragana y su significado; debajo, un recuadro
+     con el reverso completo de uno de sus kanji (al principio el primero). Tocando otro kanji de la palabra se cambia. */
+  function fillWordBack(back, c) {
+    var top = el("div", "word-top"), sel = c.ks[0], spans = [], n = Array.from(c.k).length;
+    if (n > 4) top.style.fontSize = Math.max(22, Math.floor(170 / n)) + "px";   // palabras largas: más pequeñas para que quepan
+    Array.from(c.k).forEach(function (ch) {
+      if (c.ks.indexOf(ch) >= 0) {
+        var b = el("button", "wk" + (ch === sel ? " sel" : ""), ch);
+        b.setAttribute("aria-label", "Ver el kanji " + ch);
+        b.onclick = function (e) { e.stopPropagation(); if (ch === sel) return; sel = ch; spans.forEach(function (x) { x.classList.toggle("sel", x.textContent === ch); }); show(); };
+        spans.push(b); top.appendChild(b);
+      } else top.appendChild(el("span", "wc", ch));
+    });
+    back.appendChild(top);
+    back.appendChild(el("div", "word-read", c.read));
+    back.appendChild(el("div", "meaning", c.sig));
+    if (!c.ks.length) return;
+    if (c.ks.length > 1) back.appendChild(el("div", "wk-hint", "Toca un kanji de la palabra para ver su explicación"));
+    var box = el("div", "kbox");
+    back.appendChild(box);
+    function show() {
+      box.innerHTML = "";
+      var i = KINFO[sel];
+      box.appendChild(el("div", "kanji-small", sel));
+      kanjiInfo(box, i);
+    }
+    show();
   }
 
   function renderEmpty() {
@@ -4660,7 +4780,10 @@
     card.classList.add("no-anim"); card.classList.remove("flipped");
     void card.offsetWidth; card.classList.remove("no-anim");
     $("ratings").classList.toggle("show", mode() === "browse");
-    $("kFront").textContent = c.k;
+    var kf = $("kFront"), len = Array.from(c.k).length;
+    kf.textContent = c.k;
+    kf.classList.toggle("is-word", !!c.word);
+    kf.style.fontSize = c.word && len > 1 ? (len <= 2 ? "clamp(78px, 26vw, 112px)" : len === 3 ? "clamp(60px, 20vw, 88px)" : len === 4 ? "clamp(48px, 16vw, 70px)" : "clamp(36px, " + Math.floor(64 / len) + "vw, " + Math.floor(300 / len) + "px)") : "";
     $("tagFront").textContent = GRADE_TAG[c.grade];
     $("back").innerHTML = ""; // la respuesta se rellena solo al girar, así nunca se ve antes de tiempo
     renderStatus();
@@ -4892,17 +5015,17 @@
   function renderStats() {
     var now = Date.now(), seen = 0, mature = 0, due = 0;
     Object.keys(progress).forEach(function (k) {
-      var p = progress[k]; if (!CARDS[k] || !p) return;
+      var p = progress[k]; if (!CARDS[k] || !p) return;   // cuenta solo las tarjetas del modo actual
       seen++;
       if (ivlOf(p) >= MASTERED) mature++;
       if (p.due <= now) due++;
     });
     var s = $("stats"); s.innerHTML = "";
-    [[seen, "estudiados"], [mature, "dominados"], [2136 - seen, "por empezar"]].forEach(function (x) {
+    [[seen, MODE === "jlpt" ? "estudiadas" : "estudiados"], [mature, MODE === "jlpt" ? "dominadas" : "dominados"], [Object.keys(CARDS).length - seen, "por empezar"]].forEach(function (x) {
       var d = el("div", "stat"); d.appendChild(el("b", null, String(x[0]))); d.appendChild(el("span", null, x[1])); s.appendChild(d);
     });
   }
-  function backupString() { return JSON.stringify({ app: "KanaMe", v: 2, date: new Date().toISOString(), progress: progress, streak: streak, palette: lsGet(PALETTE_KEY) || "sumi", dailySize: DAILY_SIZE, fromGroup: fromGroup }); }
+  function backupString() { return JSON.stringify({ app: "KanaMe", v: 2, date: new Date().toISOString(), progress: progress, streak: streak, palette: lsGet(PALETTE_KEY) || "sumi", dailySize: DAILY_SIZE, fromGroup: parseInt(lsGet("kaname.fromGroup.v1"), 10) || 1 }); }
   function restoreFrom(text) {
     var o = parse((text || "").trim());
     var p = o && (o.progress || (o.app ? null : o));
@@ -4910,7 +5033,7 @@
     var n = 0, merged = {};
     Object.keys(progress).forEach(function (k) { merged[k] = progress[k]; });
     Object.keys(p).forEach(function (k) {
-      if (!CARDS[k] || !p[k] || typeof p[k].due !== "number") return;
+      if (!KNOWN[k] || !p[k] || typeof p[k].due !== "number") return;
       // Si la tarjeta existe en ambos, nos quedamos con la revisada más recientemente
       if (!merged[k] || (p[k].seen || 0) >= (merged[k].seen || 0)) { merged[k] = p[k]; n++; }
     });
@@ -4923,13 +5046,31 @@
       if (o.palette) { var pp = PALETTES.filter(function (x) { return x.id === o.palette; })[0]; if (pp && unlocked(pp)) setPalette(pp.id); }
     }
     if (SIZES.indexOf(+o.dailySize) >= 0) { DAILY_SIZE = +o.dailySize; lsSet(SIZE_KEY, String(DAILY_SIZE)); fitDaily(); }
-    if (o.fromGroup >= 1 && o.fromGroup <= LEVELS.length) { fromGroup = +o.fromGroup; lsSet(FROM_KEY, String(fromGroup)); }
+    if (MODE === "joyo" && o.fromGroup >= 1 && o.fromGroup <= LEVELS.length) { fromGroup = +o.fromGroup; lsSet(FROM_KEY, String(fromGroup)); }
     buildQueue(); stage.innerHTML = ""; current = null; showNext(); renderLevels(); renderStats(); renderStreakSheet();
     if ($("sheet").classList.contains("open")) { renderSizeSettings(); renderFromSettings(); }
     toast(n + " tarjetas restauradas");
   }
 
-  function openSheet() { renderStats(); renderSizeSettings(); $("sizeNoteSettings").textContent = "Kanji nuevos que te damos cada día en «Kanji de hoy»."; renderFromSettings(); renderStreakSheet(); renderReminder(); $("sheet").classList.add("open"); }
+  function renderModeSettings() {
+    var box = $("modeOpts"); box.innerHTML = "";
+    [["joyo", "常用 Jōyō", "Por cursos del colegio"], ["jlpt", "JLPT", "N5 a N1, con palabras"]].forEach(function (x) {
+      var b = el("button", "size-opt" + (x[0] === MODE ? " sel" : ""));
+      b.setAttribute("aria-pressed", x[0] === MODE ? "true" : "false");
+      b.appendChild(el("b", null, x[1])); b.appendChild(el("span", null, x[2]));
+      b.onclick = function () {
+        if (x[0] === MODE) return;
+        if (x[0] === "jlpt" && !JLPT) { toast("No se pudieron cargar los datos del JLPT"); return; }
+        save(); lsSet(MODE_KEY, x[0]); track("modo-" + x[0]);
+        location.reload();
+      };
+      box.appendChild(b);
+    });
+    $("modeNote").textContent = MODE === "jlpt"
+      ? "Niveles del JLPT del N5 al N1, con sus kanji y su vocabulario. Las palabras tienen su propia tarjeta: al girarla, toca cada kanji para ver su explicación. Tu progreso es el mismo en los dos modos: lo que repases aquí cuenta también en Jōyō. (Listas no oficiales: el JLPT no publica listas desde 2010.)"
+      : "Los kanji ordenados como los aprenden los niños japoneses: de 1º a 6º de primaria y después el resto de los Jōyō. Tu progreso es el mismo en los dos modos: lo que repases aquí cuenta también en JLPT.";
+  }
+  function openSheet() { renderModeSettings(); renderStats(); renderSizeSettings(); $("sizeNoteSettings").textContent = "Kanji nuevos que te damos cada día en «Kanji de hoy»."; renderFromSettings(); renderStreakSheet(); renderReminder(); $("sheet").classList.add("open"); }
   $("openSettings").onclick = openSheet;
   $("streakBtn").onclick = openSheet;
   $("closeSettings").onclick = function () { $("sheet").classList.remove("open"); };
@@ -5002,7 +5143,7 @@
     progress = {}; save(); try { localStorage.removeItem(LEGACY_KEY); } catch (e) {}
     streak = { cur: 0, best: 0, last: "" }; saveStreak(); setPalette("sumi");
     try { localStorage.removeItem(INTRO_KEY); } catch (e) {}
-    fromGroup = 1; try { localStorage.removeItem(FROM_KEY); } catch (e) {}
+    fromGroup = 1; try { localStorage.removeItem("kaname.fromGroup.v1"); localStorage.removeItem("kaname.fromGroup.jlpt.v1"); } catch (e) {}
     daily = { date: "", list: [] }; ensureDaily();
     selectLevel(level); renderStats(); renderStreakSheet(); renderFromSettings(); renderSizeSettings(); toast("Progreso borrado");
   };
@@ -5085,19 +5226,21 @@
   }
 
   /* ================= Mostrar kanji a partir de… ================= */
+  function groupLabel(n) { return MODE === "jlpt" ? GRADE_TAG[n - 1] : n === 7 ? "常 Jōyō" : n + "º"; }
   function renderFromSettings() {
     var box = $("fromOpts"); box.innerHTML = "";
+    box.style.gridTemplateColumns = "repeat(" + LEVELS.length + ", 1fr)";
     LEVELS.forEach(function (L, i) {
       var n = i + 1, b = el("button", "from-opt" + (n === fromGroup ? " sel" : n < fromGroup ? " skip" : ""), GRADE_TAG[i] === "Jōyō" ? "常" : GRADE_TAG[i]);
       b.setAttribute("aria-pressed", n === fromGroup ? "true" : "false");
-      b.setAttribute("aria-label", n === 1 ? "Desde 1º (todos los kanji)" : "A partir de " + (n === 7 ? "los Jōyō de secundaria" : n + "º") + ": saltar los grupos anteriores");
+      b.setAttribute("aria-label", n === 1 ? "Desde " + GRADE_TAG[0] + " (todo)" : "A partir de " + groupLabel(n) + ": saltar los grupos anteriores");
       b.onclick = function () { setFromGroup(n); };
       box.appendChild(b);
     });
-    var cuantos = DECKS[fromGroup - 2] ? DECKS[fromGroup - 2].length : 0;
+    var cuantos = DECKS[fromGroup - 2] ? DECKS[fromGroup - 2].length : 0, que = MODE === "jlpt" ? "tarjetas" : "kanji";
     $("fromNote").textContent = fromGroup === 1
-      ? "Para estudiantes avanzados: elige un grupo para saltarte los anteriores. Contarán como repasados (sin marcarse como dominados) y no saldrán en los demás niveles ni en el reto diario. Vuelve a 1º para desactivarlo."
-      : "Te saltas los " + cuantos + " kanji de " + (fromGroup === 2 ? "1º" : "1º a " + GRADE_TAG[fromGroup - 2]) + ": cuentan como repasados (no como dominados) y no salen en los demás niveles ni en el reto diario. Puedes repasarlos igualmente desde su nivel. Vuelve a 1º para desactivarlo.";
+      ? "Para estudiantes avanzados: elige un grupo para saltarte los anteriores. Contarán como repasados (sin marcarse como dominados) y no saldrán en los demás niveles ni en el reto diario. Vuelve a " + GRADE_TAG[0] + " para desactivarlo."
+      : "Te saltas las " + cuantos + " " + que + " de " + (fromGroup === 2 ? GRADE_TAG[0] : GRADE_TAG[0] + " a " + GRADE_TAG[fromGroup - 2]) + ": cuentan como repasadas (no como dominadas) y no salen en los demás niveles ni en el reto diario. Puedes repasarlas igualmente desde su nivel. Vuelve a " + GRADE_TAG[0] + " para desactivarlo.";
   }
   function setFromGroup(n) {
     if (n === fromGroup) return;
@@ -5112,7 +5255,7 @@
     if (level !== 0 && level < fromGroup) level = firstOpenLevel(), lsSet(LEVEL_KEY, String(level));
     cramMode = false; current = null; buildQueue(); stage.innerHTML = ""; showNext(); renderLevels();
     renderFromSettings(); renderSizeSettings();
-    toast(n === 1 ? "Mostrando todos los kanji" : "Mostrando kanji a partir de " + (n === 7 ? "常 Jōyō" : n + "º"));
+    toast(n === 1 ? "Mostrando todo desde " + GRADE_TAG[0] : "Mostrando a partir de " + groupLabel(n));
   }
 
   /* ================= Tutorial de la primera vez =================
@@ -5134,7 +5277,7 @@
       else if (m === "srs") steps.push({ el: "ratings", t: "¿Cuándo vuelve?", h: "Elige lo bien que te lo sabías. Debajo de cada botón ves <b>cuándo volverá</b> esa tarjeta." });
       else steps.push({ el: "ratings", t: "Repaso libre", h: "Has superado el reto de hoy: puedes seguir viendo los " + daily.list.length + " kanji con <b>Siguiente</b>, sin marcar nada." });
     }
-    steps.push({ el: "levels", t: "Niveles", h: "Aquí eliges qué estudiar: de <b>1º a 6º de primaria</b> (cada uno incluye los anteriores) y <b>常</b>, los 2136 kanji Jōyō. El número es lo que tienes pendiente. Al superar el reto de hoy te llevamos solos al primer nivel sin terminar.",
+    steps.push({ el: "levels", t: "Niveles", h: (MODE === "jlpt" ? "Aquí eliges qué estudiar: los niveles del JLPT, del <b>N5</b> al <b>N1</b> (cada uno incluye los anteriores), con sus kanji y sus palabras." : "Aquí eliges qué estudiar: de <b>1º a 6º de primaria</b> (cada uno incluye los anteriores) y <b>常</b>, los 2136 kanji Jōyō.") + " El número es lo que tienes pendiente. Al superar el reto de hoy te llevamos solos al primer nivel sin terminar.",
       chips: true });
     steps.push({ el: "streakBtn", t: "Racha y colores", h: "Tu racha de días seguidos. Tócala para ver las <b>paletas de colores</b> que vas desbloqueando y elegir la que quieras." });
     steps.push({ el: "openSettings", t: "Tu progreso", h: "Estadísticas, <b>recordatorio diario</b> y copia de seguridad para pasar tu progreso a otro móvil." + " ¡Listo, a estudiar!" });
@@ -5307,7 +5450,7 @@
   $("tourAgain").onclick = function () { $("sheet").classList.remove("open"); setTimeout(function () { startTour(null, true); }, 250); };
 
   /* ================= Inicio ================= */
-  if (!GRADES.length) { stage.textContent = "No se pudieron cargar los datos (data/kanji.js)."; return; }
+  if (!GROUPS.length) { stage.textContent = "No se pudieron cargar los datos (data/kanji.js)."; return; }
   loadProgress().then(function () {
     requestPersistence();
     ensureDaily();

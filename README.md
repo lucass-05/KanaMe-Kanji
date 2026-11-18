@@ -67,6 +67,16 @@ Cada nivel incluye todos los anteriores.
 | Kyōiku 1º | 1º–2º | 1º–3º | 1º–4º | 1º–5º | Kyōiku completo | **Jōyō completo** |
 | 80 | 240 | 440 | 642 | 835 | 1026 | **2136** |
 
+### Modo JLPT
+
+En *Progreso → Modo de estudio* puedes cambiar a los niveles del **JLPT, del N5 al N1**. Cada nivel trae sus kanji y su vocabulario, y también incluye los anteriores. Las palabras tienen su propia tarjeta: por delante ves la palabra; al girarla, su lectura en hiragana y su significado, y debajo un recuadro con la ficha completa de uno de sus kanji. Toca otro kanji de la palabra para ver el suyo.
+
+| N5 | N4 | N3 | N2 | N1 |
+|:---:|:---:|:---:|:---:|:---:|
+| 79 kanji + 432 palabras | +166 + 459 | +367 + 1524 | +367 + 1441 | +1232 + 2173 |
+
+Los dos modos comparten el progreso: un kanji que ya has repasado en Jōyō aparece igual de repasado en JLPT, y al revés. «Kanji de hoy» funciona igual en los dos: toma las tarjetas del primer nivel que aún tenga alguna disponible. El JLPT no publica listas oficiales desde 2010; estas se basan en las de Jonathan Waller ([tanos.co.uk](http://www.tanos.co.uk/jlpt/)).
+
 ## Medallas y paletas
 
 <p align="center"><img src="docs/paletas.png" alt="Las 28 medallas y paletas de KanaMe con los días de racha que piden" width="100%"></p>
@@ -107,6 +117,7 @@ python3 -m http.server 8000   # y abre http://localhost:8000
 |---|---|
 | `index.html` | Interfaz y lógica de la app |
 | `data/kanji.js` | Los 2136 kanji: `[kanji, on, kun, significado, palabras]` |
+| `data/jlpt.js` | Modo JLPT: kanji y palabras de cada nivel (N5–N1) y los kanji que no son Jōyō |
 | `sw.js` | Service worker: modo sin conexión y avisos del recordatorio. Sube `VERSION` al publicar cambios |
 | `push/` | Servidor de recordatorios diarios (Cloudflare Worker) y [guía para ponerlo en marcha](push/README.md) |
 | `csv/` | Mazos en CSV para Anki, Quizlet y similares |
@@ -116,6 +127,7 @@ python3 -m http.server 8000   # y abre http://localhost:8000
 
 - Lecturas: [KANJIDIC2](https://www.edrdg.org/wiki/index.php/KANJIDIC_Project) (EDRDG, CC BY-SA 4.0), vía [kanji-data](https://github.com/davidluzgouveia/kanji-data).
 - Significados en español y palabras de ejemplo: elaboración propia.
+- Niveles JLPT: listas no oficiales de Jonathan Waller ([tanos.co.uk](http://www.tanos.co.uk/jlpt/)), vía [kanji-data](https://github.com/davidluzgouveia/kanji-data) y [open-anki-jlpt-decks](https://github.com/jamsinclair/open-anki-jlpt-decks).
 - Listas oficiales: 常用漢字表 (2010) y 学年別漢字配当表 (MEXT, 2020).
 
 ## Licencia
