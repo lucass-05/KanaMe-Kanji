@@ -107,21 +107,52 @@ Para saber cuánta gente usa la app se cuentan las visitas de forma anónima con
 
 ## Para desarrolladores
 
-HTML, CSS y JavaScript puros, sin dependencias ni compilación.
+HTML, CSS y JavaScript puros (módulos ES), sin dependencias ni compilación. Hace falta un servidor local, porque los módulos no cargan con `file://`:
 
 ```bash
 python3 -m http.server 8000   # y abre http://localhost:8000
 ```
 
-| Archivo | Contenido |
-|---|---|
-| `index.html` | Interfaz y lógica de la app |
-| `data/kanji.js` | Los 2136 kanji: `[kanji, on, kun, significado, palabras]` |
-| `data/jlpt.js` | Modo JLPT: kanji y palabras de cada nivel (N5–N1) y los kanji que no son Jōyō |
-| `sw.js` | Service worker: modo sin conexión y avisos del recordatorio. Sube `VERSION` al publicar cambios |
-| `push/` | Servidor de recordatorios diarios (Cloudflare Worker) y [guía para ponerlo en marcha](push/README.md) |
-| `csv/` | Mazos en CSV para Anki, Quizlet y similares |
-| `icons/` | Iconos para iOS, Android y navegador |
+### Estructura
+
+```
+index.html            solo el marcado de la página
+css/
+  app.css             interfaz: variables, niveles, tarjetas, hojas y tutorial
+  palettes.css        fondos de las paletas, medallero y efectos
+js/
+  main.js             punto de entrada: ejecuta el init() de cada módulo en orden
+  app/                la app
+    state.js          estado compartido (progreso, reto de hoy, racha, nivel…)
+    data.js           modo Jōyō/JLPT, niveles y tarjetas
+    srs.js            repetición espaciada (plazos y multiplicador de cada tarjeta)
+    storage.js        guardado en localStorage + IndexedDB
+    daily.js          «Kanji de hoy»
+    streak.js         racha, medallas y paletas desbloqueadas
+    session.js        nivel elegido y cola de tarjetas
+    ui.js             niveles, tarjetas (kanji y palabras) y valoraciones
+    settings.js       ajustes, modo de estudio y copia de seguridad
+    daily-size.js · from-group.js · reminder.js · tour.js · install.js · commands.js · lifecycle.js · start.js
+  palettes/           las paletas
+    list.js           la lista: colores, días de racha y efectos de cada paleta
+    engine.js         aplica una paleta y dibuja su fondo
+    medals.js         las medallas
+    shapes.js · scenes-v5.js · scenes/   los dibujos de fondo (SVG generado por código)
+data/
+  kanji.js            los 2136 kanji: [kanji, on, kun, significado, palabras]
+  jlpt.js             modo JLPT: kanji y palabras de N5 a N1, y los kanji que no son Jōyō
+sw.js                 service worker: sin conexión y avisos. Sube VERSION y añade a CORE los archivos nuevos
+push/                 servidor de recordatorios (Cloudflare Worker) y su guía
+csv/                  mazos en CSV para Anki, Quizlet y similares
+icons/                iconos para iOS, Android y navegador
+```
+
+Cómo se organiza el código:
+
+- Cada módulo declara funciones y datos y exporta un `init()` con lo que tiene que hacer al arrancar (leer ajustes, enganchar botones…). `main.js` llama a los `init()` en orden, primero las paletas y luego la app.
+- Lo que cambia mientras se usa la app y se toca desde varios módulos vive en `state` (`js/app/state.js`): `state.progress`, `state.daily`, `state.level`…
+- Las paletas se comunican con la app por `window.KANAME_PALETTES`, `window.applyKanamePalette`, `window.KANAME_MEDAL` y `window.kanameBurst`.
+- Para añadir una paleta: su entrada en `palettes/list.js` (o con `insertPal` desde un archivo de `palettes/scenes/`), su dibujo en `palettes/scenes/` y su `init()` en `main.js`.
 
 ## Créditos
 

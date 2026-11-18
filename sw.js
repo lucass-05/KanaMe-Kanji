@@ -1,8 +1,51 @@
 /* KanaMe service worker — permite usar la app sin conexión.
    Estrategia "red primero": si hay internet siempre carga la última versión;
    si no, usa la copia guardada. Sube VERSION al publicar cambios grandes. */
-const VERSION = "kaname-v34";
-const CORE = ["./", "index.html", "data/kanji.js", "data/jlpt.js", "site.webmanifest", "icons/icon-192.png", "apple-touch-icon.png"];
+const VERSION = "kaname-v35";
+const CORE = [
+  "./", "index.html", "data/kanji.js", "data/jlpt.js", "site.webmanifest", "icons/icon-192.png", "apple-touch-icon.png",
+  "css/app.css",
+  "css/palettes.css",
+  "js/app/commands.js",
+  "js/app/daily-size.js",
+  "js/app/daily.js",
+  "js/app/data.js",
+  "js/app/from-group.js",
+  "js/app/install.js",
+  "js/app/lifecycle.js",
+  "js/app/reminder.js",
+  "js/app/session.js",
+  "js/app/settings.js",
+  "js/app/srs.js",
+  "js/app/start.js",
+  "js/app/state.js",
+  "js/app/storage.js",
+  "js/app/streak.js",
+  "js/app/tour.js",
+  "js/app/ui.js",
+  "js/main.js",
+  "js/palettes/engine.js",
+  "js/palettes/list.js",
+  "js/palettes/medals.js",
+  "js/palettes/scenes-v5.js",
+  "js/palettes/scenes/akiba-shibuya.js",
+  "js/palettes/scenes/common.js",
+  "js/palettes/scenes/daruma.js",
+  "js/palettes/scenes/edo-sansui.js",
+  "js/palettes/scenes/edo.js",
+  "js/palettes/scenes/fuji.js",
+  "js/palettes/scenes/hanabi.js",
+  "js/palettes/scenes/koi.js",
+  "js/palettes/scenes/machi-geisha.js",
+  "js/palettes/scenes/onsen-colors.js",
+  "js/palettes/scenes/onsen-tanabata.js",
+  "js/palettes/scenes/ryu.js",
+  "js/palettes/scenes/sakura-matcha.js",
+  "js/palettes/scenes/umi.js",
+  "js/palettes/scenes/varias.js",
+  "js/palettes/scenes/yuki.js",
+  "js/palettes/shapes.js",
+];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));
